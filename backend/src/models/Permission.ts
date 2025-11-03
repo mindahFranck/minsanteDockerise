@@ -40,7 +40,7 @@ Permission.init(
       comment: "Ressource concernée (users, fosas, regions, etc.)",
     },
     action: {
-      type: DataTypes.ENUM("create", "read", "update", "delete", "manage"),
+      type: DataTypes.ENUM("create", "read", "update", "delete", "manage", "export"),
       allowNull: false,
       comment: "Action autorisée",
     },
