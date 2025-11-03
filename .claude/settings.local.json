@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ping:*)",
+      "Bash(docker pull:*)",
+      "Bash(test:*)",
+      "Bash(node --version:*)",
+      "Bash(docker-compose:*)",
+      "Bash(chmod:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "Bash(cat:*)",
+      "Bash(node fix-all-passwords.js)",
+      "Bash(for file in Departement Arrondissement District Airesante Fosa Categorie Personnel)",
+      "Bash(do)",
+      "Bash(then)",
+      "Bash(echo:*)",
+      "Bash(fi)",
+      "Bash(done)",
+      "Bash(json_pp:*)",
+      "Bash(npm run build:*)",
+      "Bash(docker stop:*)",
+      "Bash(docker rm:*)",
+      "Bash(\"E:\\projets\\API HEALTH\\database\\seeds\\01_regions.sql\")",
+      "Bash(\"E:\\projets\\API HEALTH\\database\\seeds\\02_departements.sql\")",
+      "Bash(\"E:\\projets\\API HEALTH\\database\\seeds\\03_communes.sql\")",
+      "Bash(\"E:\\projets\\API HEALTH\\database\\seeds\\04_cameroun.sql\")",
+      "Bash(grep:*)",
+      "Bash(python:*)",
+      "Bash(openssl rand:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(dir:*)",
+      "Bash(nul)",
+      "Bash(node -e:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
