@@ -1,24 +1,24 @@
-import { Model, DataTypes } from "sequelize"
-import sequelize from "../config/database"
+import { Model, DataTypes } from "sequelize";
+import sequelize from "../config/database";
 
 export interface RoleAttributes {
-  id: number
-  name: string
-  code: string
-  description?: string
-  level: number
-  createdAt: Date
-  updatedAt: Date
+  id: number;
+  name: string;
+  code: string;
+  description?: string;
+  level: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export class Role extends Model<RoleAttributes> implements RoleAttributes {
-  declare id: number
-  declare name: string
-  declare code: string
-  declare description?: string
-  declare level: number
-  declare readonly createdAt: Date
-  declare readonly updatedAt: Date
+  declare id: number;
+  declare name: string;
+  declare code: string;
+  declare description?: string;
+  declare level: number;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 Role.init(
@@ -49,7 +49,20 @@ Role.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
-      comment: "Niveau hiérarchique (plus le nombre est élevé, plus les privilèges sont importants)",
+      comment:
+        "Niveau hiérarchique (plus le nombre est élevé, plus les privilèges sont importants)",
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: "created_at",
+      defaultValue: DataTypes.NOW,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: "updated_at",
+      defaultValue: DataTypes.NOW,
     },
   },
   {
@@ -58,6 +71,6 @@ Role.init(
     timestamps: true,
     underscored: true,
   }
-)
+);
 
-export default Role
+export default Role;

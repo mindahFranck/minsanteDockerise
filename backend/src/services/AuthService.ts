@@ -22,7 +22,7 @@ export class AuthService {
       firstName: data.firstName,
       lastName: data.lastName,
       role: data.role || "user",
-    })
+    } as any)
 
     const token = this.generateToken(user)
     const refreshToken = this.generateRefreshToken(user)
@@ -111,7 +111,7 @@ export class AuthService {
       process.env.JWT_SECRET!,
       {
         expiresIn: process.env.JWT_EXPIRES_IN || "7d",
-      },
+      } as jwt.SignOptions,
     )
   }
 
@@ -120,10 +120,10 @@ export class AuthService {
       {
         id: user.id,
       },
-      process.env.JWT_REFRESH_SECRET!,
+      process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET!,
       {
         expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "30d",
-      },
+      } as jwt.SignOptions,
     )
   }
 

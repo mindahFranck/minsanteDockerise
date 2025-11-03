@@ -1,23 +1,23 @@
-import { Response } from "express"
+import { Response } from "express";
 
 interface ApiResponse<T = any> {
-  success: boolean
-  message?: string
-  data?: T
-  error?: string
+  success: boolean;
+  message?: string;
+  data?: T;
+  error?: string;
   pagination?: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export const sendSuccess = <T>(
   res: Response,
   data: T,
   message?: string,
-  statusCode = 200,
+  statusCode = 200
 ): Response => {
   const response: ApiResponse<T> = {
     success: true,
@@ -30,7 +30,7 @@ export const sendSuccess = <T>(
 export const sendError = (
   res: Response,
   error: string,
-  statusCode = 500,
+  statusCode = 500
 ): Response => {
   const response: ApiResponse = {
     success: false,
@@ -45,7 +45,7 @@ export const sendPaginated = <T>(
   page: number,
   limit: number,
   total: number,
-  message?: string,
+  message?: string
 ): Response => {
   const response: ApiResponse<T[]> = {
     success: true,
@@ -60,3 +60,6 @@ export const sendPaginated = <T>(
   };
   return res.status(200).json(response);
 };
+
+// Alias for compatibility
+export const successResponse = sendSuccess;

@@ -87,7 +87,7 @@ export async function seedDatabase() {
       // Audit permissions
       { name: "audit.read", resource: "audit", action: "read", description: "Read audit logs" },
       { name: "audit.manage", resource: "audit", action: "manage", description: "Manage audit logs" },
-    ])
+    ] as any)
     logger.info(`Created ${permissions.length} permissions`)
 
     // Seed Roles
@@ -96,7 +96,7 @@ export async function seedDatabase() {
       { name: "Admin", code: "admin", description: "Administrative access", level: 3 },
       { name: "Manager", code: "manager", description: "Manager access", level: 2 },
       { name: "User", code: "user", description: "Basic user access", level: 1 },
-    ])
+    ] as any)
     logger.info(`Created ${roles.length} roles`)
 
     // Seed Role-Permission associations
@@ -107,7 +107,7 @@ export async function seedDatabase() {
 
     // Super Admin gets all permissions
     await RolePermission.bulkCreate(
-      permissions.map(p => ({ roleId: superAdminRole.id, permissionId: p.id }))
+      permissions.map(p => ({ roleId: superAdminRole.id, permissionId: p.id })) as any
     )
 
     // Admin permissions (all except user management)
@@ -118,7 +118,7 @@ export async function seedDatabase() {
       !p.name.startsWith("users.manage")
     )
     await RolePermission.bulkCreate(
-      adminPermissions.map(p => ({ roleId: adminRole.id, permissionId: p.id }))
+      adminPermissions.map(p => ({ roleId: adminRole.id, permissionId: p.id })) as any
     )
 
     // Manager permissions (read geographic data, manage FOSA/batiments/services/personnels/equipements within scope)
@@ -131,13 +131,13 @@ export async function seedDatabase() {
       p.name.startsWith("equipements.")
     )
     await RolePermission.bulkCreate(
-      managerPermissions.map(p => ({ roleId: managerRole.id, permissionId: p.id }))
+      managerPermissions.map(p => ({ roleId: managerRole.id, permissionId: p.id })) as any
     )
 
     // User permissions (read only)
     const userPermissions = permissions.filter(p => p.name.includes(".read") && !p.name.startsWith("users."))
     await RolePermission.bulkCreate(
-      userPermissions.map(p => ({ roleId: userRole.id, permissionId: p.id }))
+      userPermissions.map(p => ({ roleId: userRole.id, permissionId: p.id })) as any
     )
 
     logger.info("Role-Permission associations created")
@@ -207,7 +207,7 @@ export async function seedDatabase() {
         scopeType: "regional",
         regionId: regionLittoral?.id,
       },
-    ])
+    ] as any)
     logger.info(`Created ${users.length} users with geographic scope`)
 
     // Seed Districts
@@ -230,7 +230,7 @@ export async function seedDatabase() {
         sitesTotaux: 65,
         regionId: regionLittoral?.id || 1,
       },
-    ])
+    ] as any)
     logger.info(`Created ${districts.length} districts`)
 
     // Seed Aires de Santé
@@ -247,7 +247,7 @@ export async function seedDatabase() {
         contact: "+237 677 234 567",
         districtId: districts[1]?.id || 2,
       },
-    ])
+    ] as any)
     logger.info(`Created ${airesantes.length} aires de santé`)
 
     // Seed FOSA
@@ -281,7 +281,7 @@ export async function seedDatabase() {
         arrondissementId: arrondissementDouala1?.id || 1,
         airesanteId: airesantes[1]?.id || 2,
       },
-    ])
+    ] as any)
     logger.info(`Created ${fosas.length} FOSA`)
 
     // Seed Categories
@@ -291,7 +291,7 @@ export async function seedDatabase() {
       { nom: "Sage-femme", type: "Personnel Médical" },
       { nom: "Technicien de Laboratoire", type: "Personnel Technique" },
       { nom: "Administrateur", type: "Personnel Administratif" },
-    ])
+    ] as any)
     logger.info(`Created ${categories.length} categories`)
 
     // Seed Personnel
@@ -320,7 +320,7 @@ export async function seedDatabase() {
         categorieId: categories[0]?.id || 1,
         fosaId: fosas[1]?.id || 2,
       },
-    ])
+    ] as any)
     logger.info(`Created ${personnels.length} personnel`)
 
     logger.info("Database seeding completed successfully!")

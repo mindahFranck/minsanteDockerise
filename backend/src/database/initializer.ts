@@ -137,7 +137,7 @@ async function initializePermissions(): Promise<Permission[]> {
   for (const permData of permissionsData) {
     const [permission, created] = await Permission.findOrCreate({
       where: { name: permData.name },
-      defaults: permData,
+      defaults: permData as any,
     })
     permissions.push(permission)
     if (created) {
@@ -187,7 +187,7 @@ async function initializeRoles(): Promise<Role[]> {
   for (const roleData of rolesData) {
     const [role, created] = await Role.findOrCreate({
       where: { code: roleData.code },
-      defaults: roleData,
+      defaults: roleData as any,
     })
     roles.push(role)
     if (created) {
@@ -269,7 +269,7 @@ async function assignRolePermissions(
   for (const assoc of allAssociations) {
     await RolePermission.findOrCreate({
       where: assoc,
-      defaults: assoc,
+      defaults: assoc as any,
     })
   }
 
@@ -331,7 +331,7 @@ async function initializeUsers(): Promise<void> {
   for (const userData of usersData) {
     const [user, created] = await User.findOrCreate({
       where: { email: userData.email },
-      defaults: userData,
+      defaults: userData as any,
     })
 
     if (created) {

@@ -44,7 +44,7 @@ export class HealthController {
     }
 
     const statusCode = health.status === "healthy" ? 200 : 503
-    res.status(statusCode).json(successResponse(health, "Health check completed"))
+    return successResponse(res, health, "Health check completed", statusCode)
   })
 
   /**
@@ -60,9 +60,9 @@ export class HealthController {
   static ready = asyncHandler(async (req: Request, res: Response) => {
     try {
       await sequelize.authenticate()
-      res.json(successResponse({ ready: true }, "Service is ready"))
+      return successResponse(res, { ready: true }, "Service is ready")
     } catch (error) {
-      res.status(503).json({ ready: false, error: "Service not ready" })
+      return res.status(503).json({ ready: false, error: "Service not ready" })
     }
   })
 
@@ -77,6 +77,6 @@ export class HealthController {
    *         description: Service is alive
    */
   static live = asyncHandler(async (req: Request, res: Response) => {
-    res.json(successResponse({ alive: true }, "Service is alive"))
+    return successResponse(res, { alive: true }, "Service is alive")
   })
 }

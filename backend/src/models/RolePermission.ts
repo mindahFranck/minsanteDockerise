@@ -1,20 +1,23 @@
-import { Model, DataTypes } from "sequelize"
-import sequelize from "../config/database"
+import { Model, DataTypes } from "sequelize";
+import sequelize from "../config/database";
 
 export interface RolePermissionAttributes {
-  id: number
-  roleId: number
-  permissionId: number
-  createdAt: Date
-  updatedAt: Date
+  id: number;
+  roleId: number;
+  permissionId: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export class RolePermission extends Model<RolePermissionAttributes> implements RolePermissionAttributes {
-  declare id: number
-  declare roleId: number
-  declare permissionId: number
-  declare readonly createdAt: Date
-  declare readonly updatedAt: Date
+export class RolePermission
+  extends Model<RolePermissionAttributes>
+  implements RolePermissionAttributes
+{
+  declare id: number;
+  declare roleId: number;
+  declare permissionId: number;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 RolePermission.init(
@@ -44,6 +47,18 @@ RolePermission.init(
       },
       onDelete: "CASCADE",
     },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: "created_at",
+      defaultValue: DataTypes.NOW,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: "updated_at",
+      defaultValue: DataTypes.NOW,
+    },
   },
   {
     sequelize,
@@ -57,6 +72,6 @@ RolePermission.init(
       },
     ],
   }
-)
+);
 
-export default RolePermission
+export default RolePermission;

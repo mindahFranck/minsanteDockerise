@@ -65,8 +65,8 @@ async function createGeoData() {
     logger.info(`Created ${departements.length} departements`)
 
     // Créer des arrondissements pour Yaoundé et Douala
-    const mfoundi = departements.find(d => d.nom === "Mfoundi")
-    const wouri = departements.find(d => d.nom === "Wouri")
+    const mfoundi = departements.find(d => (d as any).nom === "Mfoundi")
+    const wouri = departements.find(d => (d as any).nom === "Wouri")
 
     const arrondissements = await Arrondissement.bulkCreate([
       // Arrondissements de Yaoundé

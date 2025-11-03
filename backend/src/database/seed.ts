@@ -45,7 +45,7 @@ async function seed() {
         role: "user",
         isActive: true,
       },
-    ])
+    ] as any)
 
     // Create regions
     const regions = await Region.bulkCreate([
@@ -59,14 +59,14 @@ async function seed() {
       { nom: "Sud", population: 800000 },
       { nom: "Nord-Ouest", population: 2000000 },
       { nom: "Sud-Ouest", population: 1500000 },
-    ])
+    ] as any)
 
     // Create sample departments
     await Departement.bulkCreate([
       { nom: "Mfoundi", population: 2500000, chefLieu: "Yaoundé", regionId: regions[0].id },
       { nom: "Wouri", population: 2800000, chefLieu: "Douala", regionId: regions[1].id },
       { nom: "Menoua", population: 400000, chefLieu: "Dschang", regionId: regions[2].id },
-    ])
+    ] as any)
 
     // Create degradation types
     await Degradation.bulkCreate([
@@ -75,7 +75,7 @@ async function seed() {
       { type: "Problèmes électriques" },
       { type: "Plomberie défectueuse" },
       { type: "Peinture écaillée" },
-    ])
+    ] as any)
 
     // Create categories
     await Categorie.bulkCreate([
@@ -85,7 +85,7 @@ async function seed() {
       { nom: "Technicien de laboratoire", type: "Personnel technique" },
       { nom: "Pharmacien", type: "Personnel médical" },
       { nom: "Administrateur", type: "Personnel administratif" },
-    ])
+    ] as any)
 
     console.log("[v0] Database seeding completed successfully!")
     process.exit(0)

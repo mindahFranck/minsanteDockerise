@@ -49,7 +49,7 @@ async function createUsers() {
         scopeType: "national",
         isActive: true,
       },
-    ])
+    ] as any)
 
     logger.info(`Created ${users.length} users`)
     logger.info("All users have password: Admin@2024")

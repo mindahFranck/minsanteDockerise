@@ -39,3 +39,9 @@ export class ConflictError extends ApiError {
     super(409, message)
   }
 }
+
+export class BadRequestError extends ApiError {
+  constructor(message = "Bad request") {
+    super(400, message)
+  }
+}

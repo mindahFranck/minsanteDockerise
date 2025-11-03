@@ -1,8 +1,8 @@
 import { BaseService } from "./BaseService"
 import Cameroun from "../models/Cameroun"
 
-export class CamerounService extends BaseService<typeof Cameroun> {
+export class CamerounService extends BaseService<any> {
   constructor() {
-    super(Cameroun)
+    super(Cameroun as any)
   }
 }

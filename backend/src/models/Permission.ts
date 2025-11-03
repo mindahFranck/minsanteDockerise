@@ -49,7 +49,15 @@ Permission.init(
       allowNull: true,
       comment: "Description de la permission",
     },
-  },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+  } as any,
   {
     sequelize,
     tableName: "permissions",

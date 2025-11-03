@@ -1,32 +1,37 @@
-import { Model, DataTypes } from "sequelize"
-import sequelize from "../config/database"
+import { Model, DataTypes } from "sequelize";
+import sequelize from "../config/database";
 
 export interface AuditLogAttributes {
-  id: number
-  userId?: number
-  action: string
-  resource: string
-  resourceId?: number
-  details?: any
-  ipAddress?: string
-  userAgent?: string
-  status: "success" | "failure"
-  errorMessage?: string
-  createdAt: Date
+  id: number;
+  userId?: number;
+  action: string;
+  resource: string;
+  resourceId?: number;
+  details?: any;
+  ipAddress?: string;
+  userAgent?: string;
+  status: "success" | "failure";
+  errorMessage?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-export class AuditLog extends Model<AuditLogAttributes> implements AuditLogAttributes {
-  declare id: number
-  declare userId?: number
-  declare action: string
-  declare resource: string
-  declare resourceId?: number
-  declare details?: any
-  declare ipAddress?: string
-  declare userAgent?: string
-  declare status: "success" | "failure"
-  declare errorMessage?: string
-  declare readonly createdAt: Date
+export class AuditLog
+  extends Model<AuditLogAttributes>
+  implements AuditLogAttributes
+{
+  declare id: number;
+  declare userId?: number;
+  declare action: string;
+  declare resource: string;
+  declare resourceId?: number;
+  declare details?: any;
+  declare ipAddress?: string;
+  declare userAgent?: string;
+  declare status: "success" | "failure";
+  declare errorMessage?: string;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 AuditLog.init(
@@ -44,7 +49,8 @@ AuditLog.init(
         model: "users",
         key: "id",
       },
-      comment: "Utilisateur qui a effectué l'action (null pour les tentatives de connexion échouées)",
+      comment:
+        "Utilisateur qui a effectué l'action (null pour les tentatives de connexion échouées)",
     },
     action: {
       type: DataTypes.STRING(50),
@@ -91,13 +97,26 @@ AuditLog.init(
       field: "error_message",
       comment: "Message d'erreur si l'action a échoué",
     },
+    // Add these missing fields
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: "created_at",
+      defaultValue: DataTypes.NOW,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: "updated_at",
+      defaultValue: DataTypes.NOW,
+    },
   },
   {
     sequelize,
     tableName: "audit_logs",
     timestamps: true,
     createdAt: "created_at",
-    updatedAt: false,
+    updatedAt: "updated_at",
     underscored: true,
     indexes: [
       {
@@ -114,6 +133,6 @@ AuditLog.init(
       },
     ],
   }
-)
+);
 
-export default AuditLog
+export default AuditLog;

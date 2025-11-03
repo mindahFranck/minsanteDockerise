@@ -34,7 +34,7 @@ export class AuditService {
         userAgent,
         status: params.status || "success",
         errorMessage: params.errorMessage,
-      })
+      } as any)
     } catch (error) {
       console.error("Failed to log audit:", error)
       // Ne pas faire échouer l'opération si le logging échoue
@@ -75,7 +75,7 @@ export class AuditService {
         userAgent,
         status: "failure",
         errorMessage: error,
-      })
+      } as any)
     } catch (err) {
       console.error("Failed to log login failure:", err)
     }

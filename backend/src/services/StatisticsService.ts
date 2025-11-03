@@ -219,8 +219,8 @@ export class StatisticsService {
     })
 
     return {
-      totalAmbulants: latestParametres[0]?.totalAmbulants || 0,
-      totalPatients: latestParametres[0]?.totalPatients || 0,
+      totalAmbulants: (latestParametres[0] as any)?.totalAmbulants || 0,
+      totalPatients: (latestParametres[0] as any)?.totalPatients || 0,
     }
   }
 }
