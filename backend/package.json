@@ -13,18 +13,18 @@
   "author": "",
   "main": "dist/server.js",
   "scripts": {
-    "build": "tsc",
     "db:migrate": "tsx src/database/migrate.ts",
     "db:seed": "tsx src/database/seeders/index.ts",
     "db:init": "tsx src/scripts/init-db.ts",
     "db:init:force": "FORCE_CONFIRM=YES tsx src/scripts/init-db.ts --force",
-    "dev": "tsx watch src/server.ts",
     "docker:build": "docker build -t health-management-api .",
     "docker:down": "docker-compose down",
     "docker:up": "docker-compose up -d",
     "lint": "echo 'Linting not configured yet'",
-    "start": "node dist/server.js",
     "test": "jest --coverage",
+    "build": "tsc --build --force",
+    "dev": "tsx src/server.ts",
+    "start": "node dist/server.js",
     "test:watch": "jest --watch"
   },
   "dependencies": {

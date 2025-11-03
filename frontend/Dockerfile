@@ -1,9 +1,6 @@
 # =============================================================================
 # Multi-stage Dockerfile for Health Management Frontend (React + Vite)
 # =============================================================================
-# This Dockerfile builds a production-ready React application with Vite
-# and serves it with Nginx
-# =============================================================================
 
 # -----------------------------------------------------------------------------
 # Stage 1: Builder - Build the React application
@@ -16,9 +13,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-# Using npm install instead of npm ci since package-lock.json might not exist
-RUN npm install --legacy-peer-deps
+# Install dependencies with specific flags to handle peer dependencies
+RUN npm install --legacy-peer-deps --silent
 
 # Copy source code
 COPY . .
@@ -33,10 +29,11 @@ ENV VITE_API_URL=${VITE_API_URL}
 ENV VITE_APP_NAME=${VITE_APP_NAME}
 ENV VITE_APP_VERSION=${VITE_APP_VERSION}
 
-# Build the application
+# Build the application with specific Node options
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npm run build
 
-# List build output for debugging
+# Verify build output
 RUN ls -la /app/dist
 
 # -----------------------------------------------------------------------------
