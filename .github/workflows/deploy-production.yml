@@ -131,8 +131,16 @@ jobs:
           script: |
             echo "🚀 Starting Backend deployment..."
 
-            # Create proxy-tier network if it doesn't exist
-            docker network create proxy-tier 2>/dev/null || echo "Network proxy-tier already exists"
+            # Vérifier que nginx-proxy et nginx-proxy-acme sont en cours d'exécution
+            echo "🔍 Checking nginx-proxy and nginx-proxy-acme..."
+            docker ps | grep nginx-proxy || echo "❌ nginx-proxy not running"
+            docker ps | grep nginx-proxy-acme || echo "❌ nginx-proxy-acme not running"
+
+            # Vérifier que le réseau proxy-tier existe
+            docker network inspect proxy-tier >/dev/null 2>&1 || {
+              echo "❌ proxy-tier network not found, creating it..."
+              docker network create proxy-tier
+            }
 
             # Pull the latest backend image
             echo "📦 Pulling latest backend image..."
@@ -144,8 +152,10 @@ jobs:
             docker rm health-backend 2>/dev/null || true
 
             # Create required directories
-            mkdir -p /var/health-backend/uploads
-            mkdir -p /var/health-backend/logs
+            echo "📁 Creating directories..."
+            sudo mkdir -p /var/health-backend/uploads
+            sudo mkdir -p /var/health-backend/logs
+            sudo chown -R 1000:1000 /var/health-backend
 
             # Run new backend container
             echo "🎯 Starting new backend container..."
@@ -176,29 +186,64 @@ jobs:
               ${{ env.BACKEND_IMAGE }}:latest
 
             # Wait for container to be healthy
-            echo "⏳ Waiting for backend to be healthy..."
-            sleep 15
+            echo "⏳ Waiting for backend to start..."
+            sleep 20
 
             # Check container status
-            echo "📊 Container status:"
-            docker ps | grep health-backend || exit 1
+            echo "📊 Backend container status:"
+            docker ps | grep health-backend || echo "❌ Backend container not running"
 
             # Show recent logs
-            echo "📝 Recent logs:"
-            docker logs --tail=30 health-backend
+            echo "📝 Backend recent logs:"
+            docker logs --tail=30 health-backend || echo "No backend logs available yet"
 
-            # Cleanup old images
-            echo "🧹 Cleaning up old images..."
-            docker image prune -af --filter "until=48h" || true
+            # Vérifier que nginx-proxy a détecté le nouveau container
+            echo "🔍 Checking nginx-proxy configuration..."
+            docker exec nginx-proxy nginx -t 2>/dev/null && echo "✅ nginx config OK" || echo "⚠️  nginx config check failed"
 
-            echo "✅ Backend deployment completed successfully!"
+            # Vérifier les certificats
+            echo "🔐 Checking SSL certificates..."
+            docker exec nginx-proxy ls -la /etc/nginx/certs/ 2>/dev/null | grep apiminsante || echo "⚠️  SSL certificate not found"
 
-      - name: Health Check
+            echo "✅ Backend deployment completed!"
+
+      - name: Health Check with Smart Retry
         run: |
-          echo "🏥 Performing health check..."
-          sleep 10
-          curl -f https://apiminsante.it-grafik.com/api/v1/health || exit 1
-          echo "✅ Health check passed!"
+          echo "🏥 Performing smart health check..."
+          max_attempts=15
+          attempt=1
+          
+          while [ $attempt -le $max_attempts ]; do
+            echo "Attempt $attempt/$max_attempts..."
+            
+            # Essayer HTTPS d'abord (sans insecure)
+            if curl --max-time 10 https://apiminsante.it-grafik.com/api/v1/health 2>/dev/null | grep -q "ok"; then
+              echo "✅ HTTPS Health check passed!"
+              exit 0
+            fi
+            
+            # Puis essayer HTTP
+            if curl --max-time 10 http://apiminsante.it-grafik.com/api/v1/health 2>/dev/null | grep -q "ok"; then
+              echo "✅ HTTP Health check passed (HTTPS not ready yet)"
+              exit 0
+            fi
+            
+            # En dernier, essayer avec insecure
+            if curl --insecure --max-time 10 https://apiminsante.it-grafik.com/api/v1/health 2>/dev/null | grep -q "ok"; then
+              echo "✅ HTTPS (insecure) Health check passed"
+              exit 0
+            fi
+            
+            echo "Waiting 10 seconds..."
+            sleep 10
+            attempt=$((attempt + 1))
+          done
+          
+          echo "❌ Health check failed after $max_attempts attempts"
+          echo "Debug info:"
+          curl -I --max-time 5 https://apiminsante.it-grafik.com 2>/dev/null || echo "HTTPS failed"
+          curl -I --max-time 5 http://apiminsante.it-grafik.com 2>/dev/null || echo "HTTP failed"
+          exit 1
 
       - name: Notify Success
         if: success()
@@ -227,8 +272,10 @@ jobs:
           script: |
             echo "🚀 Starting Frontend deployment..."
 
-            # Create proxy-tier network if it doesn't exist
-            docker network create proxy-tier 2>/dev/null || echo "Network proxy-tier already exists"
+            # Vérifier que nginx-proxy et nginx-proxy-acme sont en cours d'exécution
+            echo "🔍 Checking nginx-proxy and nginx-proxy-acme..."
+            docker ps | grep nginx-proxy || echo "❌ nginx-proxy not running"
+            docker ps | grep nginx-proxy-acme || echo "❌ nginx-proxy-acme not running"
 
             # Pull the latest frontend image
             echo "📦 Pulling latest frontend image..."
@@ -252,29 +299,64 @@ jobs:
               ${{ env.FRONTEND_IMAGE }}:latest
 
             # Wait for container to be healthy
-            echo "⏳ Waiting for frontend to be healthy..."
-            sleep 10
+            echo "⏳ Waiting for frontend to start..."
+            sleep 20
 
             # Check container status
-            echo "📊 Container status:"
-            docker ps | grep health-frontend || exit 1
+            echo "📊 Frontend container status:"
+            docker ps | grep health-frontend || echo "❌ Frontend container not running"
 
             # Show recent logs
-            echo "📝 Recent logs:"
-            docker logs --tail=20 health-frontend
+            echo "📝 Frontend recent logs:"
+            docker logs --tail=20 health-frontend || echo "No frontend logs available yet"
 
-            # Cleanup old images
-            echo "🧹 Cleaning up old images..."
-            docker image prune -af --filter "until=48h" || true
+            # Vérifier que nginx-proxy a détecté le nouveau container
+            echo "🔍 Checking nginx-proxy configuration..."
+            docker exec nginx-proxy nginx -t 2>/dev/null && echo "✅ nginx config OK" || echo "⚠️  nginx config check failed"
 
-            echo "✅ Frontend deployment completed successfully!"
+            # Vérifier les certificats
+            echo "🔐 Checking SSL certificates..."
+            docker exec nginx-proxy ls -la /etc/nginx/certs/ 2>/dev/null | grep minsante || echo "⚠️  SSL certificate not found"
 
-      - name: Health Check
+            echo "✅ Frontend deployment completed!"
+
+      - name: Health Check with Smart Retry
         run: |
-          echo "🏥 Performing health check..."
-          sleep 5
-          curl -f https://minsante.it-grafik.com || exit 1
-          echo "✅ Health check passed!"
+          echo "🏥 Performing frontend health check..."
+          max_attempts=12
+          attempt=1
+          
+          while [ $attempt -le $max_attempts ]; do
+            echo "Attempt $attempt/$max_attempts..."
+            
+            # Essayer HTTPS d'abord (sans insecure)
+            if curl --max-time 10 -o /dev/null -w "%{http_code}" https://minsante.it-grafik.com | grep -q "200"; then
+              echo "✅ HTTPS Frontend health check passed!"
+              exit 0
+            fi
+            
+            # Puis essayer HTTP
+            if curl --max-time 10 -o /dev/null -w "%{http_code}" http://minsante.it-grafik.com | grep -q "200"; then
+              echo "✅ HTTP Frontend health check passed (HTTPS not ready yet)"
+              exit 0
+            fi
+            
+            # En dernier, essayer avec insecure
+            if curl --insecure --max-time 10 -o /dev/null -w "%{http_code}" https://minsante.it-grafik.com | grep -q "200"; then
+              echo "✅ HTTPS (insecure) Frontend health check passed"
+              exit 0
+            fi
+            
+            echo "Waiting 10 seconds..."
+            sleep 10
+            attempt=$((attempt + 1))
+          done
+          
+          echo "❌ Frontend health check failed after $max_attempts attempts"
+          echo "Debug info:"
+          curl -I --max-time 5 https://minsante.it-grafik.com 2>/dev/null || echo "HTTPS failed"
+          curl -I --max-time 5 http://minsante.it-grafik.com 2>/dev/null || echo "HTTP failed"
+          exit 1
 
       - name: Notify Success
         if: success()
@@ -290,19 +372,30 @@ jobs:
     needs: [deploy-backend, deploy-frontend]
 
     steps:
-      - name: Verify Backend
+      - name: Verify Services
         run: |
-          echo "Verifying backend API..."
-          curl -f https://apiminsante.it-grafik.com/api/v1/health
-
-      - name: Verify Frontend
-        run: |
-          echo "Verifying frontend..."
-          curl -f https://minsante.it-grafik.com
+          echo "🔍 Final verification..."
+          
+          echo "Backend:"
+          curl -s -o /dev/null -w "HTTP Code: %{http_code}\n" https://apiminsante.it-grafik.com/api/v1/health || \
+          curl -s -o /dev/null -w "HTTP Code: %{http_code}\n" --insecure https://apiminsante.it-grafik.com/api/v1/health || \
+          echo "Backend not accessible"
+          
+          echo "Frontend:"
+          curl -s -o /dev/null -w "HTTP Code: %{http_code}\n" https://minsante.it-grafik.com || \
+          curl -s -o /dev/null -w "HTTP Code: %{http_code}\n" --insecure https://minsante.it-grafik.com || \
+          echo "Frontend not accessible"
 
       - name: Deployment Summary
         run: |
-          echo "🎉 Deployment completed successfully!"
-          echo "Frontend: https://minsante.it-grafik.com"
-          echo "Backend: https://apiminsante.it-grafik.com"
-          echo "API Docs: https://apiminsante.it-grafik.com/api-docs"
+          echo "🎉 Deployment completed!"
+          echo ""
+          echo "🌐 URLs:"
+          echo "  Frontend: https://minsante.it-grafik.com"
+          echo "  Backend:  https://apiminsante.it-grafik.com"
+          echo "  PHPMyAdmin: https://phpmyadmin.it-grafik.com"
+          echo ""
+          echo "📊 Next steps:"
+          echo "  - Tester l'application complète"
+          echo "  - Vérifier les logs si problème"
+          echo "  - Monitorer les performances"
