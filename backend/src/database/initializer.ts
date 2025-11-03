@@ -368,6 +368,14 @@ export async function initializeDatabase(): Promise<void> {
     logger.info("╚═══════════════════════════════════════════════════════════╝")
     logger.info("")
 
+    // Setup model associations FIRST
+    setupAssociations()
+
+    // Create tables if they don't exist
+    logger.info("📋 Creating database tables if needed...")
+    await sequelize.sync({ alter: false })
+    logger.info("✅ Database tables ready")
+
     // Check if already initialized
     const initialized = await isInitialized()
 
@@ -378,9 +386,6 @@ export async function initializeDatabase(): Promise<void> {
 
     logger.info("🚀 Starting first-time database initialization...")
     logger.info("")
-
-    // Setup model associations
-    setupAssociations()
 
     // Initialize in order
     const permissions = await initializePermissions()

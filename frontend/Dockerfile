@@ -29,12 +29,20 @@ ENV VITE_API_URL=${VITE_API_URL}
 ENV VITE_APP_NAME=${VITE_APP_NAME}
 ENV VITE_APP_VERSION=${VITE_APP_VERSION}
 
+# Debug: Print environment variables
+RUN echo "Building with:" && \
+    echo "VITE_API_URL=${VITE_API_URL}" && \
+    echo "VITE_APP_NAME=${VITE_APP_NAME}" && \
+    echo "VITE_APP_VERSION=${VITE_APP_VERSION}"
+
 # Build the application with specific Node options
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npm run build
 
 # Verify build output
-RUN ls -la /app/dist
+RUN ls -la /app/dist && \
+    echo "Checking if assets exist:" && \
+    ls -la /app/dist/assets/ 2>/dev/null || echo "No assets folder"
 
 # -----------------------------------------------------------------------------
 # Stage 2: Production - Serve with Nginx
