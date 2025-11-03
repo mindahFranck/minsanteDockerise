@@ -218,7 +218,7 @@ jobs:
 
     steps:
       - name: Deploy to Production Server via SSH
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@master
         with:
           host: 78.142.242.49
           username: ${{ secrets.SERVER_USER }}
