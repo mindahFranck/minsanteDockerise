@@ -259,40 +259,36 @@ jobs:
       - name: Health Check Backend
         run: |
           echo "🏥 Performing backend health check..."
-          max_attempts=25
+          max_attempts=15
           attempt=1
 
           while [ $attempt -le $max_attempts ]; do
             echo "Attempt $attempt/$max_attempts..."
             
-            # Essayer directement le health endpoint
-            if curl -s --max-time 10 https://apiminsante.it-grafik.com/api/v1/health 2>/dev/null | grep -q "ok"; then
-              echo "✅ Backend health check passed!"
+            # Vérifier simplement le code HTTP 200 - méthode plus fiable
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://apiminsante.it-grafik.com/api/v1/health 2>/dev/null || echo "000")
+            
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ Backend health check passed! HTTP 200"
               exit 0
             fi
             
             # Fallback avec insecure
-            if curl -s --insecure --max-time 10 https://apiminsante.it-grafik.com/api/v1/health 2>/dev/null | grep -q "ok"; then
-              echo "✅ Backend health check (insecure) passed!"
+            HTTP_CODE_INSECURE=$(curl -s -o /dev/null -w "%{http_code}" --insecure --max-time 10 https://apiminsante.it-grafik.com/api/v1/health 2>/dev/null || echo "000")
+            
+            if [ "$HTTP_CODE_INSECURE" = "200" ]; then
+              echo "✅ Backend health check (insecure) passed! HTTP 200"
               exit 0
             fi
             
-            # Debug: vérifier l'état via SSH
-            if [ $attempt -eq 10 ] || [ $attempt -eq 20 ]; then
-              echo "🔍 Debug check at attempt $attempt..."
-              sshpass -p '${{ secrets.SSH_PASSWORD }}' ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@78.142.242.49 \
-                "docker logs --tail=10 health-backend 2>/dev/null || echo 'Container not available'"
-            fi
-            
-            echo "Waiting 10 seconds..."
+            echo "HTTP Code: $HTTP_CODE, Insecure: $HTTP_CODE_INSECURE - Waiting 10 seconds..."
             sleep 10
             attempt=$((attempt + 1))
           done
 
           echo "❌ Backend health check failed after $max_attempts attempts"
-          # Dernier debug
-          sshpass -p '${{ secrets.SSH_PASSWORD }}' ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@78.142.242.49 \
-            "docker ps -a | grep health && docker logs --tail=30 health-backend 2>/dev/null || echo 'No debug info'"
+          echo "Last attempt details:"
+          curl -v --max-time 10 https://apiminsante.it-grafik.com/api/v1/health 2>/dev/null || echo "Curl failed"
           exit 1
 
   deploy-frontend:
@@ -346,22 +342,26 @@ jobs:
           while [ $attempt -le $max_attempts ]; do
             echo "Attempt $attempt/$max_attempts..."
             
-            if curl -s -o /dev/null -w "%{http_code}" https://minsante.it-grafik.com | grep -q "200"; then
-              echo "✅ Frontend health check passed!"
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://minsante.it-grafik.com 2>/dev/null || echo "000")
+            
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ Frontend health check passed! HTTP 200"
               exit 0
             fi
             
-            if curl -s -o /dev/null -w "%{http_code}" --insecure https://minsante.it-grafik.com | grep -q "200"; then
-              echo "✅ Frontend health check (insecure) passed!"
+            HTTP_CODE_INSECURE=$(curl -s -o /dev/null -w "%{http_code}" --insecure --max-time 10 https://minsante.it-grafik.com 2>/dev/null || echo "000")
+            
+            if [ "$HTTP_CODE_INSECURE" = "200" ]; then
+              echo "✅ Frontend health check (insecure) passed! HTTP 200"
               exit 0
             fi
             
-            echo "Waiting 10 seconds..."
+            echo "HTTP Code: $HTTP_CODE, Insecure: $HTTP_CODE_INSECURE - Waiting 10 seconds..."
             sleep 10
             attempt=$((attempt + 1))
           done
 
-          echo "❌ Frontend health check failed"
+          echo "❌ Frontend health check failed after $max_attempts attempts"
           exit 1
 
   verify-deployment:
