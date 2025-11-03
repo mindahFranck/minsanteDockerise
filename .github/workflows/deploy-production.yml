@@ -230,7 +230,7 @@ jobs:
               -e REDIS_PORT=6379 \
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
               -e JWT_EXPIRES_IN=7d \
-              -e CORS_ORIGIN="https://minsante.it-grafik.com,https://apiminsante.it-grafik.com" \
+              -e CORS_ORIGIN="https://minsante.it-grafik.com,https://apiminsante.it-grafik.com,http://gov.it-grafik.com" \
               -e LOG_LEVEL=info \
               -e LOG_TO_FILE="false" \
               -e RATE_LIMIT_WINDOW_MS=900000 \
