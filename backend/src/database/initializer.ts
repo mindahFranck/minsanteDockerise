@@ -373,7 +373,8 @@ export async function initializeDatabase(): Promise<void> {
 
     // Create tables if they don't exist
     logger.info("📋 Creating database tables if needed...")
-    await sequelize.sync({ alter: false })
+    // Use alter: true on first run to update existing tables with new schema
+    await sequelize.sync({ alter: true })
     logger.info("✅ Database tables ready")
 
     // Check if already initialized
