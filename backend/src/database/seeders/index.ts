@@ -12,7 +12,6 @@ import Personnel from "../../models/Personnel"
 import Permission from "../../models/Permission"
 import Role from "../../models/Role"
 import RolePermission from "../../models/RolePermission"
-import bcrypt from "bcryptjs"
 import { logger } from "../../config/logger"
 import { importGeographicData } from "../importers/importGeographicData"
 
@@ -152,12 +151,12 @@ export async function seedDatabase() {
     const departementMfoundi = await Departement.findOne({ where: { nom: "Mfoundi" } })
     const arrondissementYaounde1 = await Arrondissement.findOne({ where: { nom: "Yaoundé 1er" } })
 
-    // Seed Users with geographic scope (hash passwords manually because bulkCreate doesn't trigger beforeCreate hooks)
-    const hashedPassword = await bcrypt.hash("Admin@2024", 10)
+    // Seed Users with geographic scope
+    // Pass plain password and enable individualHooks to trigger beforeCreate hook for hashing
     const users = await User.bulkCreate([
       {
         email: "superadmin@health.cm",
-        password: hashedPassword,
+        password: "Admin@2024",
         firstName: "Super",
         lastName: "Admin",
         role: "super_admin",
@@ -165,7 +164,7 @@ export async function seedDatabase() {
       },
       {
         email: "admin@health.cm",
-        password: hashedPassword,
+        password: "Admin@2024",
         firstName: "Admin",
         lastName: "User",
         role: "admin",
@@ -173,7 +172,7 @@ export async function seedDatabase() {
       },
       {
         email: "manager.centre@health.cm",
-        password: hashedPassword,
+        password: "Admin@2024",
         firstName: "Manager",
         lastName: "Centre",
         role: "manager",
@@ -182,7 +181,7 @@ export async function seedDatabase() {
       },
       {
         email: "manager.mfoundi@health.cm",
-        password: hashedPassword,
+        password: "Admin@2024",
         firstName: "Manager",
         lastName: "Mfoundi",
         role: "manager",
@@ -191,7 +190,7 @@ export async function seedDatabase() {
       },
       {
         email: "user.yaoundé1@health.cm",
-        password: hashedPassword,
+        password: "Admin@2024",
         firstName: "User",
         lastName: "Yaoundé 1",
         role: "user",
@@ -200,14 +199,16 @@ export async function seedDatabase() {
       },
       {
         email: "manager.littoral@health.cm",
-        password: hashedPassword,
+        password: "Admin@2024",
         firstName: "Manager",
         lastName: "Littoral",
         role: "manager",
         scopeType: "regional",
         regionId: regionLittoral?.id,
       },
-    ] as any)
+    ] as any, {
+      individualHooks: true, // Enable hooks for each record to hash passwords
+    })
     logger.info(`Created ${users.length} users with geographic scope`)
 
     // Seed Districts

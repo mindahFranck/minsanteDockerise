@@ -19,7 +19,6 @@ import Permission from "../models/Permission"
 import Role from "../models/Role"
 import RolePermission from "../models/RolePermission"
 import User from "../models/User"
-import bcrypt from "bcryptjs"
 
 /**
  * Check if the database has been initialized
@@ -287,12 +286,12 @@ async function initializeUsers(): Promise<void> {
   logger.info("👤 Initializing default users...")
 
   const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || "Admin@2024"
-  const hashedPassword = await bcrypt.hash(defaultPassword, 10)
+  // Don't hash here - let the beforeCreate hook handle it
 
   const usersData = [
     {
       email: "superadmin@minsante.cm",
-      password: hashedPassword,
+      password: defaultPassword,
       firstName: "Super",
       lastName: "Administrateur",
       role: "super_admin",
@@ -301,7 +300,7 @@ async function initializeUsers(): Promise<void> {
     },
     {
       email: "admin@minsante.cm",
-      password: hashedPassword,
+      password: defaultPassword,
       firstName: "Administrateur",
       lastName: "Système",
       role: "admin",
@@ -310,7 +309,7 @@ async function initializeUsers(): Promise<void> {
     },
     {
       email: "manager@minsante.cm",
-      password: hashedPassword,
+      password: defaultPassword,
       firstName: "Gestionnaire",
       lastName: "Test",
       role: "manager",
@@ -319,7 +318,7 @@ async function initializeUsers(): Promise<void> {
     },
     {
       email: "user@minsante.cm",
-      password: hashedPassword,
+      password: defaultPassword,
       firstName: "Utilisateur",
       lastName: "Test",
       role: "user",
