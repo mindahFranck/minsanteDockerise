@@ -224,7 +224,7 @@ jobs:
               -e DB_HOST=srv915.hstgr.io \
               -e DB_PORT=3306 \
               -e DB_NAME=u877916646_minstante \
-              -e DB_USER=u877916646_minstante \
+              -e DB_USER=u877916646_minsante \
               -e DB_PASSWORD=itgrafik@Dev12 \
               -e REDIS_HOST=health-redis \
               -e REDIS_PORT=6379 \
