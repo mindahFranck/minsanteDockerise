@@ -17,28 +17,6 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 
---
--- Base de données : `u877916646_patnuc`
---
-
--- --------------------------------------------------------
-
---
--- Structure de la table `departements`
---
-
-CREATE TABLE `departements` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `region_id` bigint(20) UNSIGNED NOT NULL,
-  `departement` varchar(191) NOT NULL,
-  `fit1` double(8,2) NOT NULL,
-  `fit2` double(8,2) NOT NULL,
-  `fit3` double(8,2) NOT NULL,
-  `fit4` double(8,2) NOT NULL,
-  `createdAt` timestamp NULL DEFAULT NULL,
-  `updatedAt` timestamp NULL DEFAULT NULL,
-  `geom` geometry DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Déchargement des données de la table `departements`

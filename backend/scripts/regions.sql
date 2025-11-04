@@ -18,27 +18,12 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de données : health_management_dev`
+-- Base de données : mydatabase`
 --
 
 -- --------------------------------------------------------
 
---
--- Structure de la table `regions`
---
 
-CREATE TABLE `regions` (
-  `id` bigint(20) UNSIGNED NOT NULL  AUTO_INCREMENT,
-  `nom` varchar(191) NOT NULL,
-  `population` int NOT NULL,
-  `longitude` double(8,2) NOT NULL,
-  `latitude` double(8,2) NOT NULL,
-  `createdAt` timestamp NULL DEFAULT NULL,
-  `updatedAt` timestamp NULL DEFAULT NULL,
-  `geom` geometry DEFAULT NULL,
-    PRIMARY KEY (`id`)
-
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Déchargement des données de la table `regions`

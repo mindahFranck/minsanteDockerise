@@ -27,15 +27,7 @@ SET time_zone = "+00:00";
 -- Structure de la table `cameroun`
 --
 
-CREATE TABLE `cameroun` (
-  `id` int(11) NOT NULL,
-  `forme` text NOT NULL,
-  `geom` polygon DEFAULT NULL,
-  `createdAt` timestamp NOT NULL,
-  `updatedAt` timestamp NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
 -- Déchargement des données de la table `cameroun`
 --
 

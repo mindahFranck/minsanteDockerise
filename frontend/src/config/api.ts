@@ -1,4 +1,5 @@
-const API_URL = "https://backend.minsante.it-grafik.com/api/v1";
+const API_URL =
+  import.meta.env.VITE_API_URL || "https://apiminsante.it-grafik.com/api/v1";
 
 export const config = {
   apiUrl: API_URL,
