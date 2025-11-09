@@ -1,19 +1,19 @@
-import { BaseController } from "./BaseController"
-import { UserService } from "../services/UserService"
-import { body } from "express-validator"
-import { asyncHandler } from "../utils/asyncHandler"
-import type { AuthRequest } from "../types"
-import type { Response, NextFunction } from "express"
-import { ForbiddenError } from "../utils/ApiError"
-import { AuditService } from "../services/AuditService"
+import { BaseController } from "./BaseController";
+import { UserService } from "../services/UserService";
+import { body } from "express-validator";
+import { asyncHandler } from "../utils/asyncHandler";
+import type { AuthRequest } from "../types";
+import type { Response, NextFunction } from "express";
+import { ForbiddenError } from "../utils/ApiError";
+import { AuditService } from "../services/AuditService";
 
 export class UserController extends BaseController<any> {
-  private userService: UserService
+  private userService: UserService;
 
   constructor() {
-    const service = new UserService()
-    super(service)
-    this.userService = service
+    const service = new UserService();
+    super(service);
+    this.userService = service;
   }
 
   /**
@@ -42,32 +42,34 @@ export class UserController extends BaseController<any> {
    *       200:
    *         description: List of users
    */
-  getAll = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // Only super_admin and admin can view all users
-    if (req.user!.role !== "super_admin" && req.user!.role !== "admin") {
-      throw new ForbiddenError("Only administrators can view users")
+  getAll = asyncHandler(
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      // Only super_admin and admin can view all users
+      if (req.user!.role !== "super_admin" && req.user!.role !== "admin") {
+        throw new ForbiddenError("Only administrators can view users");
+      }
+
+      const page = Number.parseInt(req.query.page as string) || 1;
+      const limit = Number.parseInt(req.query.limit as string) || 100;
+      const role = req.query.role as string;
+
+      const options: any = {
+        attributes: { exclude: ["password"] },
+      };
+
+      if (role) {
+        options.where = { role };
+      }
+
+      const result = await this.userService.paginate(page, limit, options);
+
+      res.json({
+        success: true,
+        data: result.data,
+        pagination: result.pagination,
+      });
     }
-
-    const page = Number.parseInt(req.query.page as string) || 1
-    const limit = Number.parseInt(req.query.limit as string) || 10
-    const role = req.query.role as string
-
-    const options: any = {
-      attributes: { exclude: ["password"] },
-    }
-
-    if (role) {
-      options.where = { role }
-    }
-
-    const result = await this.userService.paginate(page, limit, options)
-
-    res.json({
-      success: true,
-      data: result.data,
-      pagination: result.pagination,
-    })
-  })
+  );
 
   /**
    * @swagger
@@ -87,27 +89,29 @@ export class UserController extends BaseController<any> {
    *       200:
    *         description: User details
    */
-  getById = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const { id } = req.params
+  getById = asyncHandler(
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const { id } = req.params;
 
-    // Only super_admin and admin can view other users
-    if (
-      req.user!.role !== "super_admin" &&
-      req.user!.role !== "admin" &&
-      req.user!.id !== Number(id)
-    ) {
-      throw new ForbiddenError("You can only view your own profile")
+      // Only super_admin and admin can view other users
+      if (
+        req.user!.role !== "super_admin" &&
+        req.user!.role !== "admin" &&
+        req.user!.id !== Number(id)
+      ) {
+        throw new ForbiddenError("You can only view your own profile");
+      }
+
+      const user = await this.userService.findById(Number(id), {
+        attributes: { exclude: ["password"] },
+      });
+
+      res.json({
+        success: true,
+        data: user,
+      });
     }
-
-    const user = await this.userService.findById(Number(id), {
-      attributes: { exclude: ["password"] },
-    })
-
-    res.json({
-      success: true,
-      data: user,
-    })
-  })
+  );
 
   /**
    * @swagger
@@ -154,24 +158,32 @@ export class UserController extends BaseController<any> {
    *       201:
    *         description: User created successfully
    */
-  create = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
-    // Only super_admin can create users
-    if (req.user!.role !== "super_admin") {
-      throw new ForbiddenError("Only super administrators can create users")
+  create = asyncHandler(
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      // Only super_admin can create users
+      if (req.user!.role !== "super_admin") {
+        throw new ForbiddenError("Only super administrators can create users");
+      }
+
+      const data = req.body;
+      const result = await this.userService.create(data, req.user!.id);
+
+      // Log user creation
+      await AuditService.logCreate(
+        req.user!.id,
+        "users",
+        result.id,
+        result.toJSON(),
+        req
+      );
+
+      res.status(201).json({
+        success: true,
+        data: result,
+        message: "User created successfully",
+      });
     }
-
-    const data = req.body
-    const result = await this.userService.create(data, req.user!.id)
-
-    // Log user creation
-    await AuditService.logCreate(req.user!.id, "users", result.id, result.toJSON(), req)
-
-    res.status(201).json({
-      success: true,
-      data: result,
-      message: "User created successfully",
-    })
-  })
+  );
 
   /**
    * @swagger
@@ -197,37 +209,43 @@ export class UserController extends BaseController<any> {
    *       200:
    *         description: User updated successfully
    */
-  update = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const { id } = req.params
+  update = asyncHandler(
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const { id } = req.params;
 
-    // Only super_admin can update users
-    if (req.user!.role !== "super_admin") {
-      throw new ForbiddenError("Only super administrators can update users")
+      // Only super_admin can update users
+      if (req.user!.role !== "super_admin") {
+        throw new ForbiddenError("Only super administrators can update users");
+      }
+
+      // Get old data for audit
+      const oldData = await this.userService.findById(Number(id));
+      const oldDataJson = oldData.toJSON();
+
+      const data = req.body;
+      const result = await this.userService.update(
+        Number(id),
+        data,
+        req.user!.id
+      );
+
+      // Log user update
+      await AuditService.logUpdate(
+        req.user!.id,
+        "users",
+        Number(id),
+        oldDataJson,
+        result.toJSON(),
+        req
+      );
+
+      res.json({
+        success: true,
+        data: result,
+        message: "User updated successfully",
+      });
     }
-
-    // Get old data for audit
-    const oldData = await this.userService.findById(Number(id))
-    const oldDataJson = oldData.toJSON()
-
-    const data = req.body
-    const result = await this.userService.update(Number(id), data, req.user!.id)
-
-    // Log user update
-    await AuditService.logUpdate(
-      req.user!.id,
-      "users",
-      Number(id),
-      oldDataJson,
-      result.toJSON(),
-      req,
-    )
-
-    res.json({
-      success: true,
-      data: result,
-      message: "User updated successfully",
-    })
-  })
+  );
 
   /**
    * @swagger
@@ -247,28 +265,36 @@ export class UserController extends BaseController<any> {
    *       200:
    *         description: User deleted successfully
    */
-  delete = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const { id } = req.params
+  delete = asyncHandler(
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const { id } = req.params;
 
-    // Only super_admin can delete users
-    if (req.user!.role !== "super_admin") {
-      throw new ForbiddenError("Only super administrators can delete users")
+      // Only super_admin can delete users
+      if (req.user!.role !== "super_admin") {
+        throw new ForbiddenError("Only super administrators can delete users");
+      }
+
+      // Get user data before deletion for audit
+      const userData = await this.userService.findById(Number(id));
+      const userDataJson = userData.toJSON();
+
+      await this.userService.delete(Number(id));
+
+      // Log user deletion
+      await AuditService.logDelete(
+        req.user!.id,
+        "users",
+        Number(id),
+        userDataJson,
+        req
+      );
+
+      res.json({
+        success: true,
+        message: "User deleted successfully",
+      });
     }
-
-    // Get user data before deletion for audit
-    const userData = await this.userService.findById(Number(id))
-    const userDataJson = userData.toJSON()
-
-    await this.userService.delete(Number(id))
-
-    // Log user deletion
-    await AuditService.logDelete(req.user!.id, "users", Number(id), userDataJson, req)
-
-    res.json({
-      success: true,
-      message: "User deleted successfully",
-    })
-  })
+  );
 
   // Validation rules
   static createValidation = [
@@ -285,7 +311,10 @@ export class UserController extends BaseController<any> {
       .optional()
       .isIn(["national", "regional", "departemental", "arrondissement"])
       .withMessage("Invalid scope type"),
-    body("regionId").optional().isInt().withMessage("Region ID must be an integer"),
+    body("regionId")
+      .optional()
+      .isInt()
+      .withMessage("Region ID must be an integer"),
     body("departementId")
       .optional()
       .isInt()
@@ -294,7 +323,7 @@ export class UserController extends BaseController<any> {
       .optional()
       .isInt()
       .withMessage("Arrondissement ID must be an integer"),
-  ]
+  ];
 
   static updateValidation = [
     body("email").optional().isEmail().withMessage("Valid email is required"),
@@ -302,8 +331,14 @@ export class UserController extends BaseController<any> {
       .optional()
       .isLength({ min: 6 })
       .withMessage("Password must be at least 6 characters"),
-    body("firstName").optional().notEmpty().withMessage("First name cannot be empty"),
-    body("lastName").optional().notEmpty().withMessage("Last name cannot be empty"),
+    body("firstName")
+      .optional()
+      .notEmpty()
+      .withMessage("First name cannot be empty"),
+    body("lastName")
+      .optional()
+      .notEmpty()
+      .withMessage("Last name cannot be empty"),
     body("role")
       .optional()
       .isIn(["user", "manager", "admin", "super_admin"])
@@ -312,7 +347,10 @@ export class UserController extends BaseController<any> {
       .optional()
       .isIn(["national", "regional", "departemental", "arrondissement"])
       .withMessage("Invalid scope type"),
-    body("regionId").optional().isInt().withMessage("Region ID must be an integer"),
+    body("regionId")
+      .optional()
+      .isInt()
+      .withMessage("Region ID must be an integer"),
     body("departementId")
       .optional()
       .isInt()
@@ -321,5 +359,5 @@ export class UserController extends BaseController<any> {
       .optional()
       .isInt()
       .withMessage("Arrondissement ID must be an integer"),
-  ]
+  ];
 }

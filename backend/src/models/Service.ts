@@ -9,6 +9,9 @@ export class Service extends Model {
   public batimentId!: number
   public readonly createdAt!: Date
   public readonly updatedAt!: Date
+
+  // Relations
+  public readonly batiment?: any
 }
 
 Service.init(

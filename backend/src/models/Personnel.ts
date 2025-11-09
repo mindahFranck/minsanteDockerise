@@ -11,6 +11,10 @@ export class Personnel extends Model {
   public categorieId?: number
   public readonly createdAt!: Date
   public readonly updatedAt!: Date
+
+  // Relations
+  public readonly fosa?: any
+  public readonly categorie?: any
 }
 
 Personnel.init(

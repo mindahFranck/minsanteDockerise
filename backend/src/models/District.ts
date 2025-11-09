@@ -1,17 +1,23 @@
-import { Model, DataTypes } from "sequelize"
-import sequelize from "../config/database"
+import { Model, DataTypes } from "sequelize";
+import sequelize from "../config/database";
 
 export class District extends Model {
-  public id!: number
-  public nom!: string
-  public responsable?: string
-  public population?: number
-  public superficie?: number
-  public sitesDisponibles?: number
-  public sitesTotaux?: number
-  public regionId!: number
-  public readonly createdAt!: Date
-  public readonly updatedAt!: Date
+  public id!: number;
+  public region?: string;
+  public area?: number;
+  public code_ds?: string;
+  public nom_ds?: string;
+  public geom?: any;
+  // Anciens champs (pour compatibilité)
+  public nom?: string;
+  public responsable?: string;
+  public population?: number;
+  public superficie?: number;
+  public sitesDisponibles?: number;
+  public sitesTotaux?: number;
+  public regionId?: number;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 }
 
 District.init(
@@ -21,35 +27,30 @@ District.init(
       autoIncrement: true,
       primaryKey: true,
     },
-    nom: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
-    },
-    responsable: {
-      type: DataTypes.STRING(100),
+    region: {
+      type: DataTypes.TEXT,
       allowNull: true,
     },
-    population: {
-      type: DataTypes.INTEGER,
+    area: {
+      type: DataTypes.DOUBLE,
+      allowNull: true,
+      comment: "Superficie du district",
+    },
+    code_ds: {
+      type: DataTypes.TEXT,
       allowNull: true,
     },
-    superficie: {
-      type: DataTypes.DECIMAL(10, 2),
+    nom_ds: {
+      type: DataTypes.TEXT,
       allowNull: true,
     },
-    sitesDisponibles: {
-      type: DataTypes.INTEGER,
+    geom: {
+      type: DataTypes.GEOMETRY,
       allowNull: true,
-      field: "sites_disponibles",
-    },
-    sitesTotaux: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      field: "sites_totaux",
     },
     regionId: {
       type: DataTypes.BIGINT.UNSIGNED,
-      allowNull: false,
+      allowNull: true,
       field: "region_id",
       references: {
         model: "regions",
@@ -61,7 +62,7 @@ District.init(
     sequelize,
     tableName: "districts",
     timestamps: true,
-  },
-)
+  }
+);
 
-export default District
+export default District;

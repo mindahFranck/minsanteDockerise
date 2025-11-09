@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { Plus, Search, Shield, Users, Key, UserCog } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
+import ConfirmDialog from "../components/ConfirmDialog"
 import { userService } from "../services/userService"
 import type { User, Region, Departement, Arrondissement } from "../types"
 import api from "../services/api"
@@ -12,12 +13,17 @@ import api from "../services/api"
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [search, setSearch] = useState("")
   const [filterRole, setFilterRole] = useState<string>("")
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    user: User | null
+  }>({ isOpen: false, user: null })
 
   const [regions, setRegions] = useState<Region[]>([])
   const [departements, setDepartements] = useState<Departement[]>([])
@@ -126,6 +132,7 @@ export default function UsersPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSubmitting(true)
     try {
       if (editingUser) {
         const updateData: any = { ...formData }
@@ -143,6 +150,8 @@ export default function UsersPage() {
     } catch (error) {
       console.error("Error saving user:", error)
       alert("Erreur lors de la sauvegarde de l'utilisateur")
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -189,15 +198,23 @@ export default function UsersPage() {
     setIsModalOpen(true)
   }
 
-  const handleDelete = async (user: User) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer ${user.firstName} ${user.lastName}?`)) {
-      try {
-        await userService.delete(user.id)
-        loadUsers()
-      } catch (error) {
-        console.error("Error deleting user:", error)
-        alert("Erreur lors de la suppression de l'utilisateur")
-      }
+  const handleDelete = (user: User) => {
+    setConfirmDialog({ isOpen: true, user })
+  }
+
+  const confirmDelete = async () => {
+    if (!confirmDialog.user) return
+
+    setSubmitting(true)
+    try {
+      await userService.delete(confirmDialog.user.id)
+      setConfirmDialog({ isOpen: false, user: null })
+      loadUsers()
+    } catch (error) {
+      console.error("Error deleting user:", error)
+      alert("Erreur lors de la suppression de l'utilisateur")
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -567,16 +584,43 @@ export default function UsersPage() {
                 setIsModalOpen(false)
                 resetForm()
               }}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              disabled={submitting}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Annuler
             </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              {editingUser ? "Enregistrer les modifications" : "Créer l'utilisateur"}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {submitting ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                  </svg>
+                  <span>Enregistrement...</span>
+                </>
+              ) : (
+                editingUser ? "Enregistrer les modifications" : "Créer l'utilisateur"
+              )}
             </button>
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, user: null })}
+        onConfirm={confirmDelete}
+        title="Confirmer la suppression"
+        message={`Êtes-vous sûr de vouloir supprimer l'utilisateur "${confirmDialog.user?.firstName} ${confirmDialog.user?.lastName}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        isLoading={submitting}
+        variant="danger"
+      />
     </div>
   )
 }

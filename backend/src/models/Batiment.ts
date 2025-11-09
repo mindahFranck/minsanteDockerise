@@ -3,12 +3,17 @@ import sequelize from "../config/database"
 
 export class Batiment extends Model {
   public id!: number
+  public nom?: string
   public type?: string
   public etat?: string
   public fosaId!: number
   public degradationId?: number
   public readonly createdAt!: Date
   public readonly updatedAt!: Date
+
+  // Relations
+  public readonly fosa?: any
+  public readonly degradation?: any
 }
 
 Batiment.init(
@@ -17,6 +22,10 @@ Batiment.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+    },
+    nom: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
     },
     type: {
       type: DataTypes.STRING(100),

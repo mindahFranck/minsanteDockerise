@@ -37,14 +37,6 @@ app.use(
   })
 );
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: Number.parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000"),
-  max: Number.parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || "100"),
-  message: "Too many requests from this IP, please try again later",
-});
-app.use("/api", limiter);
-
 // Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -91,7 +83,7 @@ async function startServer() {
       logger.info("Database synchronized");
 
       // Import geographic data on first run
-      await importGeoData();
+      // await importGeoData();
     } else {
       // In production, just ensure tables exist without altering
       await sequelize.sync();
@@ -100,8 +92,8 @@ async function startServer() {
 
     // Initialize database with roles, permissions, and default users (idempotent)
     // This function calls setupAssociations() internally
-    const { initializeDatabase } = await import("./database/initializer");
-    await initializeDatabase();
+    // const { initializeDatabase } = await import("./database/initializer");
+    // await initializeDatabase();
 
     // Start server
     app.listen(PORT, () => {

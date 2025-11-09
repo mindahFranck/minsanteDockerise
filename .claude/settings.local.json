@@ -31,7 +31,8 @@
       "Bash(powershell -Command:*)",
       "Bash(dir:*)",
       "Bash(nul)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(node scripts/addMissingColumns.js:*)"
     ],
     "deny": [],
     "ask": []

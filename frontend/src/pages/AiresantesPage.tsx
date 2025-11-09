@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import { Plus, Search } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
+import ConfirmDialog from "../components/ConfirmDialog"
 import { airesanteService } from "../services/airesanteService"
 import { districtService } from "../services/districtService"
 import type { Airesante, District } from "../types"
@@ -14,13 +15,24 @@ export default function AiresantesPage() {
   const [airesantes, setAiresantes] = useState<Airesante[]>([])
   const [districts, setDistricts] = useState<District[]>([])
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<Airesante | null>(null)
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    airesante: Airesante | null
+  }>({ isOpen: false, airesante: null })
 
-  const [formData, setFormData] = useState({ nom: "", responsable: "", contact: "", districtId: 0 })
+  const [formData, setFormData] = useState({
+    nom_as: "",
+    code_as: "",
+    area: 0,
+    population: 0,
+    districtId: 0
+  })
 
   useEffect(() => {
     loadData()
@@ -45,6 +57,7 @@ export default function AiresantesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSubmitting(true)
     try {
       if (editingItem) {
         await airesanteService.update(editingItem.id, formData)
@@ -53,36 +66,63 @@ export default function AiresantesPage() {
       }
       setIsModalOpen(false)
       setEditingItem(null)
-      setFormData({ nom: "", responsable: "", contact: "", districtId: 0 })
+      setFormData({
+        nom_as: "",
+        code_as: "",
+        area: 0,
+        population: 0,
+        districtId: 0
+      })
       loadData()
     } catch (error) {
       console.error("Error saving:", error)
+    } finally {
+      setSubmitting(false)
     }
   }
 
   const handleEdit = (item: Airesante) => {
     setEditingItem(item)
-    setFormData({ nom: item.nom, responsable: item.responsable, contact: item.contact, districtId: item.districtId })
+    setFormData({
+      nom_as: item.nom_as || "",
+      code_as: item.code_as || "",
+      area: item.area || 0,
+      population: item.population || 0,
+      districtId: item.districtId
+    })
     setIsModalOpen(true)
   }
 
-  const handleDelete = async (item: Airesante) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer ${item.nom}?`)) {
-      try {
-        await airesanteService.delete(item.id)
-        loadData()
-      } catch (error) {
-        console.error("Error deleting:", error)
-      }
+  const handleDelete = (item: Airesante) => {
+    setConfirmDialog({ isOpen: true, airesante: item })
+  }
+
+  const confirmDelete = async () => {
+    if (!confirmDialog.airesante) return
+
+    setSubmitting(true)
+    try {
+      await airesanteService.delete(confirmDialog.airesante.id)
+      setConfirmDialog({ isOpen: false, airesante: null })
+      loadData()
+    } catch (error) {
+      console.error("Error deleting:", error)
+    } finally {
+      setSubmitting(false)
     }
   }
 
   const columns = [
     { key: "id", label: "ID" },
-    { key: "nom", label: "Nom" },
-    { key: "responsable", label: "Responsable" },
-    { key: "contact", label: "Contact" },
-    { key: "district", label: "District", render: (a: Airesante) => a.district?.nom || "-" },
+    { key: "nom_as", label: "Nom de l'Aire de Santé" },
+    { key: "code_as", label: "Code" },
+    { key: "area", label: "Superficie (km²)" },
+    { key: "population", label: "Population" },
+    {
+      key: "district",
+      label: "District",
+      render: (a: Airesante) => a.district?.nom_ds || "-"
+    },
   ]
 
   return (
@@ -92,7 +132,13 @@ export default function AiresantesPage() {
         <button
           onClick={() => {
             setEditingItem(null)
-            setFormData({ nom: "", responsable: "", contact: "", districtId: 0 })
+            setFormData({
+              nom_as: "",
+              code_as: "",
+              area: 0,
+              population: 0,
+              districtId: 0
+            })
             setIsModalOpen(true)
           }}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -131,34 +177,46 @@ export default function AiresantesPage() {
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingItem ? "Modifier" : "Ajouter"}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Nom</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Nom de l'Aire de Santé</label>
             <input
               type="text"
-              value={formData.nom}
-              onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+              value={formData.nom_as}
+              onChange={(e) => setFormData({ ...formData, nom_as: e.target.value })}
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Responsable</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Code de l'Aire de Santé</label>
             <input
               type="text"
-              value={formData.responsable}
-              onChange={(e) => setFormData({ ...formData, responsable: e.target.value })}
+              value={formData.code_as}
+              onChange={(e) => setFormData({ ...formData, code_as: e.target.value })}
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Contact</label>
-            <input
-              type="text"
-              value={formData.contact}
-              onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Superficie (km²)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.area}
+                onChange={(e) => setFormData({ ...formData, area: Number.parseFloat(e.target.value) || 0 })}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Population</label>
+              <input
+                type="number"
+                value={formData.population}
+                onChange={(e) => setFormData({ ...formData, population: Number.parseInt(e.target.value) || 0 })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">District</label>
@@ -171,7 +229,7 @@ export default function AiresantesPage() {
               <option value="">Sélectionner...</option>
               {districts.map((d) => (
                 <option key={d.id} value={d.id}>
-                  {d.nom}
+                  {d.nom_ds}
                 </option>
               ))}
             </select>
@@ -180,16 +238,43 @@ export default function AiresantesPage() {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              disabled={submitting}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Annuler
             </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              {editingItem ? "Modifier" : "Créer"}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {submitting ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                  </svg>
+                  <span>Enregistrement...</span>
+                </>
+              ) : (
+                editingItem ? "Modifier" : "Créer"
+              )}
             </button>
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, airesante: null })}
+        onConfirm={confirmDelete}
+        title="Confirmer la suppression"
+        message={`Êtes-vous sûr de vouloir supprimer l'aire de santé "${confirmDialog.airesante?.nom_as}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        isLoading={submitting}
+        variant="danger"
+      />
     </div>
   )
 }

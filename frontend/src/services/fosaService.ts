@@ -4,14 +4,12 @@ export interface Fosa {
   id: number
   nom: string
   type: string
-  latitude?: number
-  longitude?: number
-  capacite?: number
-  etatFermeture?: string
-  situation?: string
-  image?: string
-  airesanteId?: number
-  arrondissementId?: number
+  capaciteLits?: number | null
+  estFerme: boolean
+  situation: string
+  image?: string | null
+  airesanteId: number
+  arrondissementId: number
   createdAt?: string
   updatedAt?: string
 }
@@ -19,13 +17,11 @@ export interface Fosa {
 export interface FosaCreateData {
   nom: string
   type: string
-  latitude?: number
-  longitude?: number
-  capacite?: number
-  etatFermeture?: string
+  capaciteLits?: number
+  estFerme?: boolean
   situation?: string
-  airesanteId?: number
-  arrondissementId?: number
+  airesanteId: number
+  arrondissementId: number
 }
 
 export interface ApiResponse<T> {

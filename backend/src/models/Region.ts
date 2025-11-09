@@ -4,6 +4,7 @@ import sequelize from "../config/database"
 export class Region extends Model {
   declare id: number
   declare nom: string
+  declare capitale: string | null
   declare population: number
   declare latitude: number
   declare longitude: number
@@ -22,6 +23,10 @@ Region.init(
     nom: {
       type: DataTypes.STRING(191),
       allowNull: false,
+    },
+    capitale: {
+      type: DataTypes.STRING(191),
+      allowNull: true,
     },
     population: {
       type: DataTypes.INTEGER,

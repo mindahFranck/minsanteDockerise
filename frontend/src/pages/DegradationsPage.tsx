@@ -5,18 +5,24 @@ import { useEffect, useState } from "react"
 import { Plus, Search } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
+import ConfirmDialog from "../components/ConfirmDialog"
 import { degradationService } from "../services/degradationService"
 import type { Degradation } from "../types"
 
 export default function DegradationsPage() {
   const [degradations, setDegradations] = useState<Degradation[]>([])
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingDegradation, setEditingDegradation] = useState<Degradation | null>(null)
   const [search, setSearch] = useState("")
   const [filterType, setFilterType] = useState<string>("")
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    degradation: Degradation | null
+  }>({ isOpen: false, degradation: null })
 
   const [formData, setFormData] = useState({ nom: "", type: "" })
 
@@ -42,6 +48,7 @@ export default function DegradationsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSubmitting(true)
     try {
       if (editingDegradation) {
         await degradationService.update(editingDegradation.id, formData)
@@ -54,6 +61,8 @@ export default function DegradationsPage() {
       loadDegradations()
     } catch (error) {
       console.error("Error saving degradation:", error)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -63,14 +72,22 @@ export default function DegradationsPage() {
     setIsModalOpen(true)
   }
 
-  const handleDelete = async (degradation: Degradation) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer ${degradation.nom}?`)) {
-      try {
-        await degradationService.delete(degradation.id)
-        loadDegradations()
-      } catch (error) {
-        console.error("Error deleting degradation:", error)
-      }
+  const handleDelete = (degradation: Degradation) => {
+    setConfirmDialog({ isOpen: true, degradation })
+  }
+
+  const confirmDelete = async () => {
+    if (!confirmDialog.degradation) return
+
+    setSubmitting(true)
+    try {
+      await degradationService.delete(confirmDialog.degradation.id)
+      setConfirmDialog({ isOpen: false, degradation: null })
+      loadDegradations()
+    } catch (error) {
+      console.error("Error deleting degradation:", error)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -156,16 +173,43 @@ export default function DegradationsPage() {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              disabled={submitting}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Annuler
             </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              {editingDegradation ? "Modifier" : "Ajouter"}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {submitting ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                  </svg>
+                  <span>Enregistrement...</span>
+                </>
+              ) : (
+                editingDegradation ? "Modifier" : "Ajouter"
+              )}
             </button>
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, degradation: null })}
+        onConfirm={confirmDelete}
+        title="Confirmer la suppression"
+        message={`Êtes-vous sûr de vouloir supprimer la dégradation "${confirmDialog.degradation?.nom}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        isLoading={submitting}
+        variant="danger"
+      />
     </div>
   )
 }

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import { Plus, Search } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
+import ConfirmDialog from "../components/ConfirmDialog"
 import { arrondissementService } from "../services/arrondissementService"
 import { departementService } from "../services/departementService"
 import type { Arrondissement, Departement } from "../types"
@@ -14,13 +15,18 @@ export default function ArrondissementsPage() {
   const [arrondissements, setArrondissements] = useState<Arrondissement[]>([])
   const [departements, setDepartements] = useState<Departement[]>([])
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<Arrondissement | null>(null)
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    arrondissement: Arrondissement | null
+  }>({ isOpen: false, arrondissement: null })
 
-  const [formData, setFormData] = useState({ nom: "", population: 0, zone: "", departementId: 0 })
+  const [formData, setFormData] = useState({ nom: "", departementId: 0 })
 
   useEffect(() => {
     loadData()
@@ -45,6 +51,7 @@ export default function ArrondissementsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSubmitting(true)
     try {
       if (editingItem) {
         await arrondissementService.update(editingItem.id, formData)
@@ -53,34 +60,44 @@ export default function ArrondissementsPage() {
       }
       setIsModalOpen(false)
       setEditingItem(null)
-      setFormData({ nom: "", population: 0, zone: "", departementId: 0 })
+      setFormData({ nom: "", departementId: 0 })
       loadData()
     } catch (error) {
       console.error("Error saving:", error)
+    } finally {
+      setSubmitting(false)
     }
   }
 
   const handleEdit = (item: Arrondissement) => {
     setEditingItem(item)
-    setFormData({ nom: item.nom, population: item.population, zone: item.zone, departementId: item.departementId })
+    setFormData({ nom: item.nom, departementId: item.departementId })
     setIsModalOpen(true)
   }
 
-  const handleDelete = async (item: Arrondissement) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer ${item.nom}?`)) {
-      try {
-        await arrondissementService.delete(item.id)
-        loadData()
-      } catch (error) {
-        console.error("Error deleting:", error)
-      }
+  const handleDelete = (item: Arrondissement) => {
+    setConfirmDialog({ isOpen: true, arrondissement: item })
+  }
+
+  const confirmDelete = async () => {
+    if (!confirmDialog.arrondissement) return
+
+    setSubmitting(true)
+    try {
+      await arrondissementService.delete(confirmDialog.arrondissement.id)
+      setConfirmDialog({ isOpen: false, arrondissement: null })
+      loadData()
+    } catch (error) {
+      console.error("Error deleting:", error)
+    } finally {
+      setSubmitting(false)
     }
   }
 
   const columns = [
     { key: "id", label: "ID" },
     { key: "nom", label: "Nom" },
-    { key: "population", label: "Population", render: (a: Arrondissement) => a.population.toLocaleString() },
+    { key: "population", label: "Population", render: (a: Arrondissement) => a.population?.toLocaleString() },
     { key: "zone", label: "Zone" },
     { key: "departement", label: "Département", render: (a: Arrondissement) => a.departement?.nom || "-" },
   ]
@@ -92,7 +109,7 @@ export default function ArrondissementsPage() {
         <button
           onClick={() => {
             setEditingItem(null)
-            setFormData({ nom: "", population: 0, zone: "", departementId: 0 })
+            setFormData({ nom: "", departementId: 0 })
             setIsModalOpen(true)
           }}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -140,7 +157,7 @@ export default function ArrondissementsPage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Population</label>
             <input
               type="number"
@@ -149,8 +166,8 @@ export default function ArrondissementsPage() {
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
-          </div>
-          <div>
+          </div> */}
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Zone</label>
             <input
               type="text"
@@ -159,7 +176,7 @@ export default function ArrondissementsPage() {
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
-          </div>
+          </div> */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Département</label>
             <select
@@ -180,16 +197,43 @@ export default function ArrondissementsPage() {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              disabled={submitting}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Annuler
             </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              {editingItem ? "Modifier" : "Créer"}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {submitting ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                  </svg>
+                  <span>Enregistrement...</span>
+                </>
+              ) : (
+                editingItem ? "Modifier" : "Créer"
+              )}
             </button>
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, arrondissement: null })}
+        onConfirm={confirmDelete}
+        title="Confirmer la suppression"
+        message={`Êtes-vous sûr de vouloir supprimer "${confirmDialog.arrondissement?.nom}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        isLoading={submitting}
+        variant="danger"
+      />
     </div>
   )
 }

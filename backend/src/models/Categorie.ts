@@ -7,6 +7,9 @@ export class Categorie extends Model {
   public type?: string
   public readonly createdAt!: Date
   public readonly updatedAt!: Date
+
+  // Relations
+  public readonly personnels?: any[]
 }
 
 Categorie.init(

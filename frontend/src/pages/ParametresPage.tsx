@@ -5,18 +5,24 @@ import { useEffect, useState } from "react"
 import { Plus, Search, Settings } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
+import ConfirmDialog from "../components/ConfirmDialog"
 import { parametreService } from "../services/parametreService"
 import type { Parametre } from "../types"
 
 export default function ParametresPage() {
   const [parametres, setParametres] = useState<Parametre[]>([])
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingParametre, setEditingParametre] = useState<Parametre | null>(null)
   const [search, setSearch] = useState("")
   const [filterCategorie, setFilterCategorie] = useState<string>("")
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    parametre: Parametre | null
+  }>({ isOpen: false, parametre: null })
 
   const [formData, setFormData] = useState({
     cle: "",
@@ -49,6 +55,7 @@ export default function ParametresPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSubmitting(true)
     try {
       if (editingParametre) {
         await parametreService.update(editingParametre.id, formData)
@@ -61,6 +68,8 @@ export default function ParametresPage() {
       loadParametres()
     } catch (error) {
       console.error("Error saving parametre:", error)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -84,14 +93,22 @@ export default function ParametresPage() {
     setIsModalOpen(true)
   }
 
-  const handleDelete = async (parametre: Parametre) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer ${parametre.cle}?`)) {
-      try {
-        await parametreService.delete(parametre.id)
-        loadParametres()
-      } catch (error) {
-        console.error("Error deleting parametre:", error)
-      }
+  const handleDelete = (parametre: Parametre) => {
+    setConfirmDialog({ isOpen: true, parametre })
+  }
+
+  const confirmDelete = async () => {
+    if (!confirmDialog.parametre) return
+
+    setSubmitting(true)
+    try {
+      await parametreService.delete(confirmDialog.parametre.id)
+      setConfirmDialog({ isOpen: false, parametre: null })
+      loadParametres()
+    } catch (error) {
+      console.error("Error deleting parametre:", error)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -244,16 +261,43 @@ export default function ParametresPage() {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              disabled={submitting}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Annuler
             </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              {editingParametre ? "Modifier" : "Ajouter"}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {submitting ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                  </svg>
+                  <span>Enregistrement...</span>
+                </>
+              ) : (
+                editingParametre ? "Modifier" : "Ajouter"
+              )}
             </button>
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, parametre: null })}
+        onConfirm={confirmDelete}
+        title="Confirmer la suppression"
+        message={`Êtes-vous sûr de vouloir supprimer le paramètre "${confirmDialog.parametre?.cle}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        isLoading={submitting}
+        variant="danger"
+      />
     </div>
   )
 }

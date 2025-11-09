@@ -8,20 +8,13 @@ export class EquipebioService extends BaseService<Equipebio> {
 
   async getWithRelations(id: number) {
     return await this.findById(id, {
-      include: [{ association: "fosa" }],
+      include: [{ association: "service" }],
     })
   }
 
-  async getByFosa(fosaId: number) {
+  async getByService(serviceId: number) {
     return await this.findAll({
-      where: { fosaId },
-    })
-  }
-
-  async getByEtat(etat: string) {
-    return await this.findAll({
-      where: { etat },
-      include: [{ association: "fosa" }],
+      where: { serviceId },
     })
   }
 }

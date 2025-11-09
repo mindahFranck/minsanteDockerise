@@ -13,6 +13,10 @@ export class Fosa extends Model {
   public airesanteId!: number
   public readonly createdAt!: Date
   public readonly updatedAt!: Date
+
+  // Relations
+  public readonly arrondissement?: any
+  public readonly airesante?: any
 }
 
 Fosa.init(

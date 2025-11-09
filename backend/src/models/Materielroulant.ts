@@ -11,6 +11,9 @@ export class Materielroulant extends Model {
   public fosaId!: number
   public readonly createdAt!: Date
   public readonly updatedAt!: Date
+
+  // Relations
+  public readonly fosa?: any
 }
 
 Materielroulant.init(

@@ -3,11 +3,15 @@ import sequelize from "../config/database"
 
 export class Equipement extends Model {
   public id!: number
+  public nom?: string
   public type?: string
   public dateAcquisition?: Date
   public serviceId!: number
   public readonly createdAt!: Date
   public readonly updatedAt!: Date
+
+  // Relations
+  public readonly service?: any
 }
 
 Equipement.init(
@@ -16,6 +20,10 @@ Equipement.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+    },
+    nom: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
     },
     type: {
       type: DataTypes.STRING(100),

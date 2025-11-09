@@ -6,17 +6,23 @@ import { useEffect, useState } from "react"
 import { Plus, Search } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
+import ConfirmDialog from "../components/ConfirmDialog"
 import { regionService } from "../services/regionService"
 import type { Region } from "../types"
 
 export default function RegionsPage() {
   const [regions, setRegions] = useState<Region[]>([])
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingRegion, setEditingRegion] = useState<Region | null>(null)
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    region: Region | null
+  }>({ isOpen: false, region: null })
 
   const [formData, setFormData] = useState({ nom: "", population: 0 })
 
@@ -39,6 +45,7 @@ export default function RegionsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSubmitting(true)
     try {
       if (editingRegion) {
         await regionService.update(editingRegion.id, formData)
@@ -51,6 +58,8 @@ export default function RegionsPage() {
       loadRegions()
     } catch (error) {
       console.error("Error saving region:", error)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -60,14 +69,22 @@ export default function RegionsPage() {
     setIsModalOpen(true)
   }
 
-  const handleDelete = async (region: Region) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer ${region.nom}?`)) {
-      try {
-        await regionService.delete(region.id)
-        loadRegions()
-      } catch (error) {
-        console.error("Error deleting region:", error)
-      }
+  const handleDelete = (region: Region) => {
+    setConfirmDialog({ isOpen: true, region })
+  }
+
+  const confirmDelete = async () => {
+    if (!confirmDialog.region) return
+
+    setSubmitting(true)
+    try {
+      await regionService.delete(confirmDialog.region.id)
+      setConfirmDialog({ isOpen: false, region: null })
+      loadRegions()
+    } catch (error) {
+      console.error("Error deleting region:", error)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -146,16 +163,43 @@ export default function RegionsPage() {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              disabled={submitting}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Annuler
             </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              {editingRegion ? "Modifier" : "Créer"}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {submitting ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                  </svg>
+                  <span>Enregistrement...</span>
+                </>
+              ) : (
+                editingRegion ? "Modifier" : "Créer"
+              )}
             </button>
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, region: null })}
+        onConfirm={confirmDelete}
+        title="Confirmer la suppression"
+        message={`Êtes-vous sûr de vouloir supprimer "${confirmDialog.region?.nom}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        isLoading={submitting}
+        variant="danger"
+      />
     </div>
   )
 }

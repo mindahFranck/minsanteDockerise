@@ -78,6 +78,39 @@ export interface Arrondissement {
   updatedAt: string;
 }
 
+export interface District {
+  id: number;
+  region?: string;
+  area?: number;
+  code_ds?: string;
+  nom_ds?: string;
+  geom?: any;
+  nom?: string;
+  responsable?: string;
+  population?: number;
+  superficie?: number;
+  sitesDisponibles?: number;
+  sitesTotaux?: number;
+  regionId?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Airesante {
+  id: number;
+  nom_as?: string;
+  nom_dist?: string;
+  code_as?: string;
+  area?: number;
+  geom?: any;
+  nom?: string;
+  responsable?: string;
+  contact?: string;
+  districtId?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Fosa {
   id: number;
   nom: string;
@@ -140,6 +173,18 @@ export const apiService = {
   // Cameroun
   async getCameroun(): Promise<Cameroun[]> {
     const response = await apiClient.get('/cameroun');
+    return response.data.data;
+  },
+
+  // Districts
+  async getDistricts(): Promise<District[]> {
+    const response = await apiClient.get('/districts');
+    return response.data.data;
+  },
+
+  // Aires de santé
+  async getAiresantes(): Promise<Airesante[]> {
+    const response = await apiClient.get('/airesantes');
     return response.data.data;
   },
 };

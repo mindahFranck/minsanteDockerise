@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polygon, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Polygon, useMap } from "react-leaflet";
 import {
   Filter,
   Layers,
   Search,
   MapPin,
-  Menu,
   X,
   AlertTriangle,
   DollarSign,
@@ -19,7 +18,7 @@ import axios from "axios";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Link } from "react-router-dom";
-import { apiService, type Region as APIRegion, type Fosa as APIFosa } from "../../services/apiService";
+import { apiService } from "../../services/apiService";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -106,10 +105,11 @@ const MapView: React.FC = () => {
   const [selectedRegion, setSelectedRegion] = useState<string>("all");
   const [selectedDepartement, setSelectedDepartement] = useState<string>("all");
   const [selectedArrondissement, setSelectedArrondissement] = useState<string>("all");
+  const [selectedDistrict, setSelectedDistrict] = useState<string>("all");
+  const [selectedAiresante, setSelectedAiresante] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [mapStyle, setMapStyle] = useState("osm");
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -119,19 +119,40 @@ const MapView: React.FC = () => {
   const [regionsPolygons, setRegionsPolygons] = useState<{ [key: string]: [number, number][] }>({});
   const [departementsPolygons, setDepartementsPolygons] = useState<{ [key: string]: [number, number][] }>({});
   const [communesPolygons, setCommunesPolygons] = useState<{ [key: string]: [number, number][] }>({});
+  const [districtsPolygons, setDistrictsPolygons] = useState<{ [key: string]: [number, number][] }>({});
+  const [airesantesPolygons, setAiresantesPolygons] = useState<{ [key: string]: [number, number][] }>({});
 
   // Stocker les données brutes pour les filtres
   const [regionsData, setRegionsData] = useState<any[]>([]);
   const [departementsData, setDepartementsData] = useState<any[]>([]);
   const [arrondissementsData, setArrondissementsData] = useState<any[]>([]);
+  const [districtsData, setDistrictsData] = useState<any[]>([]);
+  const [airesantesData, setAiresantesData] = useState<any[]>([]);
 
   const [loadingProgress, setLoadingProgress] = useState({
     cameroonPolygon: false,
     regionsData: false,
     departementsData: false,
     communesData: false,
+    districtsData: false,
+    airesantesData: false,
     hospitalsData: false
   });
+
+  // États pour contrôler la visibilité des couches
+  const [layersVisibility, setLayersVisibility] = useState({
+    cameroon: true,
+    regions: true,
+    departements: true,
+    communes: true,
+    districts: true,
+    airesantes: true,
+    hospitals: true
+  });
+
+  const toggleLayer = (layer: keyof typeof layersVisibility) => {
+    setLayersVisibility(prev => ({ ...prev, [layer]: !prev[layer] }));
+  };
 
   const updateLoadingProgress = (key: keyof typeof loadingProgress, value: boolean) => {
     setLoadingProgress(prev => ({ ...prev, [key]: value }));
@@ -296,6 +317,92 @@ const MapView: React.FC = () => {
     }
   };
 
+  const fetchDistrictsData = async () => {
+    try {
+      updateLoadingProgress('districtsData', true);
+      const districts = await apiService.getDistricts();
+
+      setDistrictsData(districts);
+
+      const districtsMap: { [key: string]: [number, number][] } = {};
+
+      districts.forEach((district: any) => {
+        if (district.geom) {
+          try {
+            let geojson = district.geom;
+            if (typeof geojson === 'string') {
+              geojson = JSON.parse(geojson);
+            }
+
+            if (geojson.coordinates && geojson.coordinates.length > 0) {
+              const coords = geojson.type === 'MultiPolygon'
+                ? geojson.coordinates[0][0]
+                : geojson.coordinates[0];
+
+              const transformed: [number, number][] = coords.map((coord: any) => [coord[1], coord[0]]);
+              const nom = district.nom_ds || district.nom;
+              if (nom) {
+                districtsMap[nom] = transformed;
+              }
+            }
+          } catch (parseErr) {
+            console.warn(`Erreur parsing polygon pour district ${district.nom_ds || district.nom}:`, parseErr);
+          }
+        }
+      });
+
+      setDistrictsPolygons(districtsMap);
+    } catch (err) {
+      console.error('Erreur chargement districts:', err);
+      setDistrictsPolygons({});
+    } finally {
+      updateLoadingProgress('districtsData', false);
+    }
+  };
+
+  const fetchAiresantesData = async () => {
+    try {
+      updateLoadingProgress('airesantesData', true);
+      const airesantes = await apiService.getAiresantes();
+
+      setAiresantesData(airesantes);
+
+      const airesantesMap: { [key: string]: [number, number][] } = {};
+
+      airesantes.forEach((airesante: any) => {
+        if (airesante.geom) {
+          try {
+            let geojson = airesante.geom;
+            if (typeof geojson === 'string') {
+              geojson = JSON.parse(geojson);
+            }
+
+            if (geojson.coordinates && geojson.coordinates.length > 0) {
+              const coords = geojson.type === 'MultiPolygon'
+                ? geojson.coordinates[0][0]
+                : geojson.coordinates[0];
+
+              const transformed: [number, number][] = coords.map((coord: any) => [coord[1], coord[0]]);
+              const nom = airesante.nom_as || airesante.nom;
+              if (nom) {
+                airesantesMap[nom] = transformed;
+              }
+            }
+          } catch (parseErr) {
+            console.warn(`Erreur parsing polygon pour aire de santé ${airesante.nom_as || airesante.nom}:`, parseErr);
+          }
+        }
+      });
+
+      setAiresantesPolygons(airesantesMap);
+    } catch (err) {
+      console.error('Erreur chargement aires de santé:', err);
+      setAiresantesPolygons({});
+    } finally {
+      updateLoadingProgress('airesantesData', false);
+    }
+  };
+
   const loadHospitalsData = async () => {
     try {
       updateLoadingProgress('hospitalsData', true);
@@ -408,6 +515,8 @@ const MapView: React.FC = () => {
       !loadingProgress.regionsData &&
       !loadingProgress.departementsData &&
       !loadingProgress.communesData &&
+      !loadingProgress.districtsData &&
+      !loadingProgress.airesantesData &&
       !loadingProgress.hospitalsData;
     if (allLoaded) setLoading(false);
   }, [loadingProgress]);
@@ -421,6 +530,8 @@ const MapView: React.FC = () => {
           fetchRegionsData(),
           fetchDepartementsData(),
           fetchCommunesData(),
+          fetchDistrictsData(),
+          fetchAiresantesData(),
           loadHospitalsData()
         ]);
       } catch (err) {
@@ -493,6 +604,18 @@ const MapView: React.FC = () => {
     });
   const arrondissements = Array.from(new Set(availableArrondissements.map(a => a.nom))).filter(a => a).sort();
 
+  // Filtrer les districts selon la région sélectionnée
+  const availableDistricts = selectedRegion === 'all'
+    ? districtsData
+    : districtsData.filter(d => d.region === selectedRegion);
+  const districts = Array.from(new Set(availableDistricts.map(d => d.nom_ds || d.nom))).filter(d => d).sort();
+
+  // Filtrer les aires de santé selon le district sélectionné
+  const availableAiresantes = selectedDistrict === 'all'
+    ? airesantesData
+    : airesantesData.filter(a => a.nom_dist === selectedDistrict);
+  const airesantes = Array.from(new Set(availableAiresantes.map(a => a.nom_as || a.nom))).filter(a => a).sort();
+
   const CollapsibleSection = ({ id, title, icon: Icon, children, defaultExpanded = false }: any) => {
     const isExpanded = expandedSections[id] ?? defaultExpanded;
     return (
@@ -519,7 +642,7 @@ const MapView: React.FC = () => {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Chargement des données</h2>
           <p className="text-gray-600 mb-6">Récupération des informations...</p>
           <div className="w-full bg-gray-200 rounded-full h-3 mb-4 overflow-hidden">
-            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 h-3 rounded-full transition-all duration-500" style={{ width: `${(!loadingProgress.cameroonPolygon ? 20 : 0) + (!loadingProgress.regionsData ? 20 : 0) + (!loadingProgress.departementsData ? 20 : 0) + (!loadingProgress.communesData ? 20 : 0) + (!loadingProgress.hospitalsData ? 20 : 0)}%` }}></div>
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 h-3 rounded-full transition-all duration-500" style={{ width: `${(!loadingProgress.cameroonPolygon ? 14 : 0) + (!loadingProgress.regionsData ? 14 : 0) + (!loadingProgress.departementsData ? 14 : 0) + (!loadingProgress.communesData ? 14 : 0) + (!loadingProgress.districtsData ? 15 : 0) + (!loadingProgress.airesantesData ? 15 : 0) + (!loadingProgress.hospitalsData ? 14 : 0)}%` }}></div>
           </div>
         </div>
       </div>
@@ -575,6 +698,8 @@ const MapView: React.FC = () => {
                 setSelectedRegion(e.target.value);
                 setSelectedDepartement('all');
                 setSelectedArrondissement('all');
+                setSelectedDistrict('all');
+                setSelectedAiresante('all');
               }} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70">
                 <option value="all">Toutes régions</option>
                 {regions.map(r => <option key={r} value={r}>{r}</option>)}
@@ -589,6 +714,17 @@ const MapView: React.FC = () => {
               <select value={selectedArrondissement} onChange={(e) => setSelectedArrondissement(e.target.value)} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70">
                 <option value="all">Tous arrondissements</option>
                 {arrondissements.map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+              <select value={selectedDistrict} onChange={(e) => {
+                setSelectedDistrict(e.target.value);
+                setSelectedAiresante('all');
+              }} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70">
+                <option value="all">Tous districts</option>
+                {districts.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+              <select value={selectedAiresante} onChange={(e) => setSelectedAiresante(e.target.value)} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70">
+                <option value="all">Toutes aires de santé</option>
+                {airesantes.map(a => <option key={a} value={a}>{a}</option>)}
               </select>
               <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70">
                 <option value="all">Toutes catégories</option>
@@ -751,63 +887,209 @@ const MapView: React.FC = () => {
                 <TileLayer url={mapStyles.find(s => s.id === mapStyle)?.url || mapStyles[0].url} />
 
                 {/* Polygone du Cameroun */}
-                {cameroonPolygon.length > 0 && <Polygon positions={cameroonPolygon} pathOptions={{ fillColor: '#10b981', fillOpacity: 0.05, color: '#10b981', weight: 2, opacity: 0.6 }} />}
+                {layersVisibility.cameroon && cameroonPolygon.length > 0 && (
+                  <Polygon positions={cameroonPolygon} pathOptions={{ fillColor: '#10b981', fillOpacity: 0.05, color: '#10b981', weight: 2, opacity: 0.6 }} />
+                )}
 
-                {/* Polygone de la région sélectionnée */}
-                {selectedRegion !== 'all' && regionsPolygons[selectedRegion] && <Polygon positions={regionsPolygons[selectedRegion]} pathOptions={{ fillColor: '#14b8a6', fillOpacity: 0.15, color: '#14b8a6', weight: 3, opacity: 0.8 }} />}
+                {/* Afficher tous les polygones des régions */}
+                {layersVisibility.regions && Object.entries(regionsPolygons).map(([regionName, polygon]) => (
+                  <Polygon
+                    key={`region-${regionName}`}
+                    positions={polygon}
+                    pathOptions={{
+                      fillColor: selectedRegion === regionName ? '#14b8a6' : '#10b981',
+                      fillOpacity: selectedRegion === regionName ? 0.15 : 0.05,
+                      color: selectedRegion === regionName ? '#14b8a6' : '#10b981',
+                      weight: selectedRegion === regionName ? 3 : 1.5,
+                      opacity: selectedRegion === regionName ? 0.8 : 0.4
+                    }}
+                  />
+                ))}
 
-                {/* Polygone du département sélectionné */}
-                {selectedDepartement !== 'all' && departementsPolygons[selectedDepartement] && <Polygon positions={departementsPolygons[selectedDepartement]} pathOptions={{ fillColor: '#0891b2', fillOpacity: 0.2, color: '#0891b2', weight: 3, opacity: 0.9 }} />}
+                {/* Afficher tous les polygones des départements */}
+                {layersVisibility.departements && Object.entries(departementsPolygons).map(([deptName, polygon]) => (
+                  <Polygon
+                    key={`dept-${deptName}`}
+                    positions={polygon}
+                    pathOptions={{
+                      fillColor: selectedDepartement === deptName ? '#0891b2' : '#06b6d4',
+                      fillOpacity: selectedDepartement === deptName ? 0.2 : 0.05,
+                      color: selectedDepartement === deptName ? '#0891b2' : '#06b6d4',
+                      weight: selectedDepartement === deptName ? 3 : 1,
+                      opacity: selectedDepartement === deptName ? 0.9 : 0.3
+                    }}
+                  />
+                ))}
+
+                {/* Afficher tous les polygones des districts */}
+                {layersVisibility.districts && Object.entries(districtsPolygons).map(([districtName, polygon]) => (
+                  <Polygon
+                    key={`district-${districtName}`}
+                    positions={polygon}
+                    pathOptions={{
+                      fillColor: '#8b5cf6',
+                      fillOpacity: 0.1,
+                      color: '#8b5cf6',
+                      weight: 1.5,
+                      opacity: 0.5
+                    }}
+                  />
+                ))}
+
+                {/* Afficher tous les polygones des aires de santé */}
+                {layersVisibility.airesantes && Object.entries(airesantesPolygons).map(([airesanteName, polygon]) => (
+                  <Polygon
+                    key={`airesante-${airesanteName}`}
+                    positions={polygon}
+                    pathOptions={{
+                      fillColor: '#ec4899',
+                      fillOpacity: 0.08,
+                      color: '#ec4899',
+                      weight: 1,
+                      opacity: 0.4
+                    }}
+                  />
+                ))}
 
                 {/* Marqueurs des hôpitaux */}
-                {filteredHospitals.map(h => (
+                {layersVisibility.hospitals && filteredHospitals.map(h => (
                   <Marker key={h.id} position={h.coordinates} icon={getHospitalIcon(h)} eventHandlers={{ click: () => setSelectedHospital(h) }}>
                   </Marker>
                 ))}
               </MapContainer>
 
-              {/* Légende */}
-              <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-xl border border-emerald-200 z-[1000]">
-                <h4 className="font-semibold text-gray-800 mb-3 text-sm">Légende</h4>
+              {/* Contrôle des couches */}
+              <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-xl border border-emerald-200 z-[1000] max-h-[80vh] overflow-y-auto custom-scrollbar">
+                <h4 className="font-semibold text-gray-800 mb-3 text-sm flex items-center gap-2">
+                  <Layers className="w-4 h-4" />
+                  Couches de la carte
+                </h4>
                 <div className="space-y-2 text-xs">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 bg-green-500 rounded-full shadow"></div>
-                    <span>Opérationnel</span>
+                  {/* Contrôle de visibilité des couches */}
+                  <div className="pb-2 border-b border-emerald-100">
+                    <p className="font-semibold text-gray-700 mb-2">Divisions géographiques</p>
+                    <div className="space-y-2">
+                      <label className="flex items-center space-x-2 cursor-pointer hover:bg-emerald-50 p-1 rounded">
+                        <input
+                          type="checkbox"
+                          checked={layersVisibility.cameroon}
+                          onChange={() => toggleLayer('cameroon')}
+                          className="w-4 h-4 text-emerald-600 rounded"
+                        />
+                        <div className="w-4 h-4 border-2 border-emerald-600 bg-emerald-50"></div>
+                        <span>Cameroun</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer hover:bg-emerald-50 p-1 rounded">
+                        <input
+                          type="checkbox"
+                          checked={layersVisibility.regions}
+                          onChange={() => toggleLayer('regions')}
+                          className="w-4 h-4 text-emerald-600 rounded"
+                        />
+                        <div className="w-4 h-4 border-2 border-emerald-600 bg-emerald-100"></div>
+                        <span>Régions</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer hover:bg-cyan-50 p-1 rounded">
+                        <input
+                          type="checkbox"
+                          checked={layersVisibility.departements}
+                          onChange={() => toggleLayer('departements')}
+                          className="w-4 h-4 text-cyan-600 rounded"
+                        />
+                        <div className="w-4 h-4 border-2 border-cyan-600 bg-cyan-50"></div>
+                        <span>Départements</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer hover:bg-purple-50 p-1 rounded">
+                        <input
+                          type="checkbox"
+                          checked={layersVisibility.districts}
+                          onChange={() => toggleLayer('districts')}
+                          className="w-4 h-4 text-purple-600 rounded"
+                        />
+                        <div className="w-4 h-4 border-2 border-purple-600 bg-purple-50"></div>
+                        <span>Districts sanitaires</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer hover:bg-pink-50 p-1 rounded">
+                        <input
+                          type="checkbox"
+                          checked={layersVisibility.airesantes}
+                          onChange={() => toggleLayer('airesantes')}
+                          className="w-4 h-4 text-pink-600 rounded"
+                        />
+                        <div className="w-4 h-4 border-2 border-pink-600 bg-pink-50"></div>
+                        <span>Aires de santé</span>
+                      </label>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 bg-yellow-500 rounded-full shadow"></div>
-                    <span>Maintenance</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 bg-blue-500 rounded-full shadow"></div>
-                    <span>Construction</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-4 h-4 bg-gray-500 rounded-full shadow"></div>
-                    <span>Fermé</span>
+
+                  {/* Statuts des formations sanitaires */}
+                  <div className="pb-2 border-b border-emerald-100">
+                    <p className="font-semibold text-gray-700 mb-2">Formations sanitaires</p>
+                    <label className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded mb-2">
+                      <input
+                        type="checkbox"
+                        checked={layersVisibility.hospitals}
+                        onChange={() => toggleLayer('hospitals')}
+                        className="w-4 h-4 text-emerald-600 rounded"
+                      />
+                      <span className="font-medium">Afficher les FOSA</span>
+                    </label>
+                    <div className="space-y-1 ml-6">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 bg-green-500 rounded-full shadow"></div>
+                        <span>Opérationnel</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 bg-yellow-500 rounded-full shadow"></div>
+                        <span>Maintenance</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 bg-blue-500 rounded-full shadow"></div>
+                        <span>Construction</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 bg-gray-500 rounded-full shadow"></div>
+                        <span>Fermé</span>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Zones géographiques sélectionnées */}
-                  {(selectedRegion !== 'all' || selectedDepartement !== 'all' || selectedArrondissement !== 'all') && (
-                    <div className="pt-2 border-t border-emerald-200 space-y-2">
-                      {selectedRegion !== 'all' && (
-                        <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 border-2 border-teal-500 bg-teal-100"></div>
-                          <span className="text-teal-600 font-medium text-xs">{selectedRegion}</span>
-                        </div>
-                      )}
-                      {selectedDepartement !== 'all' && (
-                        <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 border-2 border-cyan-600 bg-cyan-100"></div>
-                          <span className="text-cyan-700 font-medium text-xs">{selectedDepartement}</span>
-                        </div>
-                      )}
-                      {selectedArrondissement !== 'all' && (
-                        <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 border-2 border-blue-600 bg-blue-100"></div>
-                          <span className="text-blue-700 font-medium text-xs">{selectedArrondissement}</span>
-                        </div>
-                      )}
+                  {(selectedRegion !== 'all' || selectedDepartement !== 'all' || selectedArrondissement !== 'all' || selectedDistrict !== 'all' || selectedAiresante !== 'all') && (
+                    <div className="pt-2 border-t border-emerald-200">
+                      <p className="font-semibold text-gray-700 mb-2">Sélection active</p>
+                      <div className="space-y-1">
+                        {selectedRegion !== 'all' && (
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 border-2 border-teal-500 bg-teal-100"></div>
+                            <span className="text-teal-600 font-medium text-xs">{selectedRegion}</span>
+                          </div>
+                        )}
+                        {selectedDepartement !== 'all' && (
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 border-2 border-cyan-600 bg-cyan-100"></div>
+                            <span className="text-cyan-700 font-medium text-xs">{selectedDepartement}</span>
+                          </div>
+                        )}
+                        {selectedArrondissement !== 'all' && (
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 border-2 border-blue-600 bg-blue-100"></div>
+                            <span className="text-blue-700 font-medium text-xs">{selectedArrondissement}</span>
+                          </div>
+                        )}
+                        {selectedDistrict !== 'all' && (
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 border-2 border-purple-600 bg-purple-100"></div>
+                            <span className="text-purple-700 font-medium text-xs">{selectedDistrict}</span>
+                          </div>
+                        )}
+                        {selectedAiresante !== 'all' && (
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 border-2 border-pink-600 bg-pink-100"></div>
+                            <span className="text-pink-700 font-medium text-xs">{selectedAiresante}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import { Plus, Search, ImageIcon } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
+import ConfirmDialog from "../components/ConfirmDialog"
 import { fosaService } from "../services/fosaService"
 import { arrondissementService } from "../services/arrondissementService"
 import { airesanteService } from "../services/airesanteService"
@@ -16,6 +17,7 @@ export default function FosasPage() {
   const [arrondissements, setArrondissements] = useState<Arrondissement[]>([])
   const [airesantes, setAiresantes] = useState<Airesante[]>([])
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<Fosa | null>(null)
   const [search, setSearch] = useState("")
@@ -23,14 +25,16 @@ export default function FosasPage() {
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>("")
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    fosa: Fosa | null
+  }>({ isOpen: false, fosa: null })
 
   const [formData, setFormData] = useState({
     nom: "",
     type: "",
-    latitude: 0,
-    longitude: 0,
-    capacite: 0,
-    fermeture: false,
+    capaciteLits: 0,
+    estFerme: false,
     situation: "",
     arrondissementId: 0,
     airesanteId: 0,
@@ -73,6 +77,7 @@ export default function FosasPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setSubmitting(true)
     try {
       if (editingItem) {
         await fosaService.update(editingItem.id, formData, imageFile || undefined)
@@ -86,10 +91,8 @@ export default function FosasPage() {
       setFormData({
         nom: "",
         type: "",
-        latitude: 0,
-        longitude: 0,
-        capacite: 0,
-        fermeture: false,
+        capaciteLits: 0,
+        estFerme: false,
         situation: "",
         arrondissementId: 0,
         airesanteId: 0,
@@ -97,6 +100,8 @@ export default function FosasPage() {
       loadData()
     } catch (error) {
       console.error("Error saving:", error)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -105,10 +110,8 @@ export default function FosasPage() {
     setFormData({
       nom: item.nom,
       type: item.type,
-      latitude: item.latitude,
-      longitude: item.longitude,
-      capacite: item.capacite,
-      fermeture: item.fermeture,
+      capaciteLits: item.capaciteLits || 0,
+      estFerme: item.estFerme,
       situation: item.situation,
       arrondissementId: item.arrondissementId,
       airesanteId: item.airesanteId,
@@ -119,14 +122,22 @@ export default function FosasPage() {
     setIsModalOpen(true)
   }
 
-  const handleDelete = async (item: Fosa) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer ${item.nom}?`)) {
-      try {
-        await fosaService.delete(item.id)
-        loadData()
-      } catch (error) {
-        console.error("Error deleting:", error)
-      }
+  const handleDelete = (item: Fosa) => {
+    setConfirmDialog({ isOpen: true, fosa: item })
+  }
+
+  const confirmDelete = async () => {
+    if (!confirmDialog.fosa) return
+
+    setSubmitting(true)
+    try {
+      await fosaService.delete(confirmDialog.fosa.id)
+      setConfirmDialog({ isOpen: false, fosa: null })
+      loadData()
+    } catch (error) {
+      console.error("Error deleting:", error)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -150,19 +161,29 @@ export default function FosasPage() {
     },
     { key: "nom", label: "Nom" },
     { key: "type", label: "Type" },
-    { key: "capacite", label: "Capacité" },
+    { key: "capaciteLits", label: "Capacité Lits" },
     {
-      key: "fermeture",
+      key: "estFerme",
       label: "Statut",
       render: (f: Fosa) => (
         <span
-          className={`px-2 py-1 rounded text-xs ${f.fermeture ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}
+          className={`px-2 py-1 rounded text-xs ${f.estFerme ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}
         >
-          {f.fermeture ? "Fermé" : "Ouvert"}
+          {f.estFerme ? "Fermé" : "Ouvert"}
         </span>
       ),
     },
-    { key: "arrondissement", label: "Arrondissement", render: (f: Fosa) => f.arrondissement?.nom || "-" },
+    { key: "situation", label: "Situation" },
+    {
+      key: "arrondissement",
+      label: "Arrondissement",
+      render: (f: Fosa) => f.arrondissement?.nom || "-"
+    },
+    {
+      key: "airesante",
+      label: "Aire de Santé",
+      render: (f: Fosa) => f.airesante?.nom_as || "-"
+    },
   ]
 
   return (
@@ -177,10 +198,8 @@ export default function FosasPage() {
             setFormData({
               nom: "",
               type: "",
-              latitude: 0,
-              longitude: 0,
-              capacite: 0,
-              fermeture: false,
+              capaciteLits: 0,
+              estFerme: false,
               situation: "",
               arrondissementId: 0,
               airesanteId: 0,
@@ -224,6 +243,7 @@ export default function FosasPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingItem ? "Modifier FOSA" : "Ajouter FOSA"}
+        size="lg"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -268,39 +288,15 @@ export default function FosasPage() {
                 <option value="Centre de Santé">Centre de Santé</option>
                 <option value="Dispensaire">Dispensaire</option>
                 <option value="Clinique">Clinique</option>
+                <option value="Poste de Santé">Poste de Santé</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Capacité</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Capacité Lits</label>
               <input
                 type="number"
-                value={formData.capacite}
-                onChange={(e) => setFormData({ ...formData, capacite: Number.parseInt(e.target.value) })}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
-              <input
-                type="number"
-                step="any"
-                value={formData.latitude}
-                onChange={(e) => setFormData({ ...formData, latitude: Number.parseFloat(e.target.value) })}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
-              <input
-                type="number"
-                step="any"
-                value={formData.longitude}
-                onChange={(e) => setFormData({ ...formData, longitude: Number.parseFloat(e.target.value) })}
-                required
+                value={formData.capaciteLits}
+                onChange={(e) => setFormData({ ...formData, capaciteLits: Number.parseInt(e.target.value) || 0 })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -310,7 +306,6 @@ export default function FosasPage() {
             <textarea
               value={formData.situation}
               onChange={(e) => setFormData({ ...formData, situation: e.target.value })}
-              required
               rows={3}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
@@ -343,7 +338,7 @@ export default function FosasPage() {
                 <option value="">Sélectionner...</option>
                 {airesantes.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.nom}
+                    {a.nom_as}
                   </option>
                 ))}
               </select>
@@ -352,12 +347,12 @@ export default function FosasPage() {
           <div className="flex items-center">
             <input
               type="checkbox"
-              id="fermeture"
-              checked={formData.fermeture}
-              onChange={(e) => setFormData({ ...formData, fermeture: e.target.checked })}
+              id="estFerme"
+              checked={formData.estFerme}
+              onChange={(e) => setFormData({ ...formData, estFerme: e.target.checked })}
               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
-            <label htmlFor="fermeture" className="ml-2 text-sm text-gray-700">
+            <label htmlFor="estFerme" className="ml-2 text-sm text-gray-700">
               Formation fermée
             </label>
           </div>
@@ -365,16 +360,43 @@ export default function FosasPage() {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              disabled={submitting}
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Annuler
             </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              {editingItem ? "Modifier" : "Créer"}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {submitting ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                  </svg>
+                  <span>Enregistrement...</span>
+                </>
+              ) : (
+                editingItem ? "Modifier" : "Créer"
+              )}
             </button>
           </div>
         </form>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false, fosa: null })}
+        onConfirm={confirmDelete}
+        title="Confirmer la suppression"
+        message={`Êtes-vous sûr de vouloir supprimer "${confirmDialog.fosa?.nom}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        isLoading={submitting}
+        variant="danger"
+      />
     </div>
   )
 }

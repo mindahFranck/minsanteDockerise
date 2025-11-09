@@ -3,10 +3,10 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'super_admin' | 'admin' | 'manager' | 'user';
+  role: "super_admin" | "admin" | "manager" | "user";
   isActive: boolean;
   lastLogin?: string;
-  scopeType?: 'national' | 'regional' | 'departemental' | 'arrondissement';
+  scopeType?: "national" | "regional" | "departemental" | "arrondissement";
   regionId?: number;
   departementId?: number;
   arrondissementId?: number;
@@ -27,13 +27,13 @@ export interface Hospital {
   address: string;
   region: string;
   city: string;
-  type: 'public' | 'private' | 'confessional' | 'military';
-  category: 'CHU' | 'CHR' | 'CHD' | 'CMA' | 'CSI' | 'dispensaire';
-  status: 'operational' | 'maintenance' | 'construction' | 'closed';
+  type: "public" | "private" | "confessional" | "military";
+  category: "CHU" | "CHR" | "CHD" | "CMA" | "CSI" | "dispensaire";
+  status: "operational" | "maintenance" | "construction" | "closed";
   coordinates: [number, number];
   photos: string[];
   description: string;
-  
+
   // Capacité et personnel
   capacity: {
     totalBeds: number;
@@ -41,38 +41,38 @@ export interface Hospital {
     operatingRooms: number;
     emergencyBeds: number;
   };
-  
+
   staff: {
     doctors: number;
     nurses: number;
     technicians: number;
     administrative: number;
   };
-  
+
   // Patrimoine immobilier
   buildings: {
     id: string;
     name: string;
-    type: 'medical' | 'administrative' | 'technical' | 'accommodation';
+    type: "medical" | "administrative" | "technical" | "accommodation";
     surface: number;
     floors: number;
     yearBuilt: number;
-    condition: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
+    condition: "excellent" | "good" | "fair" | "poor" | "critical";
     lastRenovation?: string;
   }[];
-  
+
   // Équipements médicaux
   equipment: {
     category: string;
     items: {
       name: string;
       quantity: number;
-      condition: 'excellent' | 'good' | 'fair' | 'poor' | 'out_of_order';
+      condition: "excellent" | "good" | "fair" | "poor" | "out_of_order";
       lastMaintenance?: string;
       nextMaintenance?: string;
     }[];
   }[];
-  
+
   // Finances et budget
   budget: {
     annual: number;
@@ -80,10 +80,10 @@ export interface Hospital {
     equipment: number;
     personnel: number;
   };
-  
+
   // Services disponibles
   services: string[];
-  
+
   // Données de performance
   performance: {
     patientSatisfaction: number;
@@ -91,22 +91,22 @@ export interface Hospital {
     averageStayDuration: number;
     mortalityRate: number;
   };
-  
+
   // Maintenance et travaux
   maintenance: {
     lastInspection: string;
     nextInspection: string;
-    priority: 'low' | 'medium' | 'high' | 'urgent';
+    priority: "low" | "medium" | "high" | "urgent";
     issues: string[];
     plannedWorks: {
       description: string;
       budget: number;
       startDate: string;
       endDate: string;
-      status: 'planned' | 'ongoing' | 'completed';
+      status: "planned" | "ongoing" | "completed";
     }[];
   };
-  
+
   lastUpdate: string;
   createdBy: string;
 }
@@ -146,25 +146,25 @@ export interface MaintenanceTask {
   buildingId?: string;
   title: string;
   description: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  status: 'pending' | 'in-progress' | 'completed' | 'cancelled';
+  priority: "low" | "medium" | "high" | "urgent";
+  status: "pending" | "in-progress" | "completed" | "cancelled";
   assignedTo: string;
   dueDate: string;
   createdAt: string;
   estimatedCost: number;
   actualCost?: number;
-  category: 'building' | 'equipment' | 'infrastructure' | 'security';
+  category: "building" | "equipment" | "infrastructure" | "security";
 }
 
 export interface Report {
   id: string;
   title: string;
-  type: 'maintenance' | 'financial' | 'capacity' | 'equipment' | 'performance';
+  type: "maintenance" | "financial" | "capacity" | "equipment" | "performance";
   generatedAt: string;
   generatedBy: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
-  format: 'pdf' | 'excel' | 'csv';
+  format: "pdf" | "excel" | "csv";
 }
 
 export interface Forecast {
@@ -182,7 +182,7 @@ export interface Forecast {
     maintenance: number;
     equipment: number;
   }[];
-  status: 'draft' | 'active' | 'completed';
+  status: "draft" | "active" | "completed";
   createdBy: string;
   createdAt: string;
 }
@@ -192,8 +192,8 @@ export interface Building {
   id: string;
   name: string;
   address: string;
-  type: 'residential' | 'commercial' | 'industrial' | 'institutional';
-  status: 'active' | 'maintenance' | 'vacant' | 'planned';
+  type: "residential" | "commercial" | "industrial" | "institutional";
+  status: "active" | "maintenance" | "vacant" | "planned";
   coordinates: [number, number];
   surface: number;
   floors: number;
@@ -212,7 +212,7 @@ export interface Building {
   maintenance: {
     lastInspection?: string;
     nextInspection: string;
-    priority: 'low' | 'medium' | 'high';
+    priority: "low" | "medium" | "high";
     issues: string[];
   };
   photos?: string[];
@@ -234,7 +234,7 @@ export interface Scenario {
     occupancy: number;
     energyEfficiency?: number;
   }[];
-  status: 'draft' | 'active' | 'completed';
+  status: "draft" | "active" | "completed";
   createdBy: string;
   createdAt: string;
 }
@@ -244,10 +244,11 @@ export interface Scenario {
 export interface Region {
   id: number;
   nom: string;
-  code?: string;
+  capitale?: string;
   population?: number;
-  superficie?: number;
-  chefLieu?: string;
+  latitude?: number;
+  longitude?: number;
+  geom?: any;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -285,56 +286,53 @@ export interface Arrondissement {
 
 export interface District {
   id: number;
-  nom: string;
-  regionId: number;
-  region?: Region;
-  population?: number;
-  superficie?: number;
+  region: string;
+  regionId?: number;
+  nom_ds?: string;
+  code_ds?: number;
+  area?: number;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface Airesante {
   id: number;
-  nom: string;
+  nom_as: string;
+  code_as: string;
+  area: number;
+  population?: number;
   districtId: number;
   district?: District;
   arrondissementId?: number;
   arrondissement?: Arrondissement;
-  population?: number;
-  superficie?: number;
   createdAt?: string;
   updatedAt?: string;
 }
-
 export interface Fosa {
   id: number;
   nom: string;
   type: string;
-  latitude?: number;
-  longitude?: number;
-  capacite?: number;
-  etatFermeture?: string;
-  situation?: string;
-  image?: string;
-  airesanteId?: number;
-  airesante?: Airesante;
-  arrondissementId?: number;
+  capaciteLits: number | null;
+  estFerme: boolean;
+  situation: string;
+  image: string | null;
+  arrondissementId: number;
+  airesanteId: number;
   arrondissement?: Arrondissement;
+  airesante?: Airesante;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface Batiment {
   id: number;
-  nom: string;
-  type: string;
+  nom?: string;
+  type?: string;
   etat?: string;
-  surface?: number;
-  nombreEtages?: number;
-  anneConstruction?: number;
   fosaId: number;
+  degradationId?: number;
   fosa?: Fosa;
+  degradation?: Degradation;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -342,12 +340,9 @@ export interface Batiment {
 export interface Service {
   id: number;
   nom: string;
-  type: string;
-  capacite?: number;
-  etat?: string;
-  fosaId: number;
-  fosa?: Fosa;
-  batimentId?: number;
+  responsable?: string;
+  dateCreation?: string;
+  batimentId: number;
   batiment?: Batiment;
   createdAt?: string;
   updatedAt?: string;
@@ -356,8 +351,7 @@ export interface Service {
 export interface Categorie {
   id: number;
   nom: string;
-  description?: string;
-  niveau?: string;
+  type?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -367,67 +361,44 @@ export interface Personnel {
   nom: string;
   prenom: string;
   matricule?: string;
-  sexe?: string;
-  dateNaissance?: string;
-  telephone?: string;
-  email?: string;
+  grade?: string;
   categorieId?: number;
   categorie?: Categorie;
   fosaId: number;
   fosa?: Fosa;
-  statut?: string;
-  dateRecrutement?: string;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface Equipement {
   id: number;
-  nom: string;
-  type: string;
-  marque?: string;
-  modele?: string;
-  numeroSerie?: string;
+  nom?: string;
+  type?: string;
   dateAcquisition?: string;
-  etat?: string;
-  valeur?: number;
-  serviceId?: number;
+  serviceId: number;
   service?: Service;
-  fosaId: number;
-  fosa?: Fosa;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface Equipebio {
   id: number;
-  nom: string;
-  type: string;
-  marque?: string;
-  modele?: string;
-  numeroSerie?: string;
+  nom?: string;
+  type?: string;
   dateAcquisition?: string;
-  etat?: string;
-  valeur?: number;
-  dateDerniereCalibration?: string;
-  dateProchaineMaintenance?: string;
-  fosaId: number;
-  fosa?: Fosa;
+  serviceId: number;
+  service?: Service;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface Materielroulant {
   id: number;
-  type: string;
+  numeroChassis?: string;
+  annee?: number;
   marque?: string;
   modele?: string;
-  immatriculation?: string;
-  anneeFabrication?: number;
-  dateAcquisition?: string;
-  etat?: string;
-  kilometrage?: number;
-  dateProchainEntretien?: string;
+  type?: string;
   fosaId: number;
   fosa?: Fosa;
   createdAt?: string;
