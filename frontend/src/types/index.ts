@@ -385,6 +385,8 @@ export interface Equipebio {
   id: number;
   nom?: string;
   type?: string;
+  quantite?: number;
+  etat?: string;
   dateAcquisition?: string;
   serviceId: number;
   service?: Service;

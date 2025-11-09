@@ -3,12 +3,17 @@ import sequelize from "../config/database"
 
 export class Equipebio extends Model {
   public id!: number
+  public nom?: string
   public type?: string
+  public quantite?: number
+  public etat?: string
   public dateAcquisition?: Date
-  public fonction?: string
   public serviceId!: number
   public readonly createdAt!: Date
   public readonly updatedAt!: Date
+
+  // Relations
+  public readonly service?: any
 }
 
 Equipebio.init(
@@ -18,18 +23,26 @@ Equipebio.init(
       autoIncrement: true,
       primaryKey: true,
     },
+    nom: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+    },
     type: {
       type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    quantite: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    etat: {
+      type: DataTypes.STRING(50),
       allowNull: true,
     },
     dateAcquisition: {
       type: DataTypes.DATE,
       allowNull: true,
       field: "date_acquisition",
-    },
-    fonction: {
-      type: DataTypes.STRING(200),
-      allowNull: true,
     },
     serviceId: {
       type: DataTypes.INTEGER,

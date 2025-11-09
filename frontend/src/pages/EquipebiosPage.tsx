@@ -7,18 +7,18 @@ import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
 import ConfirmDialog from "../components/ConfirmDialog"
 import { equipebioService } from "../services/equipebioService"
-import { fosaService } from "../services/fosaService"
-import type { Equipebio, Fosa } from "../types"
+import api from "../services/api"
+import type { Equipebio, Service } from "../types"
 
 export default function EquipebiosPage() {
   const [equipebios, setEquipebios] = useState<Equipebio[]>([])
-  const [fosas, setFosas] = useState<Fosa[]>([])
+  const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingEquipebio, setEditingEquipebio] = useState<Equipebio | null>(null)
   const [search, setSearch] = useState("")
-  const [filterFosaId, setFilterFosaId] = useState<number | null>(null)
+  const [filterServiceId, setFilterServiceId] = useState<number | null>(null)
   const [filterEtat, setFilterEtat] = useState<string>("")
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
@@ -29,7 +29,7 @@ export default function EquipebiosPage() {
 
   const [formData, setFormData] = useState({
     nom: "",
-    fosaId: 0,
+    serviceId: 0,
     type: "",
     quantite: 1,
     etat: "Bon",
@@ -38,14 +38,14 @@ export default function EquipebiosPage() {
 
   useEffect(() => {
     loadEquipebios()
-    loadFosas()
-  }, [page, search, filterFosaId, filterEtat])
+    loadServices()
+  }, [page, search, filterServiceId, filterEtat])
 
   const loadEquipebios = async () => {
     try {
       setLoading(true)
       const params: any = { page, limit: 10 }
-      if (filterFosaId) params.fosaId = filterFosaId
+      if (filterServiceId) params.serviceId = filterServiceId
       if (filterEtat) params.etat = filterEtat
 
       const response = await equipebioService.getAll(params)
@@ -58,12 +58,12 @@ export default function EquipebiosPage() {
     }
   }
 
-  const loadFosas = async () => {
+  const loadServices = async () => {
     try {
-      const response = await fosaService.getAll({ limit: 1000 })
-      setFosas(response.data)
+      const response = await api.get("/services?limit=1000")
+      setServices(response.data.data)
     } catch (error) {
-      console.error("Error loading fosas:", error)
+      console.error("Error loading services:", error)
     }
   }
 
@@ -90,7 +90,7 @@ export default function EquipebiosPage() {
   const resetForm = () => {
     setFormData({
       nom: "",
-      fosaId: 0,
+      serviceId: 0,
       type: "",
       quantite: 1,
       etat: "Bon",
@@ -101,8 +101,8 @@ export default function EquipebiosPage() {
   const handleEdit = (equipebio: Equipebio) => {
     setEditingEquipebio(equipebio)
     setFormData({
-      nom: equipebio.nom,
-      fosaId: equipebio.fosaId,
+      nom: equipebio.nom || "",
+      serviceId: equipebio.serviceId,
       type: equipebio.type || "",
       quantite: equipebio.quantite || 1,
       etat: equipebio.etat || "Bon",
@@ -134,7 +134,7 @@ export default function EquipebiosPage() {
     { key: "id", label: "ID" },
     { key: "nom", label: "Nom" },
     { key: "type", label: "Type" },
-    { key: "fosa", label: "FOSA", render: (e: Equipebio) => e.fosa?.nom || "N/A" },
+    { key: "service", label: "Service", render: (e: Equipebio) => e.service?.nom || "N/A" },
     { key: "quantite", label: "Quantité" },
     {
       key: "etat",
@@ -181,14 +181,14 @@ export default function EquipebiosPage() {
           />
         </div>
         <select
-          value={filterFosaId || ""}
-          onChange={(e) => setFilterFosaId(e.target.value ? Number(e.target.value) : null)}
+          value={filterServiceId || ""}
+          onChange={(e) => setFilterServiceId(e.target.value ? Number(e.target.value) : null)}
           className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
         >
-          <option value="">Toutes les FOSA</option>
-          {fosas.map((fosa) => (
-            <option key={fosa.id} value={fosa.id}>
-              {fosa.nom}
+          <option value="">Tous les services</option>
+          {services.map((service) => (
+            <option key={service.id} value={service.id}>
+              {service.nom}
             </option>
           ))}
         </select>
@@ -229,17 +229,17 @@ export default function EquipebiosPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">FOSA *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Service *</label>
             <select
               required
-              value={formData.fosaId}
-              onChange={(e) => setFormData({ ...formData, fosaId: Number(e.target.value) })}
+              value={formData.serviceId}
+              onChange={(e) => setFormData({ ...formData, serviceId: Number(e.target.value) })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
-              <option value={0}>Sélectionner une FOSA</option>
-              {fosas.map((fosa) => (
-                <option key={fosa.id} value={fosa.id}>
-                  {fosa.nom}
+              <option value={0}>Sélectionner un service</option>
+              {services.map((service) => (
+                <option key={service.id} value={service.id}>
+                  {service.nom}
                 </option>
               ))}
             </select>

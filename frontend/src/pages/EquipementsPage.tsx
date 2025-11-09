@@ -27,6 +27,7 @@ export default function EquipementsPage() {
   }>({ isOpen: false, equipement: null })
 
   const [formData, setFormData] = useState({
+    nom: "",
     type: "",
     dateAcquisition: "",
     serviceId: 0,
@@ -64,7 +65,7 @@ export default function EquipementsPage() {
       }
       setIsModalOpen(false)
       setEditingItem(null)
-      setFormData({ type: "", dateAcquisition: "", serviceId: 0 })
+      setFormData({ nom: "", type: "", dateAcquisition: "", serviceId: 0 })
       loadData()
     } catch (error) {
       console.error("Error saving:", error)
@@ -76,6 +77,7 @@ export default function EquipementsPage() {
   const handleEdit = (item: Equipement) => {
     setEditingItem(item)
     setFormData({
+      nom: item.nom || "",
       type: item.type,
       dateAcquisition: item.dateAcquisition.split("T")[0],
       serviceId: item.serviceId,
@@ -104,6 +106,7 @@ export default function EquipementsPage() {
 
   const columns = [
     { key: "id", label: "ID" },
+    { key: "nom", label: "Nom" },
     { key: "type", label: "Type" },
     {
       key: "dateAcquisition",
@@ -120,7 +123,7 @@ export default function EquipementsPage() {
         <button
           onClick={() => {
             setEditingItem(null)
-            setFormData({ type: "", dateAcquisition: "", serviceId: 0 })
+            setFormData({ nom: "", type: "", dateAcquisition: "", serviceId: 0 })
             setIsModalOpen(true)
           }}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -158,6 +161,15 @@ export default function EquipementsPage() {
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingItem ? "Modifier" : "Ajouter"}>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Nom</label>
+            <input
+              type="text"
+              value={formData.nom}
+              onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
             <input
