@@ -318,6 +318,62 @@ export interface Fosa {
   image: string | null;
   arrondissementId: number;
   airesanteId: number;
+
+  // Coordonnées
+  longitude?: number;
+  latitude?: number;
+
+  // Fréquentation
+  nbreVisiteursJour?: number;
+  nbrePatientsAmbulants?: number;
+  nbrePatientsHospitalises?: number;
+
+  // Ressources Humaines
+  nbreMedecinsGeneralistes?: number;
+  nbreMedecinsSpecialistes?: number;
+  nbreInfirmiersSup?: number;
+  nbreInfirmiersDe?: number;
+  nbrePersonnelAppui?: number;
+
+  // Infrastructures
+  nbreTotalBatiments?: number;
+  designationBatiments?: string;
+  surfaceTotaleBatie?: number;
+  servicesAbrités?: string;
+  nbreBatimentsFonctionnels?: number;
+  nbreBatimentsAbandonnes?: number;
+  etatGeneralLieux?: string;
+  nbreLitsOperationnels?: number;
+  nbreTotalLitsDisponibles?: number;
+  nbreLitsAAjouter?: number;
+  nbreBatimentsMaintenanceLourde?: number;
+  nbreBatimentsMaintenanceLegere?: number;
+
+  // Budgets
+  budgetTravauxNeufsAnneeMoins2?: number;
+  budgetTravauxNeufsAnneeMoins1?: number;
+  budgetTravauxNeufsAnneeCourante?: number;
+  budgetTravauxNeufsAnneePlus1?: number;
+  budgetMaintenanceAnneeMoins2?: number;
+  budgetMaintenanceAnneeMoins1?: number;
+  budgetMaintenanceAnneeCourante?: number;
+  budgetMaintenanceAnneePlus1?: number;
+
+  // Autres infrastructures
+  connectionElectricite?: boolean;
+  connectionEauPotable?: boolean;
+  existenceForage?: boolean;
+  existenceChateauEau?: boolean;
+  existenceEnergieSolaire?: boolean;
+  existenceIncinerateur?: boolean;
+
+  // Equipements
+  etatGeneralEquipements?: string;
+  budgetEquipementsAnneeCourante?: number;
+  budgetEquipementsAnneePlus1?: number;
+  budgetEquipementsMineursAnneeCourante?: number;
+  budgetEquipementsMineursAnneePlus1?: number;
+
   arrondissement?: Arrondissement;
   airesante?: Airesante;
   createdAt?: string;
@@ -342,8 +398,12 @@ export interface Service {
   nom: string;
   responsable?: string;
   dateCreation?: string;
-  batimentId: number;
+  batimentId?: number;
+  fosaId?: number;
+  capacite?: number;
+  description?: string;
   batiment?: Batiment;
+  fosa?: Fosa;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -401,6 +461,9 @@ export interface Materielroulant {
   marque?: string;
   modele?: string;
   type?: string;
+  dateMiseEnCirculation?: string;
+  etat?: string;
+  quantite?: number;
   fosaId: number;
   fosa?: Fosa;
   createdAt?: string;
