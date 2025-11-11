@@ -8,6 +8,9 @@ export class Materielroulant extends Model {
   public marque?: string
   public modele?: string
   public type?: string
+  public dateMiseEnCirculation?: Date
+  public etat?: string
+  public quantite?: number
   public fosaId!: number
   public readonly createdAt!: Date
   public readonly updatedAt!: Date
@@ -44,6 +47,20 @@ Materielroulant.init(
     type: {
       type: DataTypes.STRING(50),
       allowNull: true,
+    },
+    dateMiseEnCirculation: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: "date_mise_en_circulation",
+    },
+    etat: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    quantite: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 1,
     },
     fosaId: {
       type: DataTypes.INTEGER,

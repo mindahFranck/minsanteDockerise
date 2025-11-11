@@ -6,12 +6,14 @@ export class Service extends Model {
   public nom!: string
   public responsable?: string
   public dateCreation?: Date
-  public batimentId!: number
+  public batimentId?: number
+  public fosaId?: number
   public readonly createdAt!: Date
   public readonly updatedAt!: Date
 
   // Relations
   public readonly batiment?: any
+  public readonly fosa?: any
 }
 
 Service.init(
@@ -36,10 +38,19 @@ Service.init(
     },
     batimentId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       field: "batiment_id",
       references: {
         model: "batiments",
+        key: "id",
+      },
+    },
+    fosaId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: "fosa_id",
+      references: {
+        model: "fosas",
         key: "id",
       },
     },
@@ -50,3 +61,5 @@ Service.init(
     timestamps: true,
   },
 )
+
+export default Service
