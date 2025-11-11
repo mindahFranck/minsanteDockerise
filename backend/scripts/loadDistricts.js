@@ -18,17 +18,17 @@ async function loadDistricts() {
   console.log('Disabling foreign key checks...');
   await conn.execute('SET FOREIGN_KEY_CHECKS = 0');
 
-  // Vider la table d'abord
+  // Vider la table d'abord si elle existe
   console.log('Truncating districts table...');
-  await conn.execute('TRUNCATE TABLE districts');
+  await conn.execute('DROP TABLE IF EXISTS districts');
 
   // Lire le fichier SQL
   console.log('Reading SQL file...');
-  const sqlFile = fs.readFileSync(path.join(__dirname, 'districts.sql'), 'utf8');
+  const sqlFile = fs.readFileSync(path.join(__dirname, 'district.sql'), 'utf8');
 
   // Remplacer `district` par `districts`
   console.log('Processing SQL...');
-  const modifiedSql = sqlFile.replace(/INSERT INTO `district`/g, 'INSERT INTO `districts`');
+  const modifiedSql = sqlFile.replace(/INSERT INTO `district`/g, 'INSERT INTO `districts`').replace(/CREATE TABLE `district`/g, 'CREATE TABLE IF NOT EXISTS `districts`');
 
   // Exécuter le SQL
   console.log('Executing SQL...');

@@ -32,7 +32,8 @@
       "Bash(dir:*)",
       "Bash(nul)",
       "Bash(node -e:*)",
-      "Bash(node scripts/addMissingColumns.js:*)"
+      "Bash(node scripts/addMissingColumns.js:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

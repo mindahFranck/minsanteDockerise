@@ -14,25 +14,42 @@ async function loadAiresantes() {
 
   console.log('Connected to database');
 
-  // Désactiver les vérifications de clés étrangères
-  console.log('Disabling foreign key checks...');
-  await conn.execute('SET FOREIGN_KEY_CHECKS = 0');
+  try {
+    // Désactiver les vérifications de clés étrangères
+    console.log('Disabling foreign key checks...');
+    await conn.execute('SET FOREIGN_KEY_CHECKS = 0');
 
-  // Vider la table d'abord
-  console.log('Truncating airesantes table...');
-  await conn.execute('TRUNCATE TABLE airesantes');
+    // Vider la table
+    console.log('Truncating airesantes table...');
+    await conn.execute('TRUNCATE TABLE airesantes');
 
-  // Lire le fichier SQL
-  console.log('Reading SQL file...');
-  const sqlFile = fs.readFileSync(path.join(__dirname, 'airesantes.sql'), 'utf8');
+    // Démarrer une transaction explicite
+    console.log('Starting transaction...');
+    await conn.beginTransaction();
 
-  // Remplacer `aire` par `airesantes`
-  console.log('Processing SQL...');
-  const modifiedSql = sqlFile.replace(/INSERT INTO `aire`/g, 'INSERT INTO `airesantes`');
+    // Lire le fichier SQL
+    console.log('Reading SQL file...');
+    const sqlFile = fs.readFileSync(path.join(__dirname, 'airesantes.sql'), 'utf8');
 
-  // Exécuter le SQL
-  console.log('Executing SQL...');
-  await conn.query(modifiedSql);
+    // Remplacer `aire` par `airesantes` et retirer START TRANSACTION
+    console.log('Processing SQL...');
+    let modifiedSql = sqlFile.replace(/INSERT INTO `aire`/g, 'INSERT INTO `airesantes`');
+    // Retirer START TRANSACTION et COMMIT car on gère la transaction nous-mêmes
+    modifiedSql = modifiedSql.replace(/START TRANSACTION;/g, '').replace(/COMMIT;/g, '');
+
+    // Exécuter le SQL
+    console.log('Executing SQL...');
+    await conn.query(modifiedSql);
+
+    // Committer explicitement la transaction
+    console.log('Committing transaction...');
+    await conn.commit();
+  } catch (error) {
+    // En cas d'erreur, rollback
+    console.log('Error occurred, rolling back...');
+    await conn.rollback();
+    throw error;
+  }
 
   console.log('Aires de santé loaded successfully!');
 
