@@ -6,8 +6,24 @@ export class AiresanteService extends BaseService<Airesante> {
     super(Airesante)
   }
 
+  // Override paginate to exclude geom field for performance
+  async paginate(
+    page: number = 1,
+    limit?: number,
+    options?: any
+  ) {
+    const modifiedOptions = {
+      ...options,
+      attributes: {
+        exclude: ['geom'] // Exclure le champ géométrie pour optimiser les performances
+      }
+    };
+    return await super.paginate(page, limit, modifiedOptions);
+  }
+
   async getWithRelations(id: number) {
     return await this.findById(id, {
+      attributes: { exclude: ['geom'] },
       include: [
         { association: "arrondissement" },
         { association: "district" },
@@ -19,6 +35,7 @@ export class AiresanteService extends BaseService<Airesante> {
   async getByArrondissement(arrondissementId: number) {
     return await this.findAll({
       where: { arrondissementId },
+      attributes: { exclude: ['geom'] },
       include: [{ association: "fosas" }],
     })
   }
@@ -26,6 +43,7 @@ export class AiresanteService extends BaseService<Airesante> {
   async getByDistrict(districtId: number) {
     return await this.findAll({
       where: { districtId },
+      attributes: { exclude: ['geom'] },
       include: [{ association: "fosas" }],
     })
   }

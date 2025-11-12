@@ -12,39 +12,53 @@ async function loadDistricts() {
     multipleStatements: true
   });
 
-  console.log('Connected to database');
+  console.log('Connected to database\n');
 
-  // Désactiver les vérifications de clés étrangères
-  console.log('Disabling foreign key checks...');
-  await conn.execute('SET FOREIGN_KEY_CHECKS = 0');
+  try {
+    console.log('Disabling foreign key checks...');
+    await conn.execute('SET FOREIGN_KEY_CHECKS = 0');
 
-  // Vider la table d'abord si elle existe
-  console.log('Truncating districts table...');
-  await conn.execute('DROP TABLE IF EXISTS districts');
+    console.log('Truncating districts table...');
+    await conn.execute('TRUNCATE TABLE districts');
 
-  // Lire le fichier SQL
-  console.log('Reading SQL file...');
-  const sqlFile = fs.readFileSync(path.join(__dirname, 'district.sql'), 'utf8');
+    console.log('Reading SQL file...');
+    const sqlFile = fs.readFileSync(path.join(__dirname, 'district.sql'), 'utf8');
 
-  // Remplacer `district` par `districts`
-  console.log('Processing SQL...');
-  const modifiedSql = sqlFile.replace(/INSERT INTO `district`/g, 'INSERT INTO `districts`').replace(/CREATE TABLE `district`/g, 'CREATE TABLE IF NOT EXISTS `districts`');
+    console.log('Processing SQL...');
+    // Remplacer le nom de table 'district' par 'districts'
+    let modifiedSql = sqlFile.replace(/INSERT INTO `district`/g, 'INSERT INTO `districts`');
 
-  // Exécuter le SQL
-  console.log('Executing SQL...');
-  await conn.query(modifiedSql);
+    // Retirer les commandes de transaction et autres commandes système
+    modifiedSql = modifiedSql.replace(/START TRANSACTION;/g, '');
+    modifiedSql = modifiedSql.replace(/COMMIT;/g, '');
+    modifiedSql = modifiedSql.replace(/SET SQL_MODE.*?;/g, '');
+    modifiedSql = modifiedSql.replace(/SET time_zone.*?;/g, '');
+    modifiedSql = modifiedSql.replace(/\/\*!40101.*?\*\/;/g, '');
 
-  console.log('Districts loaded successfully!');
+    console.log('Executing SQL...');
 
-  // Réactiver les vérifications de clés étrangères
-  console.log('Re-enabling foreign key checks...');
-  await conn.execute('SET FOREIGN_KEY_CHECKS = 1');
+    // Utiliser une transaction explicite
+    await conn.beginTransaction();
+    await conn.query(modifiedSql);
+    await conn.commit();
 
-  // Vérifier le nombre de districts insérés
-  const [rows] = await conn.execute('SELECT COUNT(*) as count FROM districts');
-  console.log(`Total districts: ${rows[0].count}`);
+    console.log('Districts loaded successfully!');
 
-  await conn.end();
+    console.log('Re-enabling foreign key checks...');
+    await conn.execute('SET FOREIGN_KEY_CHECKS = 1');
+
+    // Vérifier le nombre de districts insérés
+    const [rows] = await conn.execute('SELECT COUNT(*) as count FROM districts');
+    console.log(`Total districts: ${rows[0].count}`);
+
+  } catch (error) {
+    console.error('Error:', error);
+    await conn.rollback();
+    throw error;
+  } finally {
+    await conn.end();
+    console.log('\nConnection closed');
+  }
 }
 
 loadDistricts().catch(err => {
