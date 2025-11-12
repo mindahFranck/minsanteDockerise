@@ -169,6 +169,7 @@ export class BaseService<T extends Model> {
       data: rows,
       pagination: {
         page,
+        limit: limit || count,
         total: count,
         totalPages: limit ? Math.ceil(count / limit) : 1,
       },

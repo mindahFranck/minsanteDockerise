@@ -53,7 +53,7 @@ export const setupAssociations = () => {
   });
 
   // District associations
-  District.belongsTo(Region, { foreignKey: "regionId", as: "regionData" });
+  District.belongsTo(Region, { foreignKey: "regionId", as: "region" });
   District.hasMany(Airesante, { foreignKey: "districtId", as: "airesantes" });
 
   // Airesante associations
@@ -90,6 +90,7 @@ export const setupAssociations = () => {
 
   // Service associations
   Service.belongsTo(Batiment, { foreignKey: "batimentId", as: "batiment" });
+  Service.belongsTo(Fosa, { foreignKey: "fosaId", as: "fosa" });
   Service.hasMany(Equipement, { foreignKey: "serviceId", as: "equipements" });
   Service.hasMany(Equipebio, { foreignKey: "serviceId", as: "equipebios" });
 
