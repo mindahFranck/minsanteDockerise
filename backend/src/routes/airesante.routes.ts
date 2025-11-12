@@ -8,6 +8,11 @@ const controller = new AiresanteController();
 
 router.get("/", controller.getAll);
 router.get("/:id", authenticate, controller.getById);
+
+// Routes pour la carte (avec geom)
+router.get("/map/all", controller.getAllForMap);
+router.get("/map/:id", controller.getByIdForMap);
+router.get("/map/district/:districtId", controller.getByDistrictForMap);
 router.post(
   "/",
   authenticate,

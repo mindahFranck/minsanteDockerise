@@ -38,4 +38,24 @@ export class DistrictService extends BaseService<District> {
       include: [{ association: "airesantes" }],
     })
   }
+
+  // Méthodes spécifiques pour la carte (avec geom)
+  async getAllForMap() {
+    return await this.findAll({
+      attributes: ['id', 'nom_ds', 'code_ds', 'region', 'geom', 'regionId']
+    })
+  }
+
+  async getByIdForMap(id: number) {
+    return await this.findById(id, {
+      attributes: ['id', 'nom_ds', 'code_ds', 'region', 'geom', 'regionId']
+    })
+  }
+
+  async getByRegionForMap(regionId: number) {
+    return await this.findAll({
+      where: { regionId },
+      attributes: ['id', 'nom_ds', 'code_ds', 'region', 'geom', 'regionId']
+    })
+  }
 }

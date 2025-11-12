@@ -47,4 +47,24 @@ export class AiresanteService extends BaseService<Airesante> {
       include: [{ association: "fosas" }],
     })
   }
+
+  // Méthodes spécifiques pour la carte (avec geom)
+  async getAllForMap() {
+    return await this.findAll({
+      attributes: ['id', 'nom_aire', 'code_aire', 'geom', 'districtId']
+    })
+  }
+
+  async getByIdForMap(id: number) {
+    return await this.findById(id, {
+      attributes: ['id', 'nom_aire', 'code_aire', 'geom', 'districtId']
+    })
+  }
+
+  async getByDistrictForMap(districtId: number) {
+    return await this.findAll({
+      where: { districtId },
+      attributes: ['id', 'nom_aire', 'code_aire', 'geom', 'districtId']
+    })
+  }
 }
