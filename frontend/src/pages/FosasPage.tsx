@@ -25,6 +25,7 @@ export default function FosasPage() {
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>("")
+  const [activeTab, setActiveTab] = useState<"basic" | "frequentation" | "rh" | "infrastructures" | "budgets" | "equipements">("basic")
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean
     fosa: Fosa | null
@@ -38,6 +39,53 @@ export default function FosasPage() {
     situation: "",
     arrondissementId: 0,
     airesanteId: 0,
+    // Coordonnées
+    longitude: 0,
+    latitude: 0,
+    // Fréquentation
+    nbreVisiteursJour: 0,
+    nbrePatientsAmbulants: 0,
+    nbrePatientsHospitalises: 0,
+    // RH
+    nbreMedecinsGeneralistes: 0,
+    nbreMedecinsSpecialistes: 0,
+    nbreInfirmiersSup: 0,
+    nbreInfirmiersDe: 0,
+    nbrePersonnelAppui: 0,
+    // Infrastructures
+    nbreTotalBatiments: 0,
+    designationBatiments: "",
+    surfaceTotaleBatie: 0,
+    servicesAbrités: "",
+    nbreBatimentsFonctionnels: 0,
+    nbreBatimentsAbandonnes: 0,
+    etatGeneralLieux: "Bon",
+    nbreLitsOperationnels: 0,
+    nbreTotalLitsDisponibles: 0,
+    nbreLitsAAjouter: 0,
+    nbreBatimentsMaintenanceLourde: 0,
+    nbreBatimentsMaintenanceLegere: 0,
+    connectionElectricite: false,
+    connectionEauPotable: false,
+    existenceForage: false,
+    existenceChateauEau: false,
+    existenceEnergieSolaire: false,
+    existenceIncinerateur: false,
+    // Budgets
+    budgetTravauxNeufsAnneeMoins2: 0,
+    budgetTravauxNeufsAnneeMoins1: 0,
+    budgetTravauxNeufsAnneeCourante: 0,
+    budgetTravauxNeufsAnneePlus1: 0,
+    budgetMaintenanceAnneeMoins2: 0,
+    budgetMaintenanceAnneeMoins1: 0,
+    budgetMaintenanceAnneeCourante: 0,
+    budgetMaintenanceAnneePlus1: 0,
+    // Équipements
+    etatGeneralEquipements: "Bon",
+    budgetEquipementsAnneeCourante: 0,
+    budgetEquipementsAnneePlus1: 0,
+    budgetEquipementsMineursAnneeCourante: 0,
+    budgetEquipementsMineursAnneePlus1: 0,
   })
 
   useEffect(() => {
@@ -49,8 +97,8 @@ export default function FosasPage() {
       setLoading(true)
       const [fosaResponse, arrResponse, airesResponse] = await Promise.all([
         fosaService.getAll({ page, limit: 10, search }),
-        arrondissementService.getAll({ limit: 100 }),
-        airesanteService.getAll({ limit: 100 }),
+        arrondissementService.getAll({ limit: 1000 }),
+        airesanteService.getAll({ limit: 2000 }),
       ])
       setFosas(fosaResponse.data)
       setPagination(fosaResponse.pagination)
@@ -75,6 +123,62 @@ export default function FosasPage() {
     }
   }
 
+  const resetForm = () => {
+    setFormData({
+      nom: "",
+      type: "",
+      capaciteLits: 0,
+      estFerme: false,
+      situation: "",
+      arrondissementId: 0,
+      airesanteId: 0,
+      longitude: 0,
+      latitude: 0,
+      nbreVisiteursJour: 0,
+      nbrePatientsAmbulants: 0,
+      nbrePatientsHospitalises: 0,
+      nbreMedecinsGeneralistes: 0,
+      nbreMedecinsSpecialistes: 0,
+      nbreInfirmiersSup: 0,
+      nbreInfirmiersDe: 0,
+      nbrePersonnelAppui: 0,
+      nbreTotalBatiments: 0,
+      designationBatiments: "",
+      surfaceTotaleBatie: 0,
+      servicesAbrités: "",
+      nbreBatimentsFonctionnels: 0,
+      nbreBatimentsAbandonnes: 0,
+      etatGeneralLieux: "Bon",
+      nbreLitsOperationnels: 0,
+      nbreTotalLitsDisponibles: 0,
+      nbreLitsAAjouter: 0,
+      nbreBatimentsMaintenanceLourde: 0,
+      nbreBatimentsMaintenanceLegere: 0,
+      connectionElectricite: false,
+      connectionEauPotable: false,
+      existenceForage: false,
+      existenceChateauEau: false,
+      existenceEnergieSolaire: false,
+      existenceIncinerateur: false,
+      budgetTravauxNeufsAnneeMoins2: 0,
+      budgetTravauxNeufsAnneeMoins1: 0,
+      budgetTravauxNeufsAnneeCourante: 0,
+      budgetTravauxNeufsAnneePlus1: 0,
+      budgetMaintenanceAnneeMoins2: 0,
+      budgetMaintenanceAnneeMoins1: 0,
+      budgetMaintenanceAnneeCourante: 0,
+      budgetMaintenanceAnneePlus1: 0,
+      etatGeneralEquipements: "Bon",
+      budgetEquipementsAnneeCourante: 0,
+      budgetEquipementsAnneePlus1: 0,
+      budgetEquipementsMineursAnneeCourante: 0,
+      budgetEquipementsMineursAnneePlus1: 0,
+    })
+    setImageFile(null)
+    setImagePreview("")
+    setActiveTab("basic")
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
@@ -86,17 +190,7 @@ export default function FosasPage() {
       }
       setIsModalOpen(false)
       setEditingItem(null)
-      setImageFile(null)
-      setImagePreview("")
-      setFormData({
-        nom: "",
-        type: "",
-        capaciteLits: 0,
-        estFerme: false,
-        situation: "",
-        arrondissementId: 0,
-        airesanteId: 0,
-      })
+      resetForm()
       loadData()
     } catch (error) {
       console.error("Error saving:", error)
@@ -115,6 +209,47 @@ export default function FosasPage() {
       situation: item.situation,
       arrondissementId: item.arrondissementId,
       airesanteId: item.airesanteId,
+      longitude: item.longitude || 0,
+      latitude: item.latitude || 0,
+      nbreVisiteursJour: item.nbreVisiteursJour || 0,
+      nbrePatientsAmbulants: item.nbrePatientsAmbulants || 0,
+      nbrePatientsHospitalises: item.nbrePatientsHospitalises || 0,
+      nbreMedecinsGeneralistes: item.nbreMedecinsGeneralistes || 0,
+      nbreMedecinsSpecialistes: item.nbreMedecinsSpecialistes || 0,
+      nbreInfirmiersSup: item.nbreInfirmiersSup || 0,
+      nbreInfirmiersDe: item.nbreInfirmiersDe || 0,
+      nbrePersonnelAppui: item.nbrePersonnelAppui || 0,
+      nbreTotalBatiments: item.nbreTotalBatiments || 0,
+      designationBatiments: item.designationBatiments || "",
+      surfaceTotaleBatie: item.surfaceTotaleBatie || 0,
+      servicesAbrités: item.servicesAbrités || "",
+      nbreBatimentsFonctionnels: item.nbreBatimentsFonctionnels || 0,
+      nbreBatimentsAbandonnes: item.nbreBatimentsAbandonnes || 0,
+      etatGeneralLieux: item.etatGeneralLieux || "Bon",
+      nbreLitsOperationnels: item.nbreLitsOperationnels || 0,
+      nbreTotalLitsDisponibles: item.nbreTotalLitsDisponibles || 0,
+      nbreLitsAAjouter: item.nbreLitsAAjouter || 0,
+      nbreBatimentsMaintenanceLourde: item.nbreBatimentsMaintenanceLourde || 0,
+      nbreBatimentsMaintenanceLegere: item.nbreBatimentsMaintenanceLegere || 0,
+      connectionElectricite: item.connectionElectricite || false,
+      connectionEauPotable: item.connectionEauPotable || false,
+      existenceForage: item.existenceForage || false,
+      existenceChateauEau: item.existenceChateauEau || false,
+      existenceEnergieSolaire: item.existenceEnergieSolaire || false,
+      existenceIncinerateur: item.existenceIncinerateur || false,
+      budgetTravauxNeufsAnneeMoins2: item.budgetTravauxNeufsAnneeMoins2 || 0,
+      budgetTravauxNeufsAnneeMoins1: item.budgetTravauxNeufsAnneeMoins1 || 0,
+      budgetTravauxNeufsAnneeCourante: item.budgetTravauxNeufsAnneeCourante || 0,
+      budgetTravauxNeufsAnneePlus1: item.budgetTravauxNeufsAnneePlus1 || 0,
+      budgetMaintenanceAnneeMoins2: item.budgetMaintenanceAnneeMoins2 || 0,
+      budgetMaintenanceAnneeMoins1: item.budgetMaintenanceAnneeMoins1 || 0,
+      budgetMaintenanceAnneeCourante: item.budgetMaintenanceAnneeCourante || 0,
+      budgetMaintenanceAnneePlus1: item.budgetMaintenanceAnneePlus1 || 0,
+      etatGeneralEquipements: item.etatGeneralEquipements || "Bon",
+      budgetEquipementsAnneeCourante: item.budgetEquipementsAnneeCourante || 0,
+      budgetEquipementsAnneePlus1: item.budgetEquipementsAnneePlus1 || 0,
+      budgetEquipementsMineursAnneeCourante: item.budgetEquipementsMineursAnneeCourante || 0,
+      budgetEquipementsMineursAnneePlus1: item.budgetEquipementsMineursAnneePlus1 || 0,
     })
     if (item.image) {
       setImagePreview(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}${item.image}`)
@@ -193,17 +328,7 @@ export default function FosasPage() {
         <button
           onClick={() => {
             setEditingItem(null)
-            setImageFile(null)
-            setImagePreview("")
-            setFormData({
-              nom: "",
-              type: "",
-              capaciteLits: 0,
-              estFerme: false,
-              situation: "",
-              arrondissementId: 0,
-              airesanteId: 0,
-            })
+            resetForm()
             setIsModalOpen(true)
           }}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -243,119 +368,620 @@ export default function FosasPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingItem ? "Modifier FOSA" : "Ajouter FOSA"}
-        size="lg"
+        size="xl"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Image</label>
-            <div className="flex items-center gap-4">
-              {imagePreview && (
-                <img
-                  src={imagePreview || "/placeholder.svg"}
-                  alt="Preview"
-                  className="w-24 h-24 object-cover rounded border"
-                />
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+          {/* Onglets */}
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              {[
+                { key: "basic", label: "Informations de base" },
+                { key: "frequentation", label: "Fréquentation" },
+                { key: "rh", label: "Ressources Humaines" },
+                { key: "infrastructures", label: "Infrastructures" },
+                { key: "budgets", label: "Budgets" },
+                { key: "equipements", label: "Équipements" },
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setActiveTab(tab.key as typeof activeTab)}
+                  className={`${
+                    activeTab === tab.key
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Nom</label>
-            <input
-              type="text"
-              value={formData.nom}
-              onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
+
+          {/* Contenu des onglets */}
+          <div className="max-h-96 overflow-y-auto p-4">
+            {activeTab === "basic" && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Image</label>
+                  <div className="flex items-center gap-4">
+                    {imagePreview && (
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-24 h-24 object-cover rounded border"
+                      />
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Nom *</label>
+                  <input
+                    type="text"
+                    value={formData.nom}
+                    onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Type *</label>
+                    <select
+                      value={formData.type}
+                      onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Sélectionner...</option>
+                      <option value="Hôpital">Hôpital</option>
+                      <option value="Centre de Santé">Centre de Santé</option>
+                      <option value="Dispensaire">Dispensaire</option>
+                      <option value="Clinique">Clinique</option>
+                      <option value="Poste de Santé">Poste de Santé</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Capacité Lits</label>
+                    <input
+                      type="number"
+                      value={formData.capaciteLits}
+                      onChange={(e) => setFormData({ ...formData, capaciteLits: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
+                    <input
+                      type="number"
+                      step="0.0000001"
+                      value={formData.longitude}
+                      onChange={(e) => setFormData({ ...formData, longitude: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="Ex: 11.5021"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
+                    <input
+                      type="number"
+                      step="0.0000001"
+                      value={formData.latitude}
+                      onChange={(e) => setFormData({ ...formData, latitude: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="Ex: 3.8480"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Situation</label>
+                  <textarea
+                    value={formData.situation}
+                    onChange={(e) => setFormData({ ...formData, situation: e.target.value })}
+                    rows={3}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Arrondissement *</label>
+                    <select
+                      value={formData.arrondissementId}
+                      onChange={(e) => setFormData({ ...formData, arrondissementId: Number(e.target.value) })}
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Sélectionner...</option>
+                      {arrondissements.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.nom}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Aire de Santé *</label>
+                    <select
+                      value={formData.airesanteId}
+                      onChange={(e) => setFormData({ ...formData, airesanteId: Number(e.target.value) })}
+                      required
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Sélectionner...</option>
+                      {airesantes.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.nom_as}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="estFerme"
+                    checked={formData.estFerme}
+                    onChange={(e) => setFormData({ ...formData, estFerme: e.target.checked })}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="estFerme" className="ml-2 text-sm text-gray-700">
+                    Formation fermée
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "frequentation" && (
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Fréquentation de la FOSA</h3>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Nombre de visiteurs par jour</label>
+                  <input
+                    type="number"
+                    value={formData.nbreVisiteursJour}
+                    onChange={(e) => setFormData({ ...formData, nbreVisiteursJour: Number(e.target.value) || 0 })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Nombre de patients ambulants</label>
+                  <input
+                    type="number"
+                    value={formData.nbrePatientsAmbulants}
+                    onChange={(e) => setFormData({ ...formData, nbrePatientsAmbulants: Number(e.target.value) || 0 })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Nombre de patients hospitalisés</label>
+                  <input
+                    type="number"
+                    value={formData.nbrePatientsHospitalises}
+                    onChange={(e) => setFormData({ ...formData, nbrePatientsHospitalises: Number(e.target.value) || 0 })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            )}
+
+            {activeTab === "rh" && (
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Ressources Humaines</h3>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Nombre de médecins généralistes</label>
+                  <input
+                    type="number"
+                    value={formData.nbreMedecinsGeneralistes}
+                    onChange={(e) => setFormData({ ...formData, nbreMedecinsGeneralistes: Number(e.target.value) || 0 })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Nombre de médecins spécialistes</label>
+                  <input
+                    type="number"
+                    value={formData.nbreMedecinsSpecialistes}
+                    onChange={(e) => setFormData({ ...formData, nbreMedecinsSpecialistes: Number(e.target.value) || 0 })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Nombre d'infirmiers sup (y/c sages-femmes)</label>
+                  <input
+                    type="number"
+                    value={formData.nbreInfirmiersSup}
+                    onChange={(e) => setFormData({ ...formData, nbreInfirmiersSup: Number(e.target.value) || 0 })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Nombre d'infirmiers DE et autres</label>
+                  <input
+                    type="number"
+                    value={formData.nbreInfirmiersDe}
+                    onChange={(e) => setFormData({ ...formData, nbreInfirmiersDe: Number(e.target.value) || 0 })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Personnel d'appui</label>
+                  <input
+                    type="number"
+                    value={formData.nbrePersonnelAppui}
+                    onChange={(e) => setFormData({ ...formData, nbrePersonnelAppui: Number(e.target.value) || 0 })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            )}
+
+            {activeTab === "infrastructures" && (
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Infrastructures</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Nombre total de bâtiments</label>
+                    <input
+                      type="number"
+                      value={formData.nbreTotalBatiments}
+                      onChange={(e) => setFormData({ ...formData, nbreTotalBatiments: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Surface totale bâtie (m²)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.surfaceTotaleBatie}
+                      onChange={(e) => setFormData({ ...formData, surfaceTotaleBatie: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Désignation des bâtiments</label>
+                  <textarea
+                    value={formData.designationBatiments}
+                    onChange={(e) => setFormData({ ...formData, designationBatiments: e.target.value })}
+                    rows={2}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Services abrités par le bâtiment</label>
+                  <textarea
+                    value={formData.servicesAbrités}
+                    onChange={(e) => setFormData({ ...formData, servicesAbrités: e.target.value })}
+                    rows={2}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Bâtiments fonctionnels</label>
+                    <input
+                      type="number"
+                      value={formData.nbreBatimentsFonctionnels}
+                      onChange={(e) => setFormData({ ...formData, nbreBatimentsFonctionnels: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Bâtiments abandonnés</label>
+                    <input
+                      type="number"
+                      value={formData.nbreBatimentsAbandonnes}
+                      onChange={(e) => setFormData({ ...formData, nbreBatimentsAbandonnes: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">État général des lieux</label>
+                  <select
+                    value={formData.etatGeneralLieux}
+                    onChange={(e) => setFormData({ ...formData, etatGeneralLieux: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="Bon">Bon</option>
+                    <option value="Moyen">Moyen</option>
+                    <option value="Mauvais">Mauvais</option>
+                  </select>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Lits opérationnels</label>
+                    <input
+                      type="number"
+                      value={formData.nbreLitsOperationnels}
+                      onChange={(e) => setFormData({ ...formData, nbreLitsOperationnels: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Total lits disponibles</label>
+                    <input
+                      type="number"
+                      value={formData.nbreTotalLitsDisponibles}
+                      onChange={(e) => setFormData({ ...formData, nbreTotalLitsDisponibles: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Lits à ajouter</label>
+                    <input
+                      type="number"
+                      value={formData.nbreLitsAAjouter}
+                      onChange={(e) => setFormData({ ...formData, nbreLitsAAjouter: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Bâtiments - maintenance lourde</label>
+                    <input
+                      type="number"
+                      value={formData.nbreBatimentsMaintenanceLourde}
+                      onChange={(e) => setFormData({ ...formData, nbreBatimentsMaintenanceLourde: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Bâtiments - maintenance légère</label>
+                    <input
+                      type="number"
+                      value={formData.nbreBatimentsMaintenanceLegere}
+                      onChange={(e) => setFormData({ ...formData, nbreBatimentsMaintenanceLegere: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <h4 className="font-semibold mt-4">Autres infrastructures</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="connectionElectricite"
+                      checked={formData.connectionElectricite}
+                      onChange={(e) => setFormData({ ...formData, connectionElectricite: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="connectionElectricite" className="ml-2 text-sm text-gray-700">
+                      Connection électricité
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="connectionEauPotable"
+                      checked={formData.connectionEauPotable}
+                      onChange={(e) => setFormData({ ...formData, connectionEauPotable: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="connectionEauPotable" className="ml-2 text-sm text-gray-700">
+                      Connection eau potable
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="existenceForage"
+                      checked={formData.existenceForage}
+                      onChange={(e) => setFormData({ ...formData, existenceForage: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="existenceForage" className="ml-2 text-sm text-gray-700">
+                      Forage / Puits aménagé
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="existenceChateauEau"
+                      checked={formData.existenceChateauEau}
+                      onChange={(e) => setFormData({ ...formData, existenceChateauEau: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="existenceChateauEau" className="ml-2 text-sm text-gray-700">
+                      Château d'eau / Bâche à eau
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="existenceEnergieSolaire"
+                      checked={formData.existenceEnergieSolaire}
+                      onChange={(e) => setFormData({ ...formData, existenceEnergieSolaire: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="existenceEnergieSolaire" className="ml-2 text-sm text-gray-700">
+                      Énergie solaire
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="existenceIncinerateur"
+                      checked={formData.existenceIncinerateur}
+                      onChange={(e) => setFormData({ ...formData, existenceIncinerateur: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="existenceIncinerateur" className="ml-2 text-sm text-gray-700">
+                      Incinérateur
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "budgets" && (
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Budgets (en milliers de FCFA)</h3>
+                <h4 className="font-semibold mt-4">Budget des travaux neufs</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Année -2</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.budgetTravauxNeufsAnneeMoins2}
+                      onChange={(e) => setFormData({ ...formData, budgetTravauxNeufsAnneeMoins2: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Année -1</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.budgetTravauxNeufsAnneeMoins1}
+                      onChange={(e) => setFormData({ ...formData, budgetTravauxNeufsAnneeMoins1: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Année courante</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.budgetTravauxNeufsAnneeCourante}
+                      onChange={(e) => setFormData({ ...formData, budgetTravauxNeufsAnneeCourante: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Année +1 (Prévision)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.budgetTravauxNeufsAnneePlus1}
+                      onChange={(e) => setFormData({ ...formData, budgetTravauxNeufsAnneePlus1: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <h4 className="font-semibold mt-4">Budget de maintenance</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Année -2</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.budgetMaintenanceAnneeMoins2}
+                      onChange={(e) => setFormData({ ...formData, budgetMaintenanceAnneeMoins2: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Année -1</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.budgetMaintenanceAnneeMoins1}
+                      onChange={(e) => setFormData({ ...formData, budgetMaintenanceAnneeMoins1: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Année courante</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.budgetMaintenanceAnneeCourante}
+                      onChange={(e) => setFormData({ ...formData, budgetMaintenanceAnneeCourante: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Année +1 (Prévision)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.budgetMaintenanceAnneePlus1}
+                      onChange={(e) => setFormData({ ...formData, budgetMaintenanceAnneePlus1: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "equipements" && (
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Équipements</h3>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">État général des équipements</label>
+                  <select
+                    value={formData.etatGeneralEquipements}
+                    onChange={(e) => setFormData({ ...formData, etatGeneralEquipements: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="Bon">Bon</option>
+                    <option value="Moyen">Moyen</option>
+                    <option value="Vétuste">Vétuste</option>
+                    <option value="À réformer">À réformer</option>
+                  </select>
+                </div>
+                <h4 className="font-semibold mt-4">Budget équipements majeurs (en milliers de FCFA)</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Année courante</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.budgetEquipementsAnneeCourante}
+                      onChange={(e) => setFormData({ ...formData, budgetEquipementsAnneeCourante: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Année +1 (Prévision)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.budgetEquipementsAnneePlus1}
+                      onChange={(e) => setFormData({ ...formData, budgetEquipementsAnneePlus1: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <h4 className="font-semibold mt-4">Budget équipements mineurs (en milliers de FCFA)</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Année courante</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.budgetEquipementsMineursAnneeCourante}
+                      onChange={(e) => setFormData({ ...formData, budgetEquipementsMineursAnneeCourante: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Année +1 (Prévision)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.budgetEquipementsMineursAnneePlus1}
+                      onChange={(e) => setFormData({ ...formData, budgetEquipementsMineursAnneePlus1: Number(e.target.value) || 0 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-              <select
-                value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Sélectionner...</option>
-                <option value="Hôpital">Hôpital</option>
-                <option value="Centre de Santé">Centre de Santé</option>
-                <option value="Dispensaire">Dispensaire</option>
-                <option value="Clinique">Clinique</option>
-                <option value="Poste de Santé">Poste de Santé</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Capacité Lits</label>
-              <input
-                type="number"
-                value={formData.capaciteLits}
-                onChange={(e) => setFormData({ ...formData, capaciteLits: Number.parseInt(e.target.value) || 0 })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Situation</label>
-            <textarea
-              value={formData.situation}
-              onChange={(e) => setFormData({ ...formData, situation: e.target.value })}
-              rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Arrondissement</label>
-              <select
-                value={formData.arrondissementId}
-                onChange={(e) => setFormData({ ...formData, arrondissementId: Number.parseInt(e.target.value) })}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Sélectionner...</option>
-                {arrondissements.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.nom}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Aire de Santé</label>
-              <select
-                value={formData.airesanteId}
-                onChange={(e) => setFormData({ ...formData, airesanteId: Number.parseInt(e.target.value) })}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Sélectionner...</option>
-                {airesantes.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.nom_as}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="estFerme"
-              checked={formData.estFerme}
-              onChange={(e) => setFormData({ ...formData, estFerme: e.target.checked })}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            />
-            <label htmlFor="estFerme" className="ml-2 text-sm text-gray-700">
-              Formation fermée
-            </label>
-          </div>
+
           <div className="flex gap-2 justify-end">
             <button
               type="button"

@@ -32,6 +32,9 @@ export default function MaterielroulantsPage() {
     marque: "",
     modele: "",
     type: "",
+    dateMiseEnCirculation: "",
+    etat: "",
+    quantite: 1,
     fosaId: 0,
   })
 
@@ -67,7 +70,7 @@ export default function MaterielroulantsPage() {
       }
       setIsModalOpen(false)
       setEditingItem(null)
-      setFormData({ numeroChassis: "", annee: new Date().getFullYear(), marque: "", modele: "", type: "", fosaId: 0 })
+      setFormData({ numeroChassis: "", annee: new Date().getFullYear(), marque: "", modele: "", type: "", dateMiseEnCirculation: "", etat: "", quantite: 1, fosaId: 0 })
       loadData()
     } catch (error) {
       console.error("Error saving:", error)
@@ -84,6 +87,9 @@ export default function MaterielroulantsPage() {
       marque: item.marque,
       modele: item.modele,
       type: item.type,
+      dateMiseEnCirculation: item.dateMiseEnCirculation?.split('T')[0] || "",
+      etat: item.etat || "",
+      quantite: item.quantite || 1,
       fosaId: item.fosaId,
     })
     setIsModalOpen(true)
@@ -115,6 +121,8 @@ export default function MaterielroulantsPage() {
     { key: "modele", label: "Modèle" },
     { key: "type", label: "Type" },
     { key: "annee", label: "Année" },
+    { key: "quantite", label: "Quantité" },
+    { key: "etat", label: "État" },
     { key: "fosa", label: "FOSA", render: (m: Materielroulant) => m.fosa?.nom || "-" },
   ]
 
@@ -131,6 +139,9 @@ export default function MaterielroulantsPage() {
               marque: "",
               modele: "",
               type: "",
+              dateMiseEnCirculation: "",
+              etat: "",
+              quantite: 1,
               fosaId: 0,
             })
             setIsModalOpen(true)
@@ -230,6 +241,42 @@ export default function MaterielroulantsPage() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Date de mise en circulation</label>
+              <input
+                type="date"
+                value={formData.dateMiseEnCirculation}
+                onChange={(e) => setFormData({ ...formData, dateMiseEnCirculation: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Quantité</label>
+              <input
+                type="number"
+                value={formData.quantite}
+                onChange={(e) => setFormData({ ...formData, quantite: Number.parseInt(e.target.value) || 1 })}
+                min="1"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">État</label>
+            <select
+              value={formData.etat}
+              onChange={(e) => setFormData({ ...formData, etat: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Sélectionner...</option>
+              <option value="Neuf">Neuf</option>
+              <option value="Bon">Bon</option>
+              <option value="Moyen">Moyen</option>
+              <option value="Mauvais">Mauvais</option>
+              <option value="Hors service">Hors service</option>
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">FOSA</label>
