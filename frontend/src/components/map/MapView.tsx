@@ -19,6 +19,8 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Link } from "react-router-dom";
 import { apiService } from "../../services/apiService";
+import { districtService } from "../../services/districtService";
+import { airesanteService } from "../../services/airesanteService";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -320,7 +322,9 @@ const MapView: React.FC = () => {
   const fetchDistrictsData = async () => {
     try {
       updateLoadingProgress('districtsData', true);
-      const districts = await apiService.getDistricts();
+      // Use the map endpoint to get districts with geom
+      const response = await districtService.getAllForMap();
+      const districts = response.data;
 
       setDistrictsData(districts);
 
@@ -363,7 +367,9 @@ const MapView: React.FC = () => {
   const fetchAiresantesData = async () => {
     try {
       updateLoadingProgress('airesantesData', true);
-      const airesantes = await apiService.getAiresantes();
+      // Use the map endpoint to get aires de santé with geom
+      const response = await airesanteService.getAllForMap();
+      const airesantes = response.data;
 
       setAiresantesData(airesantes);
 
@@ -383,13 +389,13 @@ const MapView: React.FC = () => {
                 : geojson.coordinates[0];
 
               const transformed: [number, number][] = coords.map((coord: any) => [coord[1], coord[0]]);
-              const nom = airesante.nom_as || airesante.nom;
+              const nom = airesante.nom_aire || airesante.nom_as || airesante.nom;
               if (nom) {
                 airesantesMap[nom] = transformed;
               }
             }
           } catch (parseErr) {
-            console.warn(`Erreur parsing polygon pour aire de santé ${airesante.nom_as || airesante.nom}:`, parseErr);
+            console.warn(`Erreur parsing polygon pour aire de santé ${airesante.nom_aire || airesante.nom_as || airesante.nom}:`, parseErr);
           }
         }
       });

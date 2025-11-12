@@ -25,4 +25,20 @@ export const districtService = {
   delete: async (id: number) => {
     await api.delete(`/districts/${id}`)
   },
+
+  // Méthodes pour la carte (avec geom)
+  getAllForMap: async () => {
+    const response = await api.get<{ success: boolean; data: District[] }>("/districts/map/all")
+    return response.data
+  },
+
+  getByIdForMap: async (id: number) => {
+    const response = await api.get<{ success: boolean; data: District }>(`/districts/map/${id}`)
+    return response.data
+  },
+
+  getByRegionForMap: async (regionId: number) => {
+    const response = await api.get<{ success: boolean; data: District[] }>(`/districts/map/region/${regionId}`)
+    return response.data
+  },
 }

@@ -25,4 +25,20 @@ export const airesanteService = {
   delete: async (id: number) => {
     await api.delete(`/airesantes/${id}`)
   },
+
+  // Méthodes pour la carte (avec geom)
+  getAllForMap: async () => {
+    const response = await api.get<{ success: boolean; data: Airesante[] }>("/airesantes/map/all")
+    return response.data
+  },
+
+  getByIdForMap: async (id: number) => {
+    const response = await api.get<{ success: boolean; data: Airesante }>(`/airesantes/map/${id}`)
+    return response.data
+  },
+
+  getByDistrictForMap: async (districtId: number) => {
+    const response = await api.get<{ success: boolean; data: Airesante[] }>(`/airesantes/map/district/${districtId}`)
+    return response.data
+  },
 }
