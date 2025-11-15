@@ -21,6 +21,8 @@ import { Link } from "react-router-dom";
 import { apiService } from "../../services/apiService";
 import { districtService } from "../../services/districtService";
 import { airesanteService } from "../../services/airesanteService";
+import ThematicAnalysis, { ThematicTheme } from "./ThematicAnalysis";
+import MapLegend from "./MapLegend";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -130,6 +132,7 @@ const MapView: React.FC = () => {
   const [arrondissementsData, setArrondissementsData] = useState<any[]>([]);
   const [districtsData, setDistrictsData] = useState<any[]>([]);
   const [airesantesData, setAiresantesData] = useState<any[]>([]);
+  const [fosasData, setFosasData] = useState<any[]>([]);
 
   const [loadingProgress, setLoadingProgress] = useState({
     cameroonPolygon: false,
@@ -151,6 +154,9 @@ const MapView: React.FC = () => {
     airesantes: true,
     hospitals: true
   });
+
+  // État pour l'analyse thématique
+  const [activeTheme, setActiveTheme] = useState<ThematicTheme | null>(null);
 
   const toggleLayer = (layer: keyof typeof layersVisibility) => {
     setLayersVisibility(prev => ({ ...prev, [layer]: !prev[layer] }));
@@ -415,6 +421,9 @@ const MapView: React.FC = () => {
 
       // Charger les FOSA depuis notre API backend
       const fosas = await apiService.getFosas();
+
+      // Stocker les données brutes des FOSA
+      setFosasData(fosas);
 
       // Charger aussi les arrondissements, départements et régions pour avoir les données complètes
       const arrondissements = await apiService.getArrondissements();
@@ -928,19 +937,25 @@ const MapView: React.FC = () => {
                 ))}
 
                 {/* Afficher tous les polygones des districts */}
-                {layersVisibility.districts && Object.entries(districtsPolygons).map(([districtName, polygon]) => (
-                  <Polygon
-                    key={`district-${districtName}`}
-                    positions={polygon}
-                    pathOptions={{
-                      fillColor: '#8b5cf6',
-                      fillOpacity: 0.1,
-                      color: '#8b5cf6',
-                      weight: 1.5,
-                      opacity: 0.5
-                    }}
-                  />
-                ))}
+                {layersVisibility.districts && Object.entries(districtsPolygons).map(([districtName, polygon]) => {
+                  // Appliquer la couleur thématique si un thème est actif
+                  const fillColor = activeTheme ? activeTheme.getColor(districtName) : '#8b5cf6';
+                  const fillOpacity = activeTheme ? 0.6 : 0.1;
+
+                  return (
+                    <Polygon
+                      key={`district-${districtName}`}
+                      positions={polygon}
+                      pathOptions={{
+                        fillColor,
+                        fillOpacity,
+                        color: activeTheme ? '#ffffff' : '#8b5cf6',
+                        weight: activeTheme ? 2 : 1.5,
+                        opacity: activeTheme ? 0.8 : 0.5
+                      }}
+                    />
+                  );
+                })}
 
                 {/* Afficher tous les polygones des aires de santé */}
                 {layersVisibility.airesantes && Object.entries(airesantesPolygons).map(([airesanteName, polygon]) => (
@@ -963,6 +978,21 @@ const MapView: React.FC = () => {
                   </Marker>
                 ))}
               </MapContainer>
+
+              {/* Analyses Thématiques */}
+              <div className="absolute top-4 left-4 z-[1000] max-w-sm space-y-3">
+                <ThematicAnalysis
+                  districtsData={districtsData}
+                  airesantesData={airesantesData}
+                  fosasData={fosasData}
+                  onThemeChange={setActiveTheme}
+                />
+
+                {/* Légende de la carte thématique */}
+                {activeTheme && (
+                  <MapLegend theme={activeTheme} />
+                )}
+              </div>
 
               {/* Contrôle des couches */}
               <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-xl border border-emerald-200 z-[1000] max-h-[80vh] overflow-y-auto custom-scrollbar">
