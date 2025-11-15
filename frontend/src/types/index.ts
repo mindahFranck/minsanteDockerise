@@ -323,56 +323,11 @@ export interface Fosa {
   longitude?: number;
   latitude?: number;
 
-  // Fréquentation
-  nbreVisiteursJour?: number;
-  nbrePatientsAmbulants?: number;
-  nbrePatientsHospitalises?: number;
-
-  // Ressources Humaines
-  nbreMedecinsGeneralistes?: number;
-  nbreMedecinsSpecialistes?: number;
-  nbreInfirmiersSup?: number;
-  nbreInfirmiersDe?: number;
-  nbrePersonnelAppui?: number;
-
-  // Infrastructures
-  nbreTotalBatiments?: number;
-  designationBatiments?: string;
-  surfaceTotaleBatie?: number;
-  servicesAbrités?: string;
-  nbreBatimentsFonctionnels?: number;
-  nbreBatimentsAbandonnes?: number;
-  etatGeneralLieux?: string;
-  nbreLitsOperationnels?: number;
-  nbreTotalLitsDisponibles?: number;
-  nbreLitsAAjouter?: number;
-  nbreBatimentsMaintenanceLourde?: number;
-  nbreBatimentsMaintenanceLegere?: number;
-
-  // Budgets
-  budgetTravauxNeufsAnneeMoins2?: number;
-  budgetTravauxNeufsAnneeMoins1?: number;
-  budgetTravauxNeufsAnneeCourante?: number;
-  budgetTravauxNeufsAnneePlus1?: number;
-  budgetMaintenanceAnneeMoins2?: number;
-  budgetMaintenanceAnneeMoins1?: number;
-  budgetMaintenanceAnneeCourante?: number;
-  budgetMaintenanceAnneePlus1?: number;
-
-  // Autres infrastructures
-  connectionElectricite?: boolean;
-  connectionEauPotable?: boolean;
-  existenceForage?: boolean;
-  existenceChateauEau?: boolean;
-  existenceEnergieSolaire?: boolean;
-  existenceIncinerateur?: boolean;
-
-  // Equipements
-  etatGeneralEquipements?: string;
-  budgetEquipementsAnneeCourante?: number;
-  budgetEquipementsAnneePlus1?: number;
-  budgetEquipementsMineursAnneeCourante?: number;
-  budgetEquipementsMineursAnneePlus1?: number;
+  // Questions OUI/NON
+  aCloture?: boolean;
+  aTitreFoncier?: boolean;
+  connecteeElectricite?: boolean;
+  typeCourant?: string;
 
   arrondissement?: Arrondissement;
   airesante?: Airesante;
