@@ -41,7 +41,8 @@
       "Bash(timeout /t 10 /nobreak)",
       "Bash(del nul)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npm run db:import:fosas:*)"
     ],
     "deny": [],
     "ask": []

@@ -17,6 +17,7 @@
     "db:seed": "tsx src/database/seeders/index.ts",
     "db:init": "tsx src/scripts/init-db.ts",
     "db:init:force": "FORCE_CONFIRM=YES tsx src/scripts/init-db.ts --force",
+    "db:import:fosas": "tsx scripts/importFormationSanitaire.ts",
     "docker:build": "docker build -t health-management-api .",
     "docker:down": "docker-compose down",
     "docker:up": "docker-compose up -d",
