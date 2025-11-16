@@ -42,7 +42,9 @@
       "Bash(del nul)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(npm run db:import:fosas:*)"
+      "Bash(npm run db:import:fosas:*)",
+      "Bash(git mv:*)",
+      "Bash(docker build:*)"
     ],
     "deny": [],
     "ask": []
