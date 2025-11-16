@@ -21,41 +21,6 @@ export class FosaService extends BaseService<Fosa> {
     })
   }
 
-  // Override findById pour inclure les données de la carte avec jointures spatiales
-  async findById(id: number, options?: any) {
-    const defaultOptions = {
-      attributes: ["id", "nom", "type", "latitude", "longitude", "estFerme", "situation", "capaciteLits", "airesanteId", "arrondissementId"],
-      include: [
-        {
-          association: "airesante",
-          required: true,
-          attributes: ["id", "nom_as", "code_as", "geom"],
-          include: [
-            {
-              association: "district",
-              required: true,
-              attributes: ["id", "nom_ds", "code_ds", "region", "geom"],
-              include: [
-                {
-                  association: "region",
-                  required: true,
-                  attributes: ["id", "nom", "code", "geom"],
-                },
-              ],
-            },
-          ],
-        },
-        {
-          association: "arrondissement",
-          required: true,
-          attributes: ["id", "nom", "geom"],
-        },
-      ],
-    };
-
-    return await super.findById(id, options || defaultOptions);
-  }
-
   async getByType(type: string) {
     return await this.findAll({
       where: { type },
@@ -68,91 +33,196 @@ export class FosaService extends BaseService<Fosa> {
     })
   }
 
-  // Méthodes spécifiques pour la carte (avec jointures spatiales)
+  // Méthodes avec vraies jointures spatiales PostGIS (ST_Within, ST_DWithin, ST_AsGeoJSON)
   async getAllForMap(limit?: number, offset?: number) {
-    const options: any = {
-      attributes: ["id", "nom", "type", "latitude", "longitude", "estFerme", "situation", "airesanteId", "arrondissementId"],
-      include: [
-        {
-          association: "airesante",
-          required: true, // INNER JOIN - toujours avoir une aire de santé
-          attributes: ["id", "nom_as", "code_as", "geom"],
-          include: [
-            {
-              association: "district",
-              required: true, // INNER JOIN - toujours avoir un district
-              attributes: ["id", "nom_ds", "code_ds", "region", "geom"],
-            },
-          ],
-        },
-        {
-          association: "arrondissement",
-          required: true, // INNER JOIN - toujours avoir un arrondissement
-          attributes: ["id", "nom", "geom"],
-        },
-      ],
-    };
+    const limitClause = limit !== undefined ? `LIMIT ${limit}` : '';
+    const offsetClause = offset !== undefined ? `OFFSET ${offset}` : '';
 
-    if (limit !== undefined) {
-      options.limit = limit;
-    }
+    const query = `
+      SELECT
+        f.id,
+        f.nom,
+        f.type,
+        f.latitude,
+        f.longitude,
+        f.est_ferme,
+        f.situation,
+        f.capacite_lits,
+        a.id as airesante_id,
+        a.nom_as as airesante_nom,
+        a.code_as as airesante_code,
+        ST_AsGeoJSON(a.geom) as airesante_geojson,
+        d.id as district_id,
+        d.nom_ds as district_nom,
+        d.code_ds as district_code,
+        d.region as district_region,
+        ST_AsGeoJSON(d.geom) as district_geojson,
+        r.id as region_id,
+        r.nom as region_nom,
+        r.code as region_code,
+        ST_AsGeoJSON(r.geom) as region_geojson,
+        arr.id as arrondissement_id,
+        arr.nom as arrondissement_nom,
+        ST_AsGeoJSON(arr.geom) as arrondissement_geojson
+      FROM fosas f
+      INNER JOIN airesantes a ON ST_DWithin(
+        ST_SetSRID(ST_MakePoint(f.longitude, f.latitude), 4326),
+        a.geom,
+        0.1
+      ) OR f.airesante_id = a.id
+      INNER JOIN districts d ON ST_Within(a.geom, d.geom) OR a.district_id = d.id
+      LEFT JOIN regions r ON ST_Within(d.geom, r.geom) OR d.region_id = r.id
+      LEFT JOIN arrondissements arr ON f.arrondissement_id = arr.id
+      ORDER BY f.id
+      ${limitClause} ${offsetClause}
+    `;
 
-    if (offset !== undefined) {
-      options.offset = offset;
-    }
+    const results = await sequelize.query(query, {
+      type: QueryTypes.SELECT,
+    });
 
-    return await this.findAll(options);
+    return results.map((row: any) => this.formatFosaResult(row));
   }
 
   async getByIdForMap(id: number) {
-    return await this.findById(id, {
-      attributes: ["id", "nom", "type", "latitude", "longitude", "estFerme", "situation", "capaciteLits", "airesanteId", "arrondissementId"],
-      include: [
-        {
-          association: "airesante",
-          required: true, // INNER JOIN
-          attributes: ["id", "nom_as", "code_as", "geom"],
-          include: [
-            {
-              association: "district",
-              required: true, // INNER JOIN
-              attributes: ["id", "nom_ds", "code_ds", "region", "geom"],
-              include: [
-                {
-                  association: "region",
-                  required: true, // INNER JOIN
-                  attributes: ["id", "nom", "code", "geom"],
-                },
-              ],
-            },
-          ],
-        },
-        {
-          association: "arrondissement",
-          required: true, // INNER JOIN
-          attributes: ["id", "nom", "geom"],
-        },
-      ],
+    const query = `
+      SELECT
+        f.id,
+        f.nom,
+        f.type,
+        f.latitude,
+        f.longitude,
+        f.est_ferme,
+        f.situation,
+        f.capacite_lits,
+        a.id as airesante_id,
+        a.nom_as as airesante_nom,
+        a.code_as as airesante_code,
+        ST_AsGeoJSON(a.geom) as airesante_geojson,
+        d.id as district_id,
+        d.nom_ds as district_nom,
+        d.code_ds as district_code,
+        d.region as district_region,
+        ST_AsGeoJSON(d.geom) as district_geojson,
+        r.id as region_id,
+        r.nom as region_nom,
+        r.code as region_code,
+        ST_AsGeoJSON(r.geom) as region_geojson,
+        arr.id as arrondissement_id,
+        arr.nom as arrondissement_nom,
+        ST_AsGeoJSON(arr.geom) as arrondissement_geojson
+      FROM fosas f
+      INNER JOIN airesantes a ON ST_DWithin(
+        ST_SetSRID(ST_MakePoint(f.longitude, f.latitude), 4326),
+        a.geom,
+        0.1
+      ) OR f.airesante_id = a.id
+      INNER JOIN districts d ON ST_Within(a.geom, d.geom) OR a.district_id = d.id
+      LEFT JOIN regions r ON ST_Within(d.geom, r.geom) OR d.region_id = r.id
+      LEFT JOIN arrondissements arr ON f.arrondissement_id = arr.id
+      WHERE f.id = :fosaId
+    `;
+
+    const results = await sequelize.query(query, {
+      replacements: { fosaId: id },
+      type: QueryTypes.SELECT,
     });
+
+    if (results.length === 0) return null;
+    return this.formatFosaResult(results[0]);
   }
 
   async getByAiresanteForMap(airesanteId: number) {
-    return await this.findAll({
-      where: { airesanteId },
-      attributes: ["id", "nom", "type", "latitude", "longitude", "estFerme", "situation"],
-      include: [
-        {
-          association: "airesante",
-          required: true, // INNER JOIN
-          attributes: ["id", "nom_as", "code_as", "geom"],
-        },
-        {
-          association: "arrondissement",
-          required: true, // INNER JOIN
-          attributes: ["id", "nom", "geom"],
-        },
-      ],
+    const query = `
+      SELECT
+        f.id,
+        f.nom,
+        f.type,
+        f.latitude,
+        f.longitude,
+        f.est_ferme,
+        f.situation,
+        f.capacite_lits,
+        a.id as airesante_id,
+        a.nom_as as airesante_nom,
+        a.code_as as airesante_code,
+        ST_AsGeoJSON(a.geom) as airesante_geojson,
+        arr.id as arrondissement_id,
+        arr.nom as arrondissement_nom,
+        ST_AsGeoJSON(arr.geom) as arrondissement_geojson
+      FROM fosas f
+      INNER JOIN airesantes a ON ST_DWithin(
+        ST_SetSRID(ST_MakePoint(f.longitude, f.latitude), 4326),
+        a.geom,
+        0.1
+      ) AND a.id = :airesanteId
+      LEFT JOIN arrondissements arr ON f.arrondissement_id = arr.id
+      ORDER BY f.nom
+    `;
+
+    const results = await sequelize.query(query, {
+      replacements: { airesanteId },
+      type: QueryTypes.SELECT,
     });
+
+    return results.map((row: any) => ({
+      id: row.id,
+      nom: row.nom,
+      type: row.type,
+      latitude: row.latitude,
+      longitude: row.longitude,
+      estFerme: row.est_ferme,
+      situation: row.situation,
+      capaciteLits: row.capacite_lits,
+      airesante: {
+        id: row.airesante_id,
+        nom: row.airesante_nom,
+        code: row.airesante_code,
+        geojson: row.airesante_geojson ? JSON.parse(row.airesante_geojson) : null,
+      },
+      arrondissement: row.arrondissement_id ? {
+        id: row.arrondissement_id,
+        nom: row.arrondissement_nom,
+        geojson: row.arrondissement_geojson ? JSON.parse(row.arrondissement_geojson) : null,
+      } : null,
+    }));
+  }
+
+  private formatFosaResult(row: any) {
+    return {
+      id: row.id,
+      nom: row.nom,
+      type: row.type,
+      latitude: row.latitude,
+      longitude: row.longitude,
+      estFerme: row.est_ferme,
+      situation: row.situation,
+      capaciteLits: row.capacite_lits,
+      airesante: {
+        id: row.airesante_id,
+        nom: row.airesante_nom,
+        code: row.airesante_code,
+        geojson: row.airesante_geojson ? JSON.parse(row.airesante_geojson) : null,
+      },
+      district: row.district_id ? {
+        id: row.district_id,
+        nom: row.district_nom,
+        code: row.district_code,
+        region: row.district_region,
+        geojson: row.district_geojson ? JSON.parse(row.district_geojson) : null,
+      } : null,
+      region: row.region_id ? {
+        id: row.region_id,
+        nom: row.region_nom,
+        code: row.region_code,
+        geojson: row.region_geojson ? JSON.parse(row.region_geojson) : null,
+      } : null,
+      arrondissement: row.arrondissement_id ? {
+        id: row.arrondissement_id,
+        nom: row.arrondissement_nom,
+        geojson: row.arrondissement_geojson ? JSON.parse(row.arrondissement_geojson) : null,
+      } : null,
+    };
   }
 
   // Méthode avec vraie jointure spatiale PostGIS - FOSAs dans une région
