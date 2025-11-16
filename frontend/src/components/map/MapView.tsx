@@ -369,173 +369,8 @@ const MapView: React.FC = () => {
     }
   };
 
-  const fetchDistrictsData = async () => {
-    try {
-      updateLoadingProgress('districtsData', true);
-      setProgressMessage('Chargement des districts...');
-
-      const districtsMap: { [key: string]: [number, number][] } = {};
-      let allDistricts: any[] = [];
-      let successCount = 0;
-      const BATCH_SIZE = 50; // Récupérer 50 districts par requête API
-      let offset = 0;
-      let hasMore = true;
-
-      // Chargement progressif depuis l'API par lots
-      while (hasMore) {
-        try {
-          const response = await districtService.getAllForMap({ limit: BATCH_SIZE, offset });
-          const batch = response.data;
-
-          if (!batch || batch.length === 0) {
-            hasMore = false;
-            break;
-          }
-
-          allDistricts = [...allDistricts, ...batch];
-
-          setProgressMessage(`Chargement des districts: ${allDistricts.length}...`);
-
-          // Traiter ce lot immédiatement
-          batch.forEach((district: any) => {
-            if (district.geom) {
-              try {
-                let geojson = district.geom;
-                if (typeof geojson === 'string') {
-                  geojson = JSON.parse(geojson);
-                }
-
-                if (geojson.coordinates && geojson.coordinates.length > 0) {
-                  const coords = geojson.type === 'MultiPolygon'
-                    ? geojson.coordinates[0][0]
-                    : geojson.coordinates[0];
-
-                  const transformed: [number, number][] = coords.map((coord: any) => [coord[1], coord[0]]);
-                  const nom = district.nom_ds || district.nom;
-                  if (nom) {
-                    districtsMap[nom] = transformed;
-                    successCount++;
-                  }
-                }
-              } catch (parseErr) {
-                console.warn(`Erreur parsing polygon pour district ${district.nom_ds || district.nom}:`, parseErr);
-              }
-            }
-          });
-
-          // Mettre à jour progressivement l'affichage
-          setDistrictsPolygons({...districtsMap});
-
-          offset += BATCH_SIZE;
-
-          // Si le lot est plus petit que BATCH_SIZE, c'est le dernier
-          if (batch.length < BATCH_SIZE) {
-            hasMore = false;
-          }
-
-          // Petite pause pour ne pas surcharger le serveur
-          await new Promise(resolve => setTimeout(resolve, 100));
-        } catch (batchErr) {
-          console.error('Erreur chargement lot de districts:', batchErr);
-          hasMore = false;
-        }
-      }
-
-      setDistrictsData(allDistricts);
-      console.log(`${successCount} districts avec polygones valides sur ${allDistricts.length} au total`);
-      setProgressMessage('');
-    } catch (err) {
-      console.error('Erreur chargement districts:', err);
-      setDistrictsPolygons({});
-      setProgressMessage('Erreur lors du chargement des districts');
-    } finally {
-      updateLoadingProgress('districtsData', false);
-    }
-  };
-
-  const fetchAiresantesData = async () => {
-    try {
-      updateLoadingProgress('airesantesData', true);
-      setProgressMessage('Chargement des aires de santé...');
-
-      const airesantesMap: { [key: string]: [number, number][] } = {};
-      let allAiresantes: any[] = [];
-      let successCount = 0;
-      const BATCH_SIZE = 100; // Récupérer 100 aires de santé par requête API
-      let offset = 0;
-      let hasMore = true;
-
-      // Chargement progressif depuis l'API par lots
-      while (hasMore) {
-        try {
-          const response = await airesanteService.getAllForMap({ limit: BATCH_SIZE, offset });
-          const batch = response.data;
-
-          if (!batch || batch.length === 0) {
-            hasMore = false;
-            break;
-          }
-
-          allAiresantes = [...allAiresantes, ...batch];
-
-          setProgressMessage(`Chargement des aires de santé: ${allAiresantes.length}...`);
-
-          // Traiter ce lot immédiatement
-          batch.forEach((airesante: any) => {
-            if (airesante.geom) {
-              try {
-                let geojson = airesante.geom;
-                if (typeof geojson === 'string') {
-                  geojson = JSON.parse(geojson);
-                }
-
-                if (geojson.coordinates && geojson.coordinates.length > 0) {
-                  const coords = geojson.type === 'MultiPolygon'
-                    ? geojson.coordinates[0][0]
-                    : geojson.coordinates[0];
-
-                  const transformed: [number, number][] = coords.map((coord: any) => [coord[1], coord[0]]);
-                  const nom = airesante.nom_aire || airesante.nom_as || airesante.nom;
-                  if (nom) {
-                    airesantesMap[nom] = transformed;
-                    successCount++;
-                  }
-                }
-              } catch (parseErr) {
-                console.warn(`Erreur parsing polygon pour aire de santé ${airesante.nom_aire || airesante.nom_as || airesante.nom}:`, parseErr);
-              }
-            }
-          });
-
-          // Mettre à jour progressivement l'affichage
-          setAiresantesPolygons({...airesantesMap});
-
-          offset += BATCH_SIZE;
-
-          // Si le lot est plus petit que BATCH_SIZE, c'est le dernier
-          if (batch.length < BATCH_SIZE) {
-            hasMore = false;
-          }
-
-          // Petite pause pour ne pas surcharger le serveur
-          await new Promise(resolve => setTimeout(resolve, 100));
-        } catch (batchErr) {
-          console.error('Erreur chargement lot d\'aires de santé:', batchErr);
-          hasMore = false;
-        }
-      }
-
-      setAiresantesData(allAiresantes);
-      console.log(`${successCount} aires de santé avec polygones valides sur ${allAiresantes.length} au total`);
-      setProgressMessage('');
-    } catch (err) {
-      console.error('Erreur chargement aires de santé:', err);
-      setAiresantesPolygons({});
-      setProgressMessage('Erreur lors du chargement des aires de santé');
-    } finally {
-      updateLoadingProgress('airesantesData', false);
-    }
-  };
+  // Les fonctions fetchDistrictsData et fetchAiresantesData ont été remplacées
+  // par un chargement à la demande dans les useEffect ci-dessous
 
   const loadHospitalsData = async () => {
     try {
@@ -652,14 +487,13 @@ const MapView: React.FC = () => {
       !loadingProgress.regionsData &&
       !loadingProgress.departementsData &&
       !loadingProgress.communesData &&
-      !loadingProgress.districtsData &&
-      !loadingProgress.airesantesData &&
       !loadingProgress.hospitalsData;
     if (allLoaded) setLoading(false);
   }, [loadingProgress]);
 
+  // Chargement initial : uniquement Cameroun, régions, départements, communes et FOSA
   useEffect(() => {
-    const loadAll = async () => {
+    const loadInitial = async () => {
       setLoading(true);
       try {
         await Promise.all([
@@ -667,16 +501,156 @@ const MapView: React.FC = () => {
           fetchRegionsData(),
           fetchDepartementsData(),
           fetchCommunesData(),
-          fetchDistrictsData(),
-          fetchAiresantesData(),
           loadHospitalsData()
         ]);
       } catch (err) {
         setError('Erreur de chargement');
       }
     };
-    loadAll();
+    loadInitial();
   }, []);
+
+  // Charger les districts quand une région est sélectionnée
+  useEffect(() => {
+    if (selectedRegion === 'all') {
+      // Réinitialiser les districts si on désélectionne
+      setDistrictsPolygons({});
+      setDistrictsData([]);
+      return;
+    }
+
+    const loadDistrictsByRegion = async () => {
+      try {
+        updateLoadingProgress('districtsData', true);
+        setProgressMessage(`Chargement des districts de ${selectedRegion}...`);
+
+        // Trouver l'ID de la région sélectionnée
+        const region = regionsData.find(r => r.nom === selectedRegion);
+        if (!region) {
+          console.warn('Région non trouvée:', selectedRegion);
+          return;
+        }
+
+        // Utiliser l'endpoint getByRegionForMap
+        const response = await districtService.getByRegionForMap(region.id);
+        const districts = response.data;
+
+        console.log(`Districts de ${selectedRegion}:`, districts.length);
+        setDistrictsData(districts);
+
+        const districtsMap: { [key: string]: [number, number][] } = {};
+        let successCount = 0;
+
+        districts.forEach((district: any) => {
+          if (district.geom) {
+            try {
+              let geojson = district.geom;
+              if (typeof geojson === 'string') {
+                geojson = JSON.parse(geojson);
+              }
+
+              if (geojson.coordinates && geojson.coordinates.length > 0) {
+                const coords = geojson.type === 'MultiPolygon'
+                  ? geojson.coordinates[0][0]
+                  : geojson.coordinates[0];
+
+                const transformed: [number, number][] = coords.map((coord: any) => [coord[1], coord[0]]);
+                const nom = district.nom_ds || district.nom;
+                if (nom) {
+                  districtsMap[nom] = transformed;
+                  successCount++;
+                }
+              }
+            } catch (parseErr) {
+              console.warn(`Erreur parsing polygon pour district ${district.nom_ds || district.nom}:`, parseErr);
+            }
+          }
+        });
+
+        setDistrictsPolygons(districtsMap);
+        console.log(`${successCount} districts chargés pour ${selectedRegion}`);
+        setProgressMessage('');
+      } catch (err) {
+        console.error('Erreur chargement districts:', err);
+        setProgressMessage('Erreur lors du chargement des districts');
+      } finally {
+        updateLoadingProgress('districtsData', false);
+      }
+    };
+
+    loadDistrictsByRegion();
+  }, [selectedRegion, regionsData]);
+
+  // Charger les aires de santé quand un district est sélectionné
+  useEffect(() => {
+    if (selectedDistrict === 'all') {
+      // Réinitialiser les aires si on désélectionne
+      setAiresantesPolygons({});
+      setAiresantesData([]);
+      return;
+    }
+
+    const loadAiresantesByDistrict = async () => {
+      try {
+        updateLoadingProgress('airesantesData', true);
+        setProgressMessage(`Chargement des aires de santé de ${selectedDistrict}...`);
+
+        // Trouver l'ID du district sélectionné
+        const district = districtsData.find(d => (d.nom_ds || d.nom) === selectedDistrict);
+        if (!district) {
+          console.warn('District non trouvé:', selectedDistrict);
+          return;
+        }
+
+        // Utiliser l'endpoint getByDistrictForMap
+        const response = await airesanteService.getByDistrictForMap(district.id);
+        const airesantes = response.data;
+
+        console.log(`Aires de santé de ${selectedDistrict}:`, airesantes.length);
+        setAiresantesData(airesantes);
+
+        const airesantesMap: { [key: string]: [number, number][] } = {};
+        let successCount = 0;
+
+        airesantes.forEach((airesante: any) => {
+          if (airesante.geom) {
+            try {
+              let geojson = airesante.geom;
+              if (typeof geojson === 'string') {
+                geojson = JSON.parse(geojson);
+              }
+
+              if (geojson.coordinates && geojson.coordinates.length > 0) {
+                const coords = geojson.type === 'MultiPolygon'
+                  ? geojson.coordinates[0][0]
+                  : geojson.coordinates[0];
+
+                const transformed: [number, number][] = coords.map((coord: any) => [coord[1], coord[0]]);
+                const nom = airesante.nom_aire || airesante.nom_as || airesante.nom;
+                if (nom) {
+                  airesantesMap[nom] = transformed;
+                  successCount++;
+                }
+              }
+            } catch (parseErr) {
+              console.warn(`Erreur parsing polygon pour aire de santé:`, parseErr);
+            }
+          }
+        });
+
+        setAiresantesPolygons(airesantesMap);
+        console.log(`${successCount} aires de santé chargées pour ${selectedDistrict}`);
+        setProgressMessage('');
+      } catch (err) {
+        console.error('Erreur chargement aires de santé:', err);
+        setProgressMessage('Erreur lors du chargement des aires de santé');
+      } finally {
+        updateLoadingProgress('airesantesData', false);
+      }
+    };
+
+    loadAiresantesByDistrict();
+  }, [selectedDistrict, districtsData]);
 
   useEffect(() => {
     if (hospitals.length === 0) return;
@@ -883,17 +857,37 @@ const MapView: React.FC = () => {
                 <option value="all">Tous arrondissements</option>
                 {arrondissements.map(a => <option key={a} value={a}>{a}</option>)}
               </select>
-              <select value={selectedDistrict} onChange={(e) => {
-                setSelectedDistrict(e.target.value);
-                setSelectedAiresante('all');
-              }} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70">
-                <option value="all">Tous districts</option>
-                {districts.map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
-              <select value={selectedAiresante} onChange={(e) => setSelectedAiresante(e.target.value)} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70">
-                <option value="all">Toutes aires de santé</option>
-                {airesantes.map(a => <option key={a} value={a}>{a}</option>)}
-              </select>
+              <div className="relative">
+                <select value={selectedDistrict} onChange={(e) => {
+                  setSelectedDistrict(e.target.value);
+                  setSelectedAiresante('all');
+                }} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70" disabled={loadingProgress.districtsData}>
+                  <option value="all">Tous districts</option>
+                  {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+                {loadingProgress.districtsData && (
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                    <svg className="animate-spin h-4 w-4 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                )}
+              </div>
+              <div className="relative">
+                <select value={selectedAiresante} onChange={(e) => setSelectedAiresante(e.target.value)} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70" disabled={loadingProgress.airesantesData}>
+                  <option value="all">Toutes aires de santé</option>
+                  {airesantes.map(a => <option key={a} value={a}>{a}</option>)}
+                </select>
+                {loadingProgress.airesantesData && (
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                    <svg className="animate-spin h-4 w-4 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                )}
+              </div>
               <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70">
                 <option value="all">Toutes catégories</option>
                 <option value="HR">HR</option>
