@@ -11,6 +11,12 @@ const controller = new FosaController()
 router.get("/", controller.getAll)
 router.get("/closed", controller.getClosedFosas)
 router.get("/type/:type", controller.getByType)
+
+// Routes pour la carte (avec geom et jointures spatiales)
+router.get("/map/all", controller.getAllForMap)
+router.get("/map/:id", controller.getByIdForMap)
+router.get("/map/airesante/:airesanteId", controller.getByAiresanteForMap)
+
 router.get("/:id", controller.getById)
 
 router.post(

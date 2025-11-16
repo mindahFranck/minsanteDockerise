@@ -11,4 +11,69 @@ export class RegionService extends BaseService<Region> {
       include: [{ association: "departements" }, { association: "districts" }],
     })
   }
+
+  // Méthodes spécifiques pour la carte (avec geom et jointures spatiales)
+  async getAllForMap(limit?: number, offset?: number) {
+    const options: any = {
+      attributes: ["id", "nom", "code", "geom"],
+      include: [
+        {
+          association: "districts",
+          required: false, // LEFT JOIN
+          attributes: ["id", "nom_ds", "code_ds", "geom"],
+          include: [
+            {
+              association: "airesantes",
+              required: false, // LEFT JOIN
+              attributes: ["id", "nom_as", "code_as", "geom"],
+              include: [
+                {
+                  association: "fosas",
+                  required: false, // LEFT JOIN
+                  attributes: ["id", "nom", "type", "latitude", "longitude", "estFerme"],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    if (limit !== undefined) {
+      options.limit = limit;
+    }
+
+    if (offset !== undefined) {
+      options.offset = offset;
+    }
+
+    return await this.findAll(options);
+  }
+
+  async getByIdForMap(id: number) {
+    return await this.findById(id, {
+      attributes: ["id", "nom", "code", "geom"],
+      include: [
+        {
+          association: "districts",
+          required: false, // LEFT JOIN
+          attributes: ["id", "nom_ds", "code_ds", "geom"],
+          include: [
+            {
+              association: "airesantes",
+              required: false, // LEFT JOIN
+              attributes: ["id", "nom_as", "code_as", "geom"],
+              include: [
+                {
+                  association: "fosas",
+                  required: false, // LEFT JOIN
+                  attributes: ["id", "nom", "type", "latitude", "longitude", "estFerme", "situation"],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  }
 }

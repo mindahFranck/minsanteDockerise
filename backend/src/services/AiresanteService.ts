@@ -44,7 +44,7 @@ export class AiresanteService extends BaseService<Airesante> {
     });
   }
 
-  // Méthodes spécifiques pour la carte (avec geom)
+  // Méthodes spécifiques pour la carte (avec geom et jointures spatiales)
   async getAllForMap(limit?: number, offset?: number) {
     const options: any = {
       attributes: [
@@ -55,6 +55,18 @@ export class AiresanteService extends BaseService<Airesante> {
         "area",
         "geom",
         "districtId",
+      ],
+      include: [
+        {
+          association: "district",
+          required: true, // INNER JOIN
+          attributes: ["id", "nom_ds", "code_ds", "region", "geom"],
+        },
+        {
+          association: "fosas",
+          required: false, // LEFT JOIN pour les FOSAs (certaines aires peuvent ne pas avoir de FOSAs)
+          attributes: ["id", "nom", "type", "latitude", "longitude", "estFerme"],
+        },
       ],
     };
 
@@ -80,6 +92,25 @@ export class AiresanteService extends BaseService<Airesante> {
         "geom",
         "districtId",
       ],
+      include: [
+        {
+          association: "district",
+          required: true, // INNER JOIN
+          attributes: ["id", "nom_ds", "code_ds", "region", "geom"],
+          include: [
+            {
+              association: "region",
+              required: true, // INNER JOIN
+              attributes: ["id", "nom", "code", "geom"],
+            },
+          ],
+        },
+        {
+          association: "fosas",
+          required: false, // LEFT JOIN
+          attributes: ["id", "nom", "type", "latitude", "longitude", "estFerme", "situation"],
+        },
+      ],
     });
   }
 
@@ -94,6 +125,18 @@ export class AiresanteService extends BaseService<Airesante> {
         "area",
         "geom",
         "districtId",
+      ],
+      include: [
+        {
+          association: "district",
+          required: true, // INNER JOIN
+          attributes: ["id", "nom_ds", "code_ds", "region", "geom"],
+        },
+        {
+          association: "fosas",
+          required: false, // LEFT JOIN
+          attributes: ["id", "nom", "type", "latitude", "longitude", "estFerme"],
+        },
       ],
     });
   }

@@ -8,6 +8,11 @@ const controller = new RegionController()
 
 // Routes publiques pour la carte
 router.get("/", controller.getAll)
+
+// Routes pour la carte (avec geom et jointures spatiales)
+router.get("/map/all", controller.getAllForMap)
+router.get("/map/:id", controller.getByIdForMap)
+
 router.get("/:id", controller.getById)
 router.post(
   "/",

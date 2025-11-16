@@ -39,10 +39,29 @@ export class DistrictService extends BaseService<District> {
     })
   }
 
-  // Méthodes spécifiques pour la carte (avec geom)
+  // Méthodes spécifiques pour la carte (avec geom et jointures spatiales)
   async getAllForMap(limit?: number, offset?: number) {
     const options: any = {
-      attributes: ['id', 'nom_ds', 'code_ds', 'region', 'geom', 'regionId']
+      attributes: ['id', 'nom_ds', 'code_ds', 'region', 'geom', 'regionId'],
+      include: [
+        {
+          association: "region",
+          required: true, // INNER JOIN
+          attributes: ["id", "nom", "code", "geom"],
+        },
+        {
+          association: "airesantes",
+          required: false, // LEFT JOIN pour les aires de santé
+          attributes: ["id", "nom_as", "code_as", "geom"],
+          include: [
+            {
+              association: "fosas",
+              required: false, // LEFT JOIN pour les FOSAs
+              attributes: ["id", "nom", "type", "latitude", "longitude", "estFerme"],
+            },
+          ],
+        },
+      ],
     };
 
     if (limit !== undefined) {
@@ -58,14 +77,52 @@ export class DistrictService extends BaseService<District> {
 
   async getByIdForMap(id: number) {
     return await this.findById(id, {
-      attributes: ['id', 'nom_ds', 'code_ds', 'region', 'geom', 'regionId']
+      attributes: ['id', 'nom_ds', 'code_ds', 'region', 'geom', 'regionId'],
+      include: [
+        {
+          association: "region",
+          required: true, // INNER JOIN
+          attributes: ["id", "nom", "code", "geom"],
+        },
+        {
+          association: "airesantes",
+          required: false, // LEFT JOIN
+          attributes: ["id", "nom_as", "code_as", "geom"],
+          include: [
+            {
+              association: "fosas",
+              required: false, // LEFT JOIN
+              attributes: ["id", "nom", "type", "latitude", "longitude", "estFerme", "situation"],
+            },
+          ],
+        },
+      ],
     })
   }
 
   async getByRegionForMap(regionId: number) {
     return await this.findAll({
       where: { regionId },
-      attributes: ['id', 'nom_ds', 'code_ds', 'region', 'geom', 'regionId']
+      attributes: ['id', 'nom_ds', 'code_ds', 'region', 'geom', 'regionId'],
+      include: [
+        {
+          association: "region",
+          required: true, // INNER JOIN
+          attributes: ["id", "nom", "code", "geom"],
+        },
+        {
+          association: "airesantes",
+          required: false, // LEFT JOIN
+          attributes: ["id", "nom_as", "code_as", "geom"],
+          include: [
+            {
+              association: "fosas",
+              required: false, // LEFT JOIN
+              attributes: ["id", "nom", "type", "latitude", "longitude", "estFerme"],
+            },
+          ],
+        },
+      ],
     })
   }
 }
