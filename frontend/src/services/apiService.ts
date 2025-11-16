@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { cacheService, CacheTTL, CacheKeys } from './cacheService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
@@ -137,55 +138,122 @@ export interface Fosa {
 export const apiService = {
   // Regions
   async getRegions(): Promise<Region[]> {
-    const response = await apiClient.get('/regions');
-    return response.data.data;
+    return cacheService.getOrFetch(
+      CacheKeys.regions(),
+      async () => {
+        const response = await apiClient.get('/regions');
+        return response.data.data;
+      },
+      CacheTTL.REGIONS
+    );
   },
 
   // Departements
   async getDepartements(): Promise<Departement[]> {
-    const response = await apiClient.get('/departements');
-    return response.data.data;
+    return cacheService.getOrFetch(
+      CacheKeys.departements(),
+      async () => {
+        const response = await apiClient.get('/departements');
+        return response.data.data;
+      },
+      CacheTTL.DEPARTEMENTS
+    );
   },
 
   // Arrondissements
   async getArrondissements(): Promise<Arrondissement[]> {
-    const response = await apiClient.get('/arrondissements');
-    return response.data.data;
+    return cacheService.getOrFetch(
+      CacheKeys.arrondissements(),
+      async () => {
+        const response = await apiClient.get('/arrondissements');
+        return response.data.data;
+      },
+      CacheTTL.ARRONDISSEMENTS
+    );
   },
 
   // FOSA
   async getFosas(): Promise<Fosa[]> {
-    const response = await apiClient.get('/fosas');
-    return response.data.data;
+    return cacheService.getOrFetch(
+      CacheKeys.fosas(),
+      async () => {
+        const response = await apiClient.get('/fosas');
+        return response.data.data;
+      },
+      CacheTTL.FOSAS
+    );
   },
 
   async getFosaById(id: number): Promise<Fosa> {
-    const response = await apiClient.get(`/fosas/${id}`);
-    return response.data.data;
+    return cacheService.getOrFetch(
+      CacheKeys.fosa(id),
+      async () => {
+        const response = await apiClient.get(`/fosas/${id}`);
+        return response.data.data;
+      },
+      CacheTTL.FOSAS
+    );
   },
 
   // Communes
   async getCommunes(): Promise<Commune[]> {
-    const response = await apiClient.get('/communes');
-    return response.data.data;
+    return cacheService.getOrFetch(
+      CacheKeys.communes(),
+      async () => {
+        const response = await apiClient.get('/communes');
+        return response.data.data;
+      },
+      CacheTTL.COMMUNES
+    );
   },
 
   // Cameroun
   async getCameroun(): Promise<Cameroun[]> {
-    const response = await apiClient.get('/cameroun');
-    return response.data.data;
+    return cacheService.getOrFetch(
+      CacheKeys.cameroon(),
+      async () => {
+        const response = await apiClient.get('/cameroun');
+        return response.data.data;
+      },
+      CacheTTL.CAMEROON
+    );
   },
 
   // Districts
   async getDistricts(): Promise<District[]> {
-    const response = await apiClient.get('/districts');
-    return response.data.data;
+    return cacheService.getOrFetch(
+      CacheKeys.districts(),
+      async () => {
+        const response = await apiClient.get('/districts');
+        return response.data.data;
+      },
+      CacheTTL.DISTRICTS
+    );
   },
 
   // Aires de santé
   async getAiresantes(): Promise<Airesante[]> {
-    const response = await apiClient.get('/airesantes');
-    return response.data.data;
+    return cacheService.getOrFetch(
+      CacheKeys.airesantes(),
+      async () => {
+        const response = await apiClient.get('/airesantes');
+        return response.data.data;
+      },
+      CacheTTL.AIRESANTES
+    );
+  },
+
+  // Méthodes utilitaires pour gérer le cache
+  clearCache(): void {
+    cacheService.clear();
+  },
+
+  invalidateCache(pattern: string | RegExp): void {
+    cacheService.invalidate(pattern);
+  },
+
+  getCacheStats() {
+    return cacheService.getStats();
   },
 };
 
