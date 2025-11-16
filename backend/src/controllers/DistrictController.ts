@@ -16,10 +16,18 @@ export class DistrictController extends BaseController<any> {
 
   // Routes spécifiques pour la carte (avec geom)
   getAllForMap = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const districts = await this.districtService.getAllForMap()
+    const limit = req.query.limit ? Number.parseInt(req.query.limit as string) : undefined;
+    const offset = req.query.offset ? Number.parseInt(req.query.offset as string) : undefined;
+
+    const districts = await this.districtService.getAllForMap(limit, offset)
     res.json({
       success: true,
       data: districts,
+      pagination: limit !== undefined ? {
+        limit,
+        offset: offset || 0,
+        total: districts.length
+      } : undefined
     })
   })
 

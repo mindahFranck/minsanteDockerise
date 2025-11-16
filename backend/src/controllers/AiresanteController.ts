@@ -16,10 +16,18 @@ export class AiresanteController extends BaseController<any> {
 
   // Routes spécifiques pour la carte (avec geom)
   getAllForMap = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const airesantes = await this.airesanteService.getAllForMap()
+    const limit = req.query.limit ? Number.parseInt(req.query.limit as string) : undefined;
+    const offset = req.query.offset ? Number.parseInt(req.query.offset as string) : undefined;
+
+    const airesantes = await this.airesanteService.getAllForMap(limit, offset)
     res.json({
       success: true,
       data: airesantes,
+      pagination: limit !== undefined ? {
+        limit,
+        offset: offset || 0,
+        total: airesantes.length
+      } : undefined
     })
   })
 

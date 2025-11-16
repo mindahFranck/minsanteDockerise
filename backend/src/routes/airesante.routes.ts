@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { AiresanteController } from "../controllers/AiresanteController";
+import { AiresanteController } from "../controllers/airesanteController";
 import { authenticate, authorize } from "../middleware/auth";
 import { validate } from "../middleware/validate";
 

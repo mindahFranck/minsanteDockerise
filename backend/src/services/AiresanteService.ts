@@ -45,8 +45,8 @@ export class AiresanteService extends BaseService<Airesante> {
   }
 
   // Méthodes spécifiques pour la carte (avec geom)
-  async getAllForMap() {
-    return await this.findAll({
+  async getAllForMap(limit?: number, offset?: number) {
+    const options: any = {
       attributes: [
         "id",
         "nom_as",
@@ -56,7 +56,17 @@ export class AiresanteService extends BaseService<Airesante> {
         "geom",
         "districtId",
       ],
-    });
+    };
+
+    if (limit !== undefined) {
+      options.limit = limit;
+    }
+
+    if (offset !== undefined) {
+      options.offset = offset;
+    }
+
+    return await this.findAll(options);
   }
 
   async getByIdForMap(id: number) {

@@ -46,7 +46,14 @@ export const districtService = {
   },
 
   // Méthodes pour la carte (avec geom)
-  getAllForMap: async () => {
+  getAllForMap: async (params?: { limit?: number; offset?: number }) => {
+    // Ne pas cacher les requêtes paginées
+    if (params?.limit !== undefined || params?.offset !== undefined) {
+      const response = await api.get<{ success: boolean; data: District[] }>("/districts/map/all", { params })
+      return response.data
+    }
+
+    // Cacher uniquement les requêtes complètes (sans pagination)
     return cacheService.getOrFetch(
       CacheKeys.mapDistricts(),
       async () => {

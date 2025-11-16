@@ -374,60 +374,75 @@ const MapView: React.FC = () => {
       updateLoadingProgress('districtsData', true);
       setProgressMessage('Chargement des districts...');
 
-      // Use the map endpoint to get districts with geom
-      const response = await districtService.getAllForMap();
-      const districts = response.data;
-
-      console.log('Districts reçus:', districts.length, 'districts');
-      setDistrictsData(districts);
-
       const districtsMap: { [key: string]: [number, number][] } = {};
+      let allDistricts: any[] = [];
       let successCount = 0;
-      const BATCH_SIZE = 20; // Traiter par lots de 20 pour éviter de bloquer l'UI
+      const BATCH_SIZE = 50; // Récupérer 50 districts par requête API
+      let offset = 0;
+      let hasMore = true;
 
-      // Traitement progressif par lots
-      for (let i = 0; i < districts.length; i += BATCH_SIZE) {
-        const batch = districts.slice(i, i + BATCH_SIZE);
-        const progress = Math.min(i + BATCH_SIZE, districts.length);
+      // Chargement progressif depuis l'API par lots
+      while (hasMore) {
+        try {
+          const response = await districtService.getAllForMap({ limit: BATCH_SIZE, offset });
+          const batch = response.data;
 
-        setProgressMessage(`Traitement des districts: ${progress}/${districts.length}`);
-
-        batch.forEach((district: any) => {
-          if (district.geom) {
-            try {
-              let geojson = district.geom;
-              if (typeof geojson === 'string') {
-                geojson = JSON.parse(geojson);
-              }
-
-              if (geojson.coordinates && geojson.coordinates.length > 0) {
-                const coords = geojson.type === 'MultiPolygon'
-                  ? geojson.coordinates[0][0]
-                  : geojson.coordinates[0];
-
-                const transformed: [number, number][] = coords.map((coord: any) => [coord[1], coord[0]]);
-                const nom = district.nom_ds || district.nom;
-                if (nom) {
-                  districtsMap[nom] = transformed;
-                  successCount++;
-                }
-              }
-            } catch (parseErr) {
-              console.warn(`Erreur parsing polygon pour district ${district.nom_ds || district.nom}:`, parseErr);
-            }
-          } else {
-            console.warn(`District sans geom:`, district.nom_ds || district.nom);
+          if (!batch || batch.length === 0) {
+            hasMore = false;
+            break;
           }
-        });
 
-        // Mettre à jour progressivement l'affichage
-        setDistrictsPolygons({...districtsMap});
+          allDistricts = [...allDistricts, ...batch];
 
-        // Pause pour laisser l'UI se rafraîchir
-        await new Promise(resolve => setTimeout(resolve, 10));
+          setProgressMessage(`Chargement des districts: ${allDistricts.length}...`);
+
+          // Traiter ce lot immédiatement
+          batch.forEach((district: any) => {
+            if (district.geom) {
+              try {
+                let geojson = district.geom;
+                if (typeof geojson === 'string') {
+                  geojson = JSON.parse(geojson);
+                }
+
+                if (geojson.coordinates && geojson.coordinates.length > 0) {
+                  const coords = geojson.type === 'MultiPolygon'
+                    ? geojson.coordinates[0][0]
+                    : geojson.coordinates[0];
+
+                  const transformed: [number, number][] = coords.map((coord: any) => [coord[1], coord[0]]);
+                  const nom = district.nom_ds || district.nom;
+                  if (nom) {
+                    districtsMap[nom] = transformed;
+                    successCount++;
+                  }
+                }
+              } catch (parseErr) {
+                console.warn(`Erreur parsing polygon pour district ${district.nom_ds || district.nom}:`, parseErr);
+              }
+            }
+          });
+
+          // Mettre à jour progressivement l'affichage
+          setDistrictsPolygons({...districtsMap});
+
+          offset += BATCH_SIZE;
+
+          // Si le lot est plus petit que BATCH_SIZE, c'est le dernier
+          if (batch.length < BATCH_SIZE) {
+            hasMore = false;
+          }
+
+          // Petite pause pour ne pas surcharger le serveur
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (batchErr) {
+          console.error('Erreur chargement lot de districts:', batchErr);
+          hasMore = false;
+        }
       }
 
-      console.log(`${successCount} districts avec polygones valides`);
+      setDistrictsData(allDistricts);
+      console.log(`${successCount} districts avec polygones valides sur ${allDistricts.length} au total`);
       setProgressMessage('');
     } catch (err) {
       console.error('Erreur chargement districts:', err);
@@ -443,60 +458,75 @@ const MapView: React.FC = () => {
       updateLoadingProgress('airesantesData', true);
       setProgressMessage('Chargement des aires de santé...');
 
-      // Use the map endpoint to get aires de santé with geom
-      const response = await airesanteService.getAllForMap();
-      const airesantes = response.data;
-
-      console.log('Aires de santé reçues:', airesantes.length, 'aires');
-      setAiresantesData(airesantes);
-
       const airesantesMap: { [key: string]: [number, number][] } = {};
+      let allAiresantes: any[] = [];
       let successCount = 0;
-      const BATCH_SIZE = 30; // Lots de 30 pour les aires de santé
+      const BATCH_SIZE = 100; // Récupérer 100 aires de santé par requête API
+      let offset = 0;
+      let hasMore = true;
 
-      // Traitement progressif par lots
-      for (let i = 0; i < airesantes.length; i += BATCH_SIZE) {
-        const batch = airesantes.slice(i, i + BATCH_SIZE);
-        const progress = Math.min(i + BATCH_SIZE, airesantes.length);
+      // Chargement progressif depuis l'API par lots
+      while (hasMore) {
+        try {
+          const response = await airesanteService.getAllForMap({ limit: BATCH_SIZE, offset });
+          const batch = response.data;
 
-        setProgressMessage(`Traitement des aires de santé: ${progress}/${airesantes.length}`);
-
-        batch.forEach((airesante: any) => {
-          if (airesante.geom) {
-            try {
-              let geojson = airesante.geom;
-              if (typeof geojson === 'string') {
-                geojson = JSON.parse(geojson);
-              }
-
-              if (geojson.coordinates && geojson.coordinates.length > 0) {
-                const coords = geojson.type === 'MultiPolygon'
-                  ? geojson.coordinates[0][0]
-                  : geojson.coordinates[0];
-
-                const transformed: [number, number][] = coords.map((coord: any) => [coord[1], coord[0]]);
-                const nom = airesante.nom_aire || airesante.nom_as || airesante.nom;
-                if (nom) {
-                  airesantesMap[nom] = transformed;
-                  successCount++;
-                }
-              }
-            } catch (parseErr) {
-              console.warn(`Erreur parsing polygon pour aire de santé ${airesante.nom_aire || airesante.nom_as || airesante.nom}:`, parseErr);
-            }
-          } else {
-            console.warn(`Aire de santé sans geom:`, airesante.nom_as || airesante.nom);
+          if (!batch || batch.length === 0) {
+            hasMore = false;
+            break;
           }
-        });
 
-        // Mettre à jour progressivement l'affichage
-        setAiresantesPolygons({...airesantesMap});
+          allAiresantes = [...allAiresantes, ...batch];
 
-        // Pause pour laisser l'UI se rafraîchir
-        await new Promise(resolve => setTimeout(resolve, 10));
+          setProgressMessage(`Chargement des aires de santé: ${allAiresantes.length}...`);
+
+          // Traiter ce lot immédiatement
+          batch.forEach((airesante: any) => {
+            if (airesante.geom) {
+              try {
+                let geojson = airesante.geom;
+                if (typeof geojson === 'string') {
+                  geojson = JSON.parse(geojson);
+                }
+
+                if (geojson.coordinates && geojson.coordinates.length > 0) {
+                  const coords = geojson.type === 'MultiPolygon'
+                    ? geojson.coordinates[0][0]
+                    : geojson.coordinates[0];
+
+                  const transformed: [number, number][] = coords.map((coord: any) => [coord[1], coord[0]]);
+                  const nom = airesante.nom_aire || airesante.nom_as || airesante.nom;
+                  if (nom) {
+                    airesantesMap[nom] = transformed;
+                    successCount++;
+                  }
+                }
+              } catch (parseErr) {
+                console.warn(`Erreur parsing polygon pour aire de santé ${airesante.nom_aire || airesante.nom_as || airesante.nom}:`, parseErr);
+              }
+            }
+          });
+
+          // Mettre à jour progressivement l'affichage
+          setAiresantesPolygons({...airesantesMap});
+
+          offset += BATCH_SIZE;
+
+          // Si le lot est plus petit que BATCH_SIZE, c'est le dernier
+          if (batch.length < BATCH_SIZE) {
+            hasMore = false;
+          }
+
+          // Petite pause pour ne pas surcharger le serveur
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (batchErr) {
+          console.error('Erreur chargement lot d\'aires de santé:', batchErr);
+          hasMore = false;
+        }
       }
 
-      console.log(`${successCount} aires de santé avec polygones valides`);
+      setAiresantesData(allAiresantes);
+      console.log(`${successCount} aires de santé avec polygones valides sur ${allAiresantes.length} au total`);
       setProgressMessage('');
     } catch (err) {
       console.error('Erreur chargement aires de santé:', err);

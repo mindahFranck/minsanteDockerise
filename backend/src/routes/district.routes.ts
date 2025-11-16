@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { DistrictController } from "../controllers/DistrictController";
+import { DistrictController } from "../controllers/districtController";
 import { authenticate, authorize } from "../middleware/auth";
 import { validate } from "../middleware/validate";
 
