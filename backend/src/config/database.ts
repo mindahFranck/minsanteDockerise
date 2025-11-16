@@ -18,13 +18,16 @@ const sequelize = new Sequelize({
   port: Number.parseInt(process.env.DB_PORT || "3306"),
   database: process.env.DB_NAME || "health_management",
   username: process.env.DB_USER || "root",
-  password: "itgrafik@Dev12",
+  password: process.env.DB_PASSWORD || "itgrafik@Dev12",
   dialect: "mysql",
   logging: process.env.NODE_ENV === "development" ? console.log : false,
+  dialectOptions: {
+    connectTimeout: 60000, // 60 secondes pour la connexion initiale
+  },
   pool: {
     max: 10,
     min: 0,
-    acquire: 30000,
+    acquire: 60000, // Augmenté à 60 secondes pour serveur distant
     idle: 10000,
   },
   define: {
