@@ -12,6 +12,36 @@ export class RegionService extends BaseService<Region> {
     })
   }
 
+  // Override getById pour inclure les données de la carte
+  async findById(id: number, options?: any) {
+    const defaultOptions = {
+      attributes: ["id", "nom", "code", "geom"],
+      include: [
+        {
+          association: "districts",
+          required: false,
+          attributes: ["id", "nom_ds", "code_ds", "geom"],
+          include: [
+            {
+              association: "airesantes",
+              required: false,
+              attributes: ["id", "nom_as", "code_as", "geom"],
+              include: [
+                {
+                  association: "fosas",
+                  required: false,
+                  attributes: ["id", "nom", "type", "latitude", "longitude", "estFerme"],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    return await super.findById(id, options || defaultOptions);
+  }
+
   // Méthodes spécifiques pour la carte (avec geom et jointures spatiales)
   async getAllForMap(limit?: number, offset?: number) {
     const options: any = {

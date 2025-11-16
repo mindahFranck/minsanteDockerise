@@ -31,6 +31,34 @@ export class DistrictService extends BaseService<District> {
     })
   }
 
+  // Override findById pour inclure les données de la carte avec jointures spatiales
+  async findById(id: number, options?: any) {
+    const defaultOptions = {
+      attributes: ['id', 'nom_ds', 'code_ds', 'region', 'geom', 'regionId'],
+      include: [
+        {
+          association: "region",
+          required: true,
+          attributes: ["id", "nom", "code", "geom"],
+        },
+        {
+          association: "airesantes",
+          required: false,
+          attributes: ["id", "nom_as", "code_as", "geom"],
+          include: [
+            {
+              association: "fosas",
+              required: false,
+              attributes: ["id", "nom", "type", "latitude", "longitude", "estFerme"],
+            },
+          ],
+        },
+      ],
+    };
+
+    return await super.findById(id, options || defaultOptions);
+  }
+
   async getByRegion(regionId: number) {
     return await this.findAll({
       where: { regionId },

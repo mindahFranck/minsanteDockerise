@@ -19,6 +19,41 @@ export class FosaService extends BaseService<Fosa> {
     })
   }
 
+  // Override findById pour inclure les données de la carte avec jointures spatiales
+  async findById(id: number, options?: any) {
+    const defaultOptions = {
+      attributes: ["id", "nom", "type", "latitude", "longitude", "estFerme", "situation", "capaciteLits", "airesanteId", "arrondissementId"],
+      include: [
+        {
+          association: "airesante",
+          required: true,
+          attributes: ["id", "nom_as", "code_as", "geom"],
+          include: [
+            {
+              association: "district",
+              required: true,
+              attributes: ["id", "nom_ds", "code_ds", "region", "geom"],
+              include: [
+                {
+                  association: "region",
+                  required: true,
+                  attributes: ["id", "nom", "code", "geom"],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          association: "arrondissement",
+          required: true,
+          attributes: ["id", "nom", "geom"],
+        },
+      ],
+    };
+
+    return await super.findById(id, options || defaultOptions);
+  }
+
   async getByType(type: string) {
     return await this.findAll({
       where: { type },

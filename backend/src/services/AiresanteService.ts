@@ -28,6 +28,34 @@ export class AiresanteService extends BaseService<Airesante> {
     });
   }
 
+  // Override findById pour inclure les données de la carte avec jointures spatiales
+  async findById(id: number, options?: any) {
+    const defaultOptions = {
+      attributes: ["id", "nom_as", "nom_dist", "code_as", "area", "geom", "districtId"],
+      include: [
+        {
+          association: "district",
+          required: true,
+          attributes: ["id", "nom_ds", "code_ds", "region", "geom"],
+          include: [
+            {
+              association: "region",
+              required: true,
+              attributes: ["id", "nom", "code", "geom"],
+            },
+          ],
+        },
+        {
+          association: "fosas",
+          required: false,
+          attributes: ["id", "nom", "type", "latitude", "longitude", "estFerme", "situation"],
+        },
+      ],
+    };
+
+    return await super.findById(id, options || defaultOptions);
+  }
+
   async getByArrondissement(arrondissementId: number) {
     return await this.findAll({
       where: { arrondissementId },
