@@ -142,6 +142,37 @@ export class FosaController extends BaseController<any> {
     })
   })
 
+  // Routes avec vraies jointures spatiales PostGIS
+  getFosasByRegionSpatial = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const regionId = Number.parseInt(req.params.regionId)
+    const fosas = await this.fosaService.getFosasByRegionSpatial(regionId)
+    res.json({
+      success: true,
+      data: fosas,
+      count: fosas.length
+    })
+  })
+
+  getFosasByDistrictSpatial = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const districtId = Number.parseInt(req.params.districtId)
+    const fosas = await this.fosaService.getFosasByDistrictSpatial(districtId)
+    res.json({
+      success: true,
+      data: fosas,
+      count: fosas.length
+    })
+  })
+
+  getFosasByAiresanteSpatial = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const airesanteId = Number.parseInt(req.params.airesanteId)
+    const fosas = await this.fosaService.getFosasByAiresanteSpatial(airesanteId)
+    res.json({
+      success: true,
+      data: fosas,
+      count: fosas.length
+    })
+  })
+
   static validation = [
     body("nom").notEmpty().withMessage("Name is required"),
     body("type").optional().isString(),

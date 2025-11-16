@@ -17,6 +17,11 @@ router.get("/map/all", controller.getAllForMap)
 router.get("/map/:id", controller.getByIdForMap)
 router.get("/map/airesante/:airesanteId", controller.getByAiresanteForMap)
 
+// Routes avec vraies jointures spatiales PostGIS (ST_Within, ST_DWithin, ST_AsGeoJSON)
+router.get("/spatial/region/:regionId", controller.getFosasByRegionSpatial)
+router.get("/spatial/district/:districtId", controller.getFosasByDistrictSpatial)
+router.get("/spatial/airesante/:airesanteId", controller.getFosasByAiresanteSpatial)
+
 router.get("/:id", controller.getById)
 
 router.post(

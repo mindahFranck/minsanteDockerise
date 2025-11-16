@@ -40,6 +40,16 @@ export class RegionController extends BaseController<any> {
     })
   })
 
+  // Route avec vraie jointure spatiale PostGIS
+  getByIdSpatial = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const id = Number.parseInt(req.params.id)
+    const region = await this.regionService.getByIdWithSpatialJoin(id)
+    res.json({
+      success: true,
+      data: region,
+    })
+  })
+
   static validation = [
     body("nom").notEmpty().withMessage("Name is required"),
     body("population").optional().isInt({ min: 0 }).withMessage("Population must be a positive integer"),
