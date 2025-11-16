@@ -78,25 +78,67 @@ interface Hospital {
 
 const MapController: React.FC<{
   selectedRegion: string;
+  selectedDepartement: string;
+  selectedArrondissement: string;
+  selectedDistrict: string;
+  selectedAiresante: string;
   regionsPolygons: { [key: string]: [number, number][] };
+  departementsPolygons: { [key: string]: [number, number][] };
+  districtsPolygons: { [key: string]: [number, number][] };
+  airesantesPolygons: { [key: string]: [number, number][] };
   hospitals: Hospital[];
-}> = ({ selectedRegion, regionsPolygons }) => {
+}> = ({
+  selectedRegion,
+  selectedDepartement,
+  selectedArrondissement,
+  selectedDistrict,
+  selectedAiresante,
+  regionsPolygons,
+  departementsPolygons,
+  districtsPolygons,
+  airesantesPolygons,
+}) => {
   const map = useMap();
-  const previousRegionRef = useRef<string>("all");
+  const previousSelectionRef = useRef<string>("all");
 
   useEffect(() => {
-    if (selectedRegion === "all") {
-      if (previousRegionRef.current !== "all") {
-        map.fitBounds(CAMEROON_BOUNDS, { padding: [20, 20] });
-        previousRegionRef.current = "all";
-      }
-    } else if (regionsPolygons[selectedRegion]) {
-      const regionPolygon = regionsPolygons[selectedRegion];
-      const bounds = L.latLngBounds(regionPolygon);
-      map.fitBounds(bounds, { padding: [30, 30] });
-      previousRegionRef.current = selectedRegion;
+    // Créer une clé unique pour la sélection actuelle
+    const currentSelection = `${selectedRegion}|${selectedDepartement}|${selectedArrondissement}|${selectedDistrict}|${selectedAiresante}`;
+
+    // Ne rien faire si la sélection n'a pas changé
+    if (currentSelection === previousSelectionRef.current) {
+      return;
     }
-  }, [selectedRegion, regionsPolygons, map]);
+
+    // Priorité: Aire de santé > District > Arrondissement > Département > Région
+    if (selectedAiresante !== 'all' && airesantesPolygons[selectedAiresante]) {
+      const polygon = airesantesPolygons[selectedAiresante];
+      const bounds = L.latLngBounds(polygon);
+      map.fitBounds(bounds, { padding: [50, 50] });
+      console.log('Zoom sur aire de santé:', selectedAiresante);
+    } else if (selectedDistrict !== 'all' && districtsPolygons[selectedDistrict]) {
+      const polygon = districtsPolygons[selectedDistrict];
+      const bounds = L.latLngBounds(polygon);
+      map.fitBounds(bounds, { padding: [40, 40] });
+      console.log('Zoom sur district:', selectedDistrict);
+    } else if (selectedDepartement !== 'all' && departementsPolygons[selectedDepartement]) {
+      const polygon = departementsPolygons[selectedDepartement];
+      const bounds = L.latLngBounds(polygon);
+      map.fitBounds(bounds, { padding: [35, 35] });
+      console.log('Zoom sur département:', selectedDepartement);
+    } else if (selectedRegion !== 'all' && regionsPolygons[selectedRegion]) {
+      const polygon = regionsPolygons[selectedRegion];
+      const bounds = L.latLngBounds(polygon);
+      map.fitBounds(bounds, { padding: [30, 30] });
+      console.log('Zoom sur région:', selectedRegion);
+    } else {
+      // Revenir à la vue du Cameroun
+      map.fitBounds(CAMEROON_BOUNDS, { padding: [20, 20] });
+      console.log('Zoom sur Cameroun (vue complète)');
+    }
+
+    previousSelectionRef.current = currentSelection;
+  }, [selectedRegion, selectedDepartement, selectedArrondissement, selectedDistrict, selectedAiresante, regionsPolygons, departementsPolygons, districtsPolygons, airesantesPolygons, map]);
 
   return null;
 };
@@ -332,9 +374,11 @@ const MapView: React.FC = () => {
       const response = await districtService.getAllForMap();
       const districts = response.data;
 
+      console.log('Districts reçus:', districts.length, 'districts');
       setDistrictsData(districts);
 
       const districtsMap: { [key: string]: [number, number][] } = {};
+      let successCount = 0;
 
       districts.forEach((district: any) => {
         if (district.geom) {
@@ -353,14 +397,18 @@ const MapView: React.FC = () => {
               const nom = district.nom_ds || district.nom;
               if (nom) {
                 districtsMap[nom] = transformed;
+                successCount++;
               }
             }
           } catch (parseErr) {
             console.warn(`Erreur parsing polygon pour district ${district.nom_ds || district.nom}:`, parseErr);
           }
+        } else {
+          console.warn(`District sans geom:`, district.nom_ds || district.nom);
         }
       });
 
+      console.log(`${successCount} districts avec polygones valides`);
       setDistrictsPolygons(districtsMap);
     } catch (err) {
       console.error('Erreur chargement districts:', err);
@@ -377,9 +425,11 @@ const MapView: React.FC = () => {
       const response = await airesanteService.getAllForMap();
       const airesantes = response.data;
 
+      console.log('Aires de santé reçues:', airesantes.length, 'aires');
       setAiresantesData(airesantes);
 
       const airesantesMap: { [key: string]: [number, number][] } = {};
+      let successCount = 0;
 
       airesantes.forEach((airesante: any) => {
         if (airesante.geom) {
@@ -398,14 +448,18 @@ const MapView: React.FC = () => {
               const nom = airesante.nom_aire || airesante.nom_as || airesante.nom;
               if (nom) {
                 airesantesMap[nom] = transformed;
+                successCount++;
               }
             }
           } catch (parseErr) {
             console.warn(`Erreur parsing polygon pour aire de santé ${airesante.nom_aire || airesante.nom_as || airesante.nom}:`, parseErr);
           }
+        } else {
+          console.warn(`Aire de santé sans geom:`, airesante.nom_as || airesante.nom);
         }
       });
 
+      console.log(`${successCount} aires de santé avec polygones valides`);
       setAiresantesPolygons(airesantesMap);
     } catch (err) {
       console.error('Erreur chargement aires de santé:', err);
@@ -898,7 +952,18 @@ const MapView: React.FC = () => {
             {/* Carte */}
             <div className="flex-1 relative">
               <MapContainer center={CAMEROON_CENTER} zoom={6} minZoom={6} maxBounds={CAMEROON_BOUNDS} style={{ height: "100%", width: "100%" }} className="rounded-2xl">
-                <MapController selectedRegion={selectedRegion} regionsPolygons={regionsPolygons} hospitals={hospitals} />
+                <MapController
+                  selectedRegion={selectedRegion}
+                  selectedDepartement={selectedDepartement}
+                  selectedArrondissement={selectedArrondissement}
+                  selectedDistrict={selectedDistrict}
+                  selectedAiresante={selectedAiresante}
+                  regionsPolygons={regionsPolygons}
+                  departementsPolygons={departementsPolygons}
+                  districtsPolygons={districtsPolygons}
+                  airesantesPolygons={airesantesPolygons}
+                  hospitals={hospitals}
+                />
                 <TileLayer url={mapStyles.find(s => s.id === mapStyle)?.url || mapStyles[0].url} />
 
                 {/* Polygone du Cameroun */}
