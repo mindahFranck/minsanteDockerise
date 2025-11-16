@@ -3,7 +3,7 @@ const API_URL =
 
 export const config = {
   apiUrl: API_URL,
-  timeout: 30000,
+  timeout: 60000, // 60 secondes pour les requêtes lourdes (districts, aires de santé avec geom)
 };
 
 export default config;

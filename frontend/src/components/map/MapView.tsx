@@ -186,6 +186,8 @@ const MapView: React.FC = () => {
     hospitalsData: false
   });
 
+  const [progressMessage, setProgressMessage] = useState<string>('');
+
   // États pour contrôler la visibilité des couches
   const [layersVisibility, setLayersVisibility] = useState({
     cameroon: true,
@@ -370,6 +372,8 @@ const MapView: React.FC = () => {
   const fetchDistrictsData = async () => {
     try {
       updateLoadingProgress('districtsData', true);
+      setProgressMessage('Chargement des districts...');
+
       // Use the map endpoint to get districts with geom
       const response = await districtService.getAllForMap();
       const districts = response.data;
@@ -379,40 +383,56 @@ const MapView: React.FC = () => {
 
       const districtsMap: { [key: string]: [number, number][] } = {};
       let successCount = 0;
+      const BATCH_SIZE = 20; // Traiter par lots de 20 pour éviter de bloquer l'UI
 
-      districts.forEach((district: any) => {
-        if (district.geom) {
-          try {
-            let geojson = district.geom;
-            if (typeof geojson === 'string') {
-              geojson = JSON.parse(geojson);
-            }
+      // Traitement progressif par lots
+      for (let i = 0; i < districts.length; i += BATCH_SIZE) {
+        const batch = districts.slice(i, i + BATCH_SIZE);
+        const progress = Math.min(i + BATCH_SIZE, districts.length);
 
-            if (geojson.coordinates && geojson.coordinates.length > 0) {
-              const coords = geojson.type === 'MultiPolygon'
-                ? geojson.coordinates[0][0]
-                : geojson.coordinates[0];
+        setProgressMessage(`Traitement des districts: ${progress}/${districts.length}`);
 
-              const transformed: [number, number][] = coords.map((coord: any) => [coord[1], coord[0]]);
-              const nom = district.nom_ds || district.nom;
-              if (nom) {
-                districtsMap[nom] = transformed;
-                successCount++;
+        batch.forEach((district: any) => {
+          if (district.geom) {
+            try {
+              let geojson = district.geom;
+              if (typeof geojson === 'string') {
+                geojson = JSON.parse(geojson);
               }
+
+              if (geojson.coordinates && geojson.coordinates.length > 0) {
+                const coords = geojson.type === 'MultiPolygon'
+                  ? geojson.coordinates[0][0]
+                  : geojson.coordinates[0];
+
+                const transformed: [number, number][] = coords.map((coord: any) => [coord[1], coord[0]]);
+                const nom = district.nom_ds || district.nom;
+                if (nom) {
+                  districtsMap[nom] = transformed;
+                  successCount++;
+                }
+              }
+            } catch (parseErr) {
+              console.warn(`Erreur parsing polygon pour district ${district.nom_ds || district.nom}:`, parseErr);
             }
-          } catch (parseErr) {
-            console.warn(`Erreur parsing polygon pour district ${district.nom_ds || district.nom}:`, parseErr);
+          } else {
+            console.warn(`District sans geom:`, district.nom_ds || district.nom);
           }
-        } else {
-          console.warn(`District sans geom:`, district.nom_ds || district.nom);
-        }
-      });
+        });
+
+        // Mettre à jour progressivement l'affichage
+        setDistrictsPolygons({...districtsMap});
+
+        // Pause pour laisser l'UI se rafraîchir
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
 
       console.log(`${successCount} districts avec polygones valides`);
-      setDistrictsPolygons(districtsMap);
+      setProgressMessage('');
     } catch (err) {
       console.error('Erreur chargement districts:', err);
       setDistrictsPolygons({});
+      setProgressMessage('Erreur lors du chargement des districts');
     } finally {
       updateLoadingProgress('districtsData', false);
     }
@@ -421,6 +441,8 @@ const MapView: React.FC = () => {
   const fetchAiresantesData = async () => {
     try {
       updateLoadingProgress('airesantesData', true);
+      setProgressMessage('Chargement des aires de santé...');
+
       // Use the map endpoint to get aires de santé with geom
       const response = await airesanteService.getAllForMap();
       const airesantes = response.data;
@@ -430,40 +452,56 @@ const MapView: React.FC = () => {
 
       const airesantesMap: { [key: string]: [number, number][] } = {};
       let successCount = 0;
+      const BATCH_SIZE = 30; // Lots de 30 pour les aires de santé
 
-      airesantes.forEach((airesante: any) => {
-        if (airesante.geom) {
-          try {
-            let geojson = airesante.geom;
-            if (typeof geojson === 'string') {
-              geojson = JSON.parse(geojson);
-            }
+      // Traitement progressif par lots
+      for (let i = 0; i < airesantes.length; i += BATCH_SIZE) {
+        const batch = airesantes.slice(i, i + BATCH_SIZE);
+        const progress = Math.min(i + BATCH_SIZE, airesantes.length);
 
-            if (geojson.coordinates && geojson.coordinates.length > 0) {
-              const coords = geojson.type === 'MultiPolygon'
-                ? geojson.coordinates[0][0]
-                : geojson.coordinates[0];
+        setProgressMessage(`Traitement des aires de santé: ${progress}/${airesantes.length}`);
 
-              const transformed: [number, number][] = coords.map((coord: any) => [coord[1], coord[0]]);
-              const nom = airesante.nom_aire || airesante.nom_as || airesante.nom;
-              if (nom) {
-                airesantesMap[nom] = transformed;
-                successCount++;
+        batch.forEach((airesante: any) => {
+          if (airesante.geom) {
+            try {
+              let geojson = airesante.geom;
+              if (typeof geojson === 'string') {
+                geojson = JSON.parse(geojson);
               }
+
+              if (geojson.coordinates && geojson.coordinates.length > 0) {
+                const coords = geojson.type === 'MultiPolygon'
+                  ? geojson.coordinates[0][0]
+                  : geojson.coordinates[0];
+
+                const transformed: [number, number][] = coords.map((coord: any) => [coord[1], coord[0]]);
+                const nom = airesante.nom_aire || airesante.nom_as || airesante.nom;
+                if (nom) {
+                  airesantesMap[nom] = transformed;
+                  successCount++;
+                }
+              }
+            } catch (parseErr) {
+              console.warn(`Erreur parsing polygon pour aire de santé ${airesante.nom_aire || airesante.nom_as || airesante.nom}:`, parseErr);
             }
-          } catch (parseErr) {
-            console.warn(`Erreur parsing polygon pour aire de santé ${airesante.nom_aire || airesante.nom_as || airesante.nom}:`, parseErr);
+          } else {
+            console.warn(`Aire de santé sans geom:`, airesante.nom_as || airesante.nom);
           }
-        } else {
-          console.warn(`Aire de santé sans geom:`, airesante.nom_as || airesante.nom);
-        }
-      });
+        });
+
+        // Mettre à jour progressivement l'affichage
+        setAiresantesPolygons({...airesantesMap});
+
+        // Pause pour laisser l'UI se rafraîchir
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
 
       console.log(`${successCount} aires de santé avec polygones valides`);
-      setAiresantesPolygons(airesantesMap);
+      setProgressMessage('');
     } catch (err) {
       console.error('Erreur chargement aires de santé:', err);
       setAiresantesPolygons({});
+      setProgressMessage('Erreur lors du chargement des aires de santé');
     } finally {
       updateLoadingProgress('airesantesData', false);
     }
@@ -706,12 +744,43 @@ const MapView: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 flex items-center justify-center">
         <div className="text-center bg-white p-8 rounded-2xl shadow-2xl border border-emerald-200 max-w-md w-full mx-4">
           <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-4 rounded-2xl inline-block mb-6 shadow-lg">
-            <Activity className="w-12 h-12 text-white" />
+            <Activity className="w-12 h-12 text-white animate-spin" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Chargement des données</h2>
           <p className="text-gray-600 mb-6">Récupération des informations...</p>
+          {progressMessage && (
+            <p className="text-sm text-emerald-600 font-semibold mb-4 animate-pulse">
+              {progressMessage}
+            </p>
+          )}
           <div className="w-full bg-gray-200 rounded-full h-3 mb-4 overflow-hidden">
             <div className="bg-gradient-to-r from-emerald-600 to-teal-600 h-3 rounded-full transition-all duration-500" style={{ width: `${(!loadingProgress.cameroonPolygon ? 14 : 0) + (!loadingProgress.regionsData ? 14 : 0) + (!loadingProgress.departementsData ? 14 : 0) + (!loadingProgress.communesData ? 14 : 0) + (!loadingProgress.districtsData ? 15 : 0) + (!loadingProgress.airesantesData ? 15 : 0) + (!loadingProgress.hospitalsData ? 14 : 0)}%` }}></div>
+          </div>
+          <div className="space-y-2 text-left">
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${loadingProgress.cameroonPolygon ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
+              <span className="text-xs text-gray-500">Cameroun</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${loadingProgress.regionsData ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
+              <span className="text-xs text-gray-500">Régions</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${loadingProgress.departementsData ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
+              <span className="text-xs text-gray-500">Départements</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${loadingProgress.districtsData ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
+              <span className="text-xs text-gray-500">Districts sanitaires</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${loadingProgress.airesantesData ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
+              <span className="text-xs text-gray-500">Aires de santé</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${loadingProgress.hospitalsData ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
+              <span className="text-xs text-gray-500">FOSA</span>
+            </div>
           </div>
         </div>
       </div>
