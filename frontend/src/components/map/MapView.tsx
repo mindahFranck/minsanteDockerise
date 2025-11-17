@@ -396,6 +396,10 @@ const MapView: React.FC = () => {
         const departement = arrond ? departements.find(d => d.id === arrond.departementId) : null;
         const region = departement ? regions.find(r => r.id === departement.regionId) : null;
 
+        // Trouver le district et l'aire de santé
+        const airesante = fosa.airesante || (fosa.airesanteId ? { id: fosa.airesanteId, nom_as: fosa.airesante?.nom_as || fosa.airesante?.nom } : null);
+        const district = airesante?.district || null;
+
         // Utiliser les coordonnées du FOSA directement si disponibles
         // Convertir les strings en nombres car l'API retourne des strings
         const fosaLat = fosa.latitude !== undefined && fosa.latitude !== null ? parseFloat(fosa.latitude) : null;
@@ -410,6 +414,9 @@ const MapView: React.FC = () => {
         return {
           id: fosa.id.toString(),
           name: fosa.nom,
+          // Ajouter des champs pour le filtrage
+          _district: district?.nom_ds || district?.nom || null,
+          _airesante: airesante?.nom_as || airesante?.nom || null,
           type: fosa.type?.toLowerCase().includes('public') ? 'public' :
             fosa.type?.toLowerCase().includes('privé') ? 'private' :
               fosa.type?.toLowerCase().includes('confessionnel') ? 'confessional' : 'public',
@@ -665,18 +672,37 @@ const MapView: React.FC = () => {
   useEffect(() => {
     if (hospitals.length === 0) return;
     let filtered = hospitals;
+
+    // Filtrer par type, statut et catégorie
     if (selectedType !== 'all') filtered = filtered.filter(h => h.type === selectedType);
     if (selectedStatus !== 'all') filtered = filtered.filter(h => h.status === selectedStatus);
     if (selectedCategory !== 'all') filtered = filtered.filter(h => h.category === selectedCategory);
-    if (selectedRegion !== 'all') filtered = filtered.filter(h => h.region === selectedRegion);
+
+    // Filtrer par région
+    if (selectedRegion !== 'all') {
+      filtered = filtered.filter(h => h.region === selectedRegion);
+    }
+
+    // Filtrer par district si sélectionné
+    if (selectedDistrict !== 'all') {
+      filtered = filtered.filter((h: any) => h._district === selectedDistrict);
+    }
+
+    // Filtrer par aire de santé si sélectionnée
+    if (selectedAiresante !== 'all') {
+      filtered = filtered.filter((h: any) => h._airesante === selectedAiresante);
+    }
+
+    // Recherche textuelle
     if (searchTerm) filtered = filtered.filter(h =>
       h.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       h.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
       h.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
       h.region.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
     setFilteredHospitals(filtered);
-  }, [selectedType, selectedStatus, selectedCategory, selectedRegion, searchTerm, hospitals]);
+  }, [selectedType, selectedStatus, selectedCategory, selectedRegion, selectedDistrict, selectedAiresante, searchTerm, hospitals]);
 
   const toggleSection = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();

@@ -151,7 +151,7 @@ export class AiresanteService extends BaseService<Airesante> {
         f.est_ferme,
         f.situation
       FROM airesantes a
-      INNER JOIN districts d ON ST_Contains(d.geom, a.geom) AND d.id = :districtId
+      INNER JOIN districts d ON a.district_id = d.id AND d.id = :districtId
       LEFT JOIN fosas f ON f.airesante_id = a.id
       ORDER BY a.id, f.id
     `;
