@@ -397,8 +397,12 @@ const MapView: React.FC = () => {
         const region = departement ? regions.find(r => r.id === departement.regionId) : null;
 
         // Utiliser les coordonnées du FOSA directement si disponibles
-        const coordinates: [number, number] = (fosa.latitude !== undefined && fosa.latitude !== null && fosa.longitude !== undefined && fosa.longitude !== null)
-          ? [fosa.latitude, fosa.longitude]
+        // Convertir les strings en nombres car l'API retourne des strings
+        const fosaLat = fosa.latitude !== undefined && fosa.latitude !== null ? parseFloat(fosa.latitude) : null;
+        const fosaLng = fosa.longitude !== undefined && fosa.longitude !== null ? parseFloat(fosa.longitude) : null;
+
+        const coordinates: [number, number] = (fosaLat !== null && fosaLng !== null && !isNaN(fosaLat) && !isNaN(fosaLng))
+          ? [fosaLat, fosaLng]
           : (arrond && arrond.latitude && arrond.longitude)
             ? [arrond.latitude, arrond.longitude]
             : [3.8667, 11.5167]; // Coordonnées par défaut (Yaoundé)
