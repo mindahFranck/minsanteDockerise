@@ -68,12 +68,10 @@ export class DistrictService extends BaseService<District> {
         f.est_ferme,
         f.situation
       FROM districts d
-      INNER JOIN regions r ON ST_Within(d.geom, r.geom) OR d.region_id = r.id
-      LEFT JOIN airesantes a ON ST_Within(a.geom, d.geom) OR a.district_id = d.id
-      LEFT JOIN fosas f ON ST_DWithin(
-        ST_SetSRID(ST_MakePoint(f.longitude, f.latitude), 4326),
-        a.geom,
-        0.1
+      INNER JOIN regions r ON ST_Contains(r.geom, d.geom) OR d.region_id = r.id
+      LEFT JOIN airesantes a ON ST_Contains(d.geom, a.geom) OR a.district_id = d.id
+      LEFT JOIN fosas f ON (
+        ST_Distance(POINT(f.longitude, f.latitude), a.geom) <= 0.1
       ) OR f.airesante_id = a.id
       ORDER BY d.id, a.id, f.id
       ${limitClause} ${offsetClause}
@@ -109,12 +107,10 @@ export class DistrictService extends BaseService<District> {
         f.est_ferme,
         f.situation
       FROM districts d
-      INNER JOIN regions r ON ST_Within(d.geom, r.geom) OR d.region_id = r.id
-      LEFT JOIN airesantes a ON ST_Within(a.geom, d.geom) OR a.district_id = d.id
-      LEFT JOIN fosas f ON ST_DWithin(
-        ST_SetSRID(ST_MakePoint(f.longitude, f.latitude), 4326),
-        a.geom,
-        0.1
+      INNER JOIN regions r ON ST_Contains(r.geom, d.geom) OR d.region_id = r.id
+      LEFT JOIN airesantes a ON ST_Contains(d.geom, a.geom) OR a.district_id = d.id
+      LEFT JOIN fosas f ON (
+        ST_Distance(POINT(f.longitude, f.latitude), a.geom) <= 0.1
       ) OR f.airesante_id = a.id
       WHERE d.id = :districtId
       ORDER BY a.id, f.id
@@ -151,13 +147,9 @@ export class DistrictService extends BaseService<District> {
         f.est_ferme,
         f.situation
       FROM districts d
-      INNER JOIN regions r ON ST_Within(d.geom, r.geom) AND r.id = :regionId
-      LEFT JOIN airesantes a ON ST_Within(a.geom, d.geom) OR a.district_id = d.id
-      LEFT JOIN fosas f ON ST_DWithin(
-        ST_SetSRID(ST_MakePoint(f.longitude, f.latitude), 4326),
-        a.geom,
-        0.1
-      ) OR f.airesante_id = a.id
+      INNER JOIN regions r ON ST_Contains(r.geom, d.geom) AND r.id = :regionId
+      LEFT JOIN airesantes a ON ST_Contains(d.geom, a.geom) OR a.district_id = d.id
+      LEFT JOIN fosas f ON ST_Contains(a.geom, POINT(f.longitude, f.latitude)) OR f.airesante_id = a.id
       ORDER BY d.id, a.id, f.id
     `;
 
