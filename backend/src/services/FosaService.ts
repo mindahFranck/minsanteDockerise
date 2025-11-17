@@ -64,7 +64,7 @@ export class FosaService extends BaseService<Fosa> {
         arr.nom as arrondissement_nom,
         ST_AsGeoJSON(arr.geom) as arrondissement_geojson
       FROM fosas f
-      INNER JOIN airesantes a ON ST_Contains(a.geom, POINT(f.longitude, f.latitude)) OR f.airesante_id = a.id
+      INNER JOIN airesantes a ON f.airesante_id = a.id
       INNER JOIN districts d ON ST_Contains(d.geom, a.geom) OR a.district_id = d.id
       LEFT JOIN regions r ON ST_Contains(r.geom, d.geom) OR d.region_id = r.id
       LEFT JOIN arrondissements arr ON f.arrondissement_id = arr.id
@@ -106,7 +106,7 @@ export class FosaService extends BaseService<Fosa> {
         arr.nom as arrondissement_nom,
         ST_AsGeoJSON(arr.geom) as arrondissement_geojson
       FROM fosas f
-      INNER JOIN airesantes a ON ST_Contains(a.geom, POINT(f.longitude, f.latitude)) OR f.airesante_id = a.id
+      INNER JOIN airesantes a ON f.airesante_id = a.id
       INNER JOIN districts d ON ST_Contains(d.geom, a.geom) OR a.district_id = d.id
       LEFT JOIN regions r ON ST_Contains(r.geom, d.geom) OR d.region_id = r.id
       LEFT JOIN arrondissements arr ON f.arrondissement_id = arr.id
@@ -141,7 +141,7 @@ export class FosaService extends BaseService<Fosa> {
         arr.nom as arrondissement_nom,
         ST_AsGeoJSON(arr.geom) as arrondissement_geojson
       FROM fosas f
-      INNER JOIN airesantes a ON ST_Contains(a.geom, POINT(f.longitude, f.latitude)) AND a.id = :airesanteId
+      INNER JOIN airesantes a ON f.airesante_id = a.id AND a.id = :airesanteId
       LEFT JOIN arrondissements arr ON f.arrondissement_id = arr.id
       ORDER BY f.nom
     `;
@@ -348,7 +348,7 @@ export class FosaService extends BaseService<Fosa> {
         a.nom_as as airesante_nom,
         ST_AsGeoJSON(a.geom) as airesante_geojson
       FROM fosas f
-      INNER JOIN airesantes a ON ST_Contains(a.geom, POINT(f.longitude, f.latitude)) AND a.id = :airesanteId
+      INNER JOIN airesantes a ON f.airesante_id = a.id AND a.id = :airesanteId
       ORDER BY f.nom
     `;
 

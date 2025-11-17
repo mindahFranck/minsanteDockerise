@@ -42,9 +42,7 @@ export class RegionService extends BaseService<Region> {
       FROM regions r
       LEFT JOIN districts d ON ST_Contains(r.geom, d.geom) OR d.region_id = r.id
       LEFT JOIN airesantes a ON ST_Contains(d.geom, a.geom) OR a.district_id = d.id
-      LEFT JOIN fosas f ON (
-        ST_Distance(POINT(f.longitude, f.latitude), a.geom) <= 0.1
-      ) OR f.airesante_id = a.id
+      LEFT JOIN fosas f ON f.airesante_id = a.id
       ORDER BY r.id, d.id, a.id, f.id
       ${limitClause} ${offsetClause}
     `;
@@ -84,9 +82,7 @@ export class RegionService extends BaseService<Region> {
       FROM regions r
       LEFT JOIN districts d ON ST_Contains(r.geom, d.geom) OR d.region_id = r.id
       LEFT JOIN airesantes a ON ST_Contains(d.geom, a.geom) OR a.district_id = d.id
-      LEFT JOIN fosas f ON (
-        ST_Distance(POINT(f.longitude, f.latitude), a.geom) <= 0.1
-      ) OR f.airesante_id = a.id
+      LEFT JOIN fosas f ON f.airesante_id = a.id
       WHERE r.id = :regionId
       ORDER BY d.id, a.id, f.id
     `;

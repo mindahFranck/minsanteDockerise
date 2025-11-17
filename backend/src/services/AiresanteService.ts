@@ -77,9 +77,7 @@ export class AiresanteService extends BaseService<Airesante> {
       FROM airesantes a
       INNER JOIN districts d ON ST_Contains(d.geom, a.geom) OR a.district_id = d.id
       LEFT JOIN regions r ON ST_Contains(r.geom, d.geom) OR d.region_id = r.id
-      LEFT JOIN fosas f ON (
-        ST_Distance(POINT(f.longitude, f.latitude), a.geom) <= 0.1
-      ) OR f.airesante_id = a.id
+      LEFT JOIN fosas f ON f.airesante_id = a.id
       ORDER BY a.id, f.id
       ${limitClause} ${offsetClause}
     `;
@@ -118,9 +116,7 @@ export class AiresanteService extends BaseService<Airesante> {
       FROM airesantes a
       INNER JOIN districts d ON ST_Contains(d.geom, a.geom) OR a.district_id = d.id
       LEFT JOIN regions r ON ST_Contains(r.geom, d.geom) OR d.region_id = r.id
-      LEFT JOIN fosas f ON (
-        ST_Distance(POINT(f.longitude, f.latitude), a.geom) <= 0.1
-      ) OR f.airesante_id = a.id
+      LEFT JOIN fosas f ON f.airesante_id = a.id
       WHERE a.id = :airesanteId
       ORDER BY f.id
     `;
@@ -156,7 +152,7 @@ export class AiresanteService extends BaseService<Airesante> {
         f.situation
       FROM airesantes a
       INNER JOIN districts d ON ST_Contains(d.geom, a.geom) AND d.id = :districtId
-      LEFT JOIN fosas f ON ST_Contains(a.geom, POINT(f.longitude, f.latitude)) OR f.airesante_id = a.id
+      LEFT JOIN fosas f ON f.airesante_id = a.id
       ORDER BY a.id, f.id
     `;
 
