@@ -66,7 +66,6 @@ export class AiresanteService extends BaseService<Airesante> {
         ST_AsGeoJSON(d.geom) as district_geojson,
         r.id as region_id,
         r.nom as region_nom,
-        r.code as region_code,
         ST_AsGeoJSON(r.geom) as region_geojson,
         f.id as fosa_id,
         f.nom as fosa_nom,
@@ -110,7 +109,6 @@ export class AiresanteService extends BaseService<Airesante> {
         ST_AsGeoJSON(d.geom) as district_geojson,
         r.id as region_id,
         r.nom as region_nom,
-        r.code as region_code,
         ST_AsGeoJSON(r.geom) as region_geojson,
         f.id as fosa_id,
         f.nom as fosa_nom,
@@ -203,7 +201,6 @@ export class AiresanteService extends BaseService<Airesante> {
       airesante.district.regionData = {
         id: results[0].region_id,
         nom: results[0].region_nom,
-        code: results[0].region_code,
         geojson: results[0].region_geojson ? JSON.parse(results[0].region_geojson) : null,
       };
     }
@@ -252,7 +249,6 @@ export class AiresanteService extends BaseService<Airesante> {
             regionData: row.region_id ? {
               id: row.region_id,
               nom: row.region_nom,
-              code: row.region_code,
               geojson: row.region_geojson ? JSON.parse(row.region_geojson) : null,
             } : null,
           } : null,

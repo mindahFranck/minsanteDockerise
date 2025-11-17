@@ -59,7 +59,6 @@ export class FosaService extends BaseService<Fosa> {
         ST_AsGeoJSON(d.geom) as district_geojson,
         r.id as region_id,
         r.nom as region_nom,
-        r.code as region_code,
         ST_AsGeoJSON(r.geom) as region_geojson,
         arr.id as arrondissement_id,
         arr.nom as arrondissement_nom,
@@ -106,7 +105,6 @@ export class FosaService extends BaseService<Fosa> {
         ST_AsGeoJSON(d.geom) as district_geojson,
         r.id as region_id,
         r.nom as region_nom,
-        r.code as region_code,
         ST_AsGeoJSON(r.geom) as region_geojson,
         arr.id as arrondissement_id,
         arr.nom as arrondissement_nom,
@@ -214,7 +212,6 @@ export class FosaService extends BaseService<Fosa> {
       region: row.region_id ? {
         id: row.region_id,
         nom: row.region_nom,
-        code: row.region_code,
         geojson: row.region_geojson ? JSON.parse(row.region_geojson) : null,
       } : null,
       arrondissement: row.arrondissement_id ? {
@@ -247,7 +244,6 @@ export class FosaService extends BaseService<Fosa> {
         ST_AsGeoJSON(d.geom) as district_geojson,
         r.id as region_id,
         r.nom as region_nom,
-        r.code as region_code,
         ST_AsGeoJSON(r.geom) as region_geojson,
         arr.id as arrondissement_id,
         arr.nom as arrondissement_nom,
@@ -289,7 +285,6 @@ export class FosaService extends BaseService<Fosa> {
       region: {
         id: row.region_id,
         nom: row.region_nom,
-        code: row.region_code,
         geojson: row.region_geojson ? JSON.parse(row.region_geojson) : null,
       },
       arrondissement: row.arrondissement_id ? {

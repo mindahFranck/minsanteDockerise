@@ -23,7 +23,6 @@ export class RegionService extends BaseService<Region> {
       SELECT
         r.id as region_id,
         r.nom as region_nom,
-        r.code as region_code,
         ST_AsGeoJSON(r.geom) as region_geojson,
         d.id as district_id,
         d.nom_ds as district_nom,
@@ -68,7 +67,6 @@ export class RegionService extends BaseService<Region> {
       SELECT
         r.id as region_id,
         r.nom as region_nom,
-        r.code as region_code,
         ST_AsGeoJSON(r.geom) as region_geojson,
         d.id as district_id,
         d.nom_ds as district_nom,
@@ -111,7 +109,6 @@ export class RegionService extends BaseService<Region> {
     const region: any = {
       id: results[0].region_id,
       nom: results[0].region_nom,
-      code: results[0].region_code,
       geojson: results[0].region_geojson ? JSON.parse(results[0].region_geojson) : null,
       districts: [],
     };
@@ -183,7 +180,6 @@ export class RegionService extends BaseService<Region> {
         regionsMap.set(row.region_id, {
           id: row.region_id,
           nom: row.region_nom,
-          code: row.region_code,
           geojson: row.region_geojson ? JSON.parse(row.region_geojson) : null,
           districts: [],
         });
