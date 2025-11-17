@@ -25,4 +25,15 @@ export const regionService = {
   delete: async (id: number) => {
     await api.delete(`/regions/${id}`)
   },
+
+  // Map methods with spatial data
+  getAllForMap: async (params?: { limit?: number; offset?: number }) => {
+    const response = await api.get<Region[]>("/regions/map/all", { params })
+    return response.data
+  },
+
+  getByIdForMap: async (id: number) => {
+    const response = await api.get<Region>(`/regions/map/${id}`)
+    return response.data
+  },
 }

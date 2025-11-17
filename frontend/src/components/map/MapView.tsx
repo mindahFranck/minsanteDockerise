@@ -390,16 +390,18 @@ const MapView: React.FC = () => {
       // Stocker les arrondissements
       setArrondissementsData(arrondissements);
 
-      const transformed: Hospital[] = fosas.map((fosa) => {
+      const transformed: Hospital[] = fosas.map((fosa: any) => {
         // Trouver l'arrondissement, le département et la région
         const arrond = arrondissements.find(a => a.id === fosa.arrondissementId);
         const departement = arrond ? departements.find(d => d.id === arrond.departementId) : null;
         const region = departement ? regions.find(r => r.id === departement.regionId) : null;
 
-        // Utiliser les coordonnées de l'arrondissement si disponibles
-        const coordinates: [number, number] = arrond && arrond.latitude && arrond.longitude
-          ? [arrond.latitude, arrond.longitude]
-          : [3.8667, 11.5167]; // Coordonnées par défaut (Yaoundé)
+        // Utiliser les coordonnées du FOSA directement si disponibles
+        const coordinates: [number, number] = (fosa.latitude !== undefined && fosa.latitude !== null && fosa.longitude !== undefined && fosa.longitude !== null)
+          ? [fosa.latitude, fosa.longitude]
+          : (arrond && arrond.latitude && arrond.longitude)
+            ? [arrond.latitude, arrond.longitude]
+            : [3.8667, 11.5167]; // Coordonnées par défaut (Yaoundé)
 
         return {
           id: fosa.id.toString(),
@@ -542,9 +544,11 @@ const MapView: React.FC = () => {
         let successCount = 0;
 
         districts.forEach((district: any) => {
-          if (district.geom) {
+          // Utiliser 'geojson' au lieu de 'geom' pour les données de l'API map
+          const geomData = district.geojson || district.geom;
+          if (geomData) {
             try {
-              let geojson = district.geom;
+              let geojson = geomData;
               if (typeof geojson === 'string') {
                 geojson = JSON.parse(geojson);
               }
@@ -555,7 +559,7 @@ const MapView: React.FC = () => {
                   : geojson.coordinates[0];
 
                 const transformed: [number, number][] = coords.map((coord: any) => [coord[1], coord[0]]);
-                const nom = district.nom_ds || district.nom;
+                const nom = district.nom || district.nom_ds;
                 if (nom) {
                   districtsMap[nom] = transformed;
                   successCount++;
@@ -613,9 +617,11 @@ const MapView: React.FC = () => {
         let successCount = 0;
 
         airesantes.forEach((airesante: any) => {
-          if (airesante.geom) {
+          // Utiliser 'geojson' au lieu de 'geom' pour les données de l'API map
+          const geomData = airesante.geojson || airesante.geom;
+          if (geomData) {
             try {
-              let geojson = airesante.geom;
+              let geojson = geomData;
               if (typeof geojson === 'string') {
                 geojson = JSON.parse(geojson);
               }
@@ -626,7 +632,7 @@ const MapView: React.FC = () => {
                   : geojson.coordinates[0];
 
                 const transformed: [number, number][] = coords.map((coord: any) => [coord[1], coord[0]]);
-                const nom = airesante.nom_aire || airesante.nom_as || airesante.nom;
+                const nom = airesante.nom || airesante.nom_as || airesante.nom_aire;
                 if (nom) {
                   airesantesMap[nom] = transformed;
                   successCount++;
@@ -724,8 +730,12 @@ const MapView: React.FC = () => {
   // Filtrer les aires de santé selon le district sélectionné
   const availableAiresantes = selectedDistrict === 'all'
     ? airesantesData
-    : airesantesData.filter(a => a.nom_dist === selectedDistrict);
-  const airesantes = Array.from(new Set(availableAiresantes.map(a => a.nom_as || a.nom))).filter(a => a).sort();
+    : airesantesData.filter(a => {
+      // Les aires de santé chargées via getByDistrictForMap sont déjà filtrées
+      // donc si on a un district sélectionné, toutes les aires dans airesantesData sont bonnes
+      return true;
+    });
+  const airesantes = Array.from(new Set(availableAiresantes.map(a => a.nom || a.nom_as))).filter(a => a).sort();
 
   const CollapsibleSection = ({ id, title, icon: Icon, children, defaultExpanded = false }: any) => {
     const isExpanded = expandedSections[id] ?? defaultExpanded;
