@@ -48,6 +48,14 @@ export class FosaService extends BaseService<Fosa> {
         f.est_ferme,
         f.situation,
         f.capacite_lits,
+        f.image,
+        f.a_titre_foncier,
+        f.a_cloture,
+        f.org_unit,
+        f.fonction,
+        f.statut_rec,
+        f.cat_rec,
+        f.nom_direct,
         a.id as airesante_id,
         a.nom_as as airesante_nom,
         a.code_as as airesante_code,
@@ -76,7 +84,7 @@ export class FosaService extends BaseService<Fosa> {
       type: QueryTypes.SELECT,
     });
 
-    return results.map((row: any) => this.formatFosaResult(row));
+    return Promise.all(results.map((row: any) => this.formatFosaResult(row)));
   }
 
   async getByIdForMap(id: number) {
@@ -174,7 +182,10 @@ export class FosaService extends BaseService<Fosa> {
     }));
   }
 
-  private formatFosaResult(row: any) {
+  private async formatFosaResult(row: any) {
+    // Récupérer les relations pour cette FOSA
+    const fosaWithRelations: any = await this.getWithRelations(row.id);
+
     return {
       id: row.id,
       nom: row.nom,
@@ -184,15 +195,33 @@ export class FosaService extends BaseService<Fosa> {
       estFerme: row.est_ferme,
       situation: row.situation,
       capaciteLits: row.capacite_lits,
+
+      // Nouveaux champs
+      image: row.image,
+      aTitreFoncier: row.a_titre_foncier,
+      aCloture: row.a_cloture,
+      orgUnit: row.org_unit,
+      fonction: row.fonction,
+      statutRec: row.statut_rec,
+      catRec: row.cat_rec,
+      nomDirect: row.nom_direct,
+
+      // Relations includes
+      batiments: fosaWithRelations?.batiments || [],
+      materielroulants: fosaWithRelations?.materielroulants || [],
+      personnels: fosaWithRelations?.personnels || [],
+
       airesante: {
         id: row.airesante_id,
         nom: row.airesante_nom,
+        nom_as: row.airesante_nom,
         code: row.airesante_code,
         geojson: row.airesante_geojson ? JSON.parse(row.airesante_geojson) : null,
       },
       district: row.district_id ? {
         id: row.district_id,
         nom: row.district_nom,
+        nom_ds: row.district_nom,
         code: row.district_code,
         region: row.district_region,
         geojson: row.district_geojson ? JSON.parse(row.district_geojson) : null,
