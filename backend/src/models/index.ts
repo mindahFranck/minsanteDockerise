@@ -112,6 +112,7 @@ export const setupAssociations = () => {
 
   // Materielroulant associations
   Materielroulant.belongsTo(Fosa, { foreignKey: "fosaId", as: "fosa" });
+  Materielroulant.belongsTo(Service, { foreignKey: "serviceId", as: "service" });
 
   // Parametre associations
   Parametre.belongsTo(Fosa, { foreignKey: "fosaId", as: "fosa" });

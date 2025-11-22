@@ -444,12 +444,12 @@ export default function MaterielroulantsPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">FOSA</label>
             <select
-              value={formData.fosaId}
-              onChange={(e) => setFormData({ ...formData, fosaId: Number.parseInt(e.target.value) })}
+              value={formData.fosaId || ""}
+              onChange={(e) => setFormData({ ...formData, fosaId: Number.parseInt(e.target.value) || 0 })}
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Sélectionner...</option>
+              <option value="">Sélectionner une FOSA...</option>
               {fosas.map((f) => (
                 <option key={f.id} value={f.id}>
                   {f.nom}
