@@ -1,4 +1,5 @@
 import sequelize from "../config/database"
+import { QueryTypes } from "sequelize"
 import { Fosa } from "../models/Fosa"
 import { Personnel } from "../models/Personnel"
 import { Equipement } from "../models/Equipement"
@@ -221,6 +222,91 @@ export class StatisticsService {
     return {
       totalAmbulants: (latestParametres[0] as any)?.totalAmbulants || 0,
       totalPatients: (latestParametres[0] as any)?.totalPatients || 0,
+    }
+  }
+
+  async getComparativeStatistics() {
+    // FOSA par catégorie avec TF/Clôture
+    const fosasByCategoryQuery = await sequelize.query(`
+      SELECT
+        COALESCE(cat_rec, 'Non spécifié') as category,
+        COUNT(*) as total,
+        SUM(CASE WHEN a_titre_foncier = 1 THEN 1 ELSE 0 END) as withTF,
+        SUM(CASE WHEN a_cloture = 1 THEN 1 ELSE 0 END) as withCloture,
+        SUM(CASE WHEN fonction = 1 THEN 1 ELSE 0 END) as operational
+      FROM fosas
+      GROUP BY cat_rec
+      ORDER BY total DESC
+    `, { type: QueryTypes.SELECT })
+
+    // FOSA par statut
+    const fosasByStatusQuery = await sequelize.query(`
+      SELECT
+        COALESCE(statut_rec, 'Non spécifié') as status,
+        COUNT(*) as total,
+        SUM(CASE WHEN a_titre_foncier = 1 THEN 1 ELSE 0 END) as withTF,
+        SUM(CASE WHEN a_cloture = 1 THEN 1 ELSE 0 END) as withCloture
+      FROM fosas
+      GROUP BY statut_rec
+      ORDER BY total DESC
+    `, { type: QueryTypes.SELECT })
+
+    // Bâtiments par FOSA (top 10)
+    const buildingsByFosa = await sequelize.query(`
+      SELECT
+        f.nom as fosaName,
+        f.cat_rec as category,
+        COUNT(b.id) as buildingCount
+      FROM fosas f
+      LEFT JOIN batiments b ON f.id = b.fosa_id
+      GROUP BY f.id, f.nom, f.cat_rec
+      HAVING buildingCount > 0
+      ORDER BY buildingCount DESC
+      LIMIT 10
+    `, { type: QueryTypes.SELECT })
+
+    // Véhicules par type et énergie
+    const vehiclesByTypeEnergy = await sequelize.query(`
+      SELECT
+        COALESCE(type_vehicule, type, 'Non spécifié') as vehicleType,
+        COALESCE(energie, 'Non spécifié') as energy,
+        COUNT(*) as count,
+        SUM(quantite) as totalQuantity
+      FROM materielroulants
+      GROUP BY vehicleType, energie
+      ORDER BY count DESC
+    `, { type: QueryTypes.SELECT })
+
+    // Personnel par catégorie et FOSA
+    const personnelDistribution = await sequelize.query(`
+      SELECT
+        c.nom as category,
+        COUNT(p.id) as count,
+        COUNT(DISTINCT p.fosa_id) as fosasCount
+      FROM personnels p
+      LEFT JOIN categories c ON p.categorie_id = c.id
+      GROUP BY c.nom
+      ORDER BY count DESC
+    `, { type: QueryTypes.SELECT })
+
+    // FOSA avec sécurité (TF et Clôture)
+    const securityStats = await sequelize.query(`
+      SELECT
+        SUM(CASE WHEN a_titre_foncier = 1 AND a_cloture = 1 THEN 1 ELSE 0 END) as both,
+        SUM(CASE WHEN a_titre_foncier = 1 AND a_cloture = 0 THEN 1 ELSE 0 END) as tfOnly,
+        SUM(CASE WHEN a_titre_foncier = 0 AND a_cloture = 1 THEN 1 ELSE 0 END) as clotureOnly,
+        SUM(CASE WHEN a_titre_foncier = 0 AND a_cloture = 0 THEN 1 ELSE 0 END) as neither,
+        COUNT(*) as total
+      FROM fosas
+    `, { type: QueryTypes.SELECT })
+
+    return {
+      fosasByCategory: fosasByCategoryQuery,
+      fosasByStatus: fosasByStatusQuery,
+      buildingsByFosa,
+      vehiclesByTypeEnergy,
+      personnelDistribution,
+      securityStats: (securityStats[0] as any) || {},
     }
   }
 }

@@ -12,5 +12,6 @@ router.get("/equipment", authenticate, controller.getEquipmentStats)
 router.get("/geographic", authenticate, controller.getGeographicStats)
 router.get("/buildings", authenticate, controller.getBuildingStats)
 router.get("/patients", authenticate, controller.getPatientStats)
+router.get("/comparative", authenticate, controller.getComparativeStats)
 
 export default router

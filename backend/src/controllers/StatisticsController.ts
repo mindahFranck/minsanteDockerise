@@ -149,4 +149,24 @@ export class StatisticsController {
       data: stats,
     })
   })
+
+  /**
+   * @swagger
+   * /statistics/comparative:
+   *   get:
+   *     summary: Get comparative statistics (FOSA by category, status, security, etc.)
+   *     tags: [Statistics]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: Comparative statistics retrieved successfully
+   */
+  getComparativeStats = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const stats = await this.statisticsService.getComparativeStatistics()
+    res.json({
+      success: true,
+      data: stats,
+    })
+  })
 }
