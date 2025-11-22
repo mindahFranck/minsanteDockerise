@@ -13,6 +13,9 @@ import {
   Activity,
   ChevronDown,
   ChevronUp,
+  Shield,
+  Users,
+  Building,
 } from "lucide-react";
 import axios from "axios";
 import "leaflet/dist/leaflet.css";
@@ -428,16 +431,26 @@ const MapView: React.FC = () => {
           address: arrond?.nom || 'Non spécifié',
           city: arrond?.nom || 'Non spécifié',
           region: region?.nom || 'Non spécifié',
-          budget: {
-            annual: Math.floor(Math.random() * 50000000) + 10000000,
-            personnel: Math.floor(Math.random() * 30000000) + 6000000,
-            equipment: Math.floor(Math.random() * 15000000) + 2500000,
-            maintenance: Math.floor(Math.random() * 8000000) + 1500000,
-          },
+
+          // Nouveaux champs pour popup
+          image: fosa.image || null,
+          aTitreFoncier: fosa.aTitreFoncier || false,
+          aCloture: fosa.aCloture || false,
+
+          // Counts (via includes dans l'API)
+          batimentsCount: fosa.batiments?.length || 0,
+          vehiculesCount: fosa.materielroulants?.length || 0,
+          ambulancesCount: fosa.materielroulants?.filter((v: any) => v.type?.toLowerCase().includes('ambulance')).length || 0,
+          personnelByCategory: fosa.personnels ?
+            Object.values(fosa.personnels.reduce((acc: any, p: any) => {
+              const cat = p.categorie || 'Autre';
+              if (!acc[cat]) acc[cat] = { category: cat, count: 0 };
+              acc[cat].count++;
+              return acc;
+            }, {})) : [],
+
           capacity: {
-            beds: fosa.capaciteLits || Math.floor(Math.random() * 200) + 50,
-            staff: Math.floor(Math.random() * 100) + 20,
-            doctors: Math.floor(Math.random() * 30) + 10,
+            beds: fosa.capaciteLits || 0,
           },
           services: ['Urgences', 'Consultation', 'Chirurgie', 'Pédiatrie', 'Maternité', 'Radiologie', 'Laboratoire', 'Pharmacie'].slice(0, Math.floor(Math.random() * 4) + 3),
           equipment: [
@@ -991,44 +1004,82 @@ const MapView: React.FC = () => {
                 </div>
 
                 <div className="p-4 space-y-3">
-                  <CollapsibleSection id={`budget-${selectedHospital.id}`} title="Budget Annuel" icon={DollarSign} defaultExpanded={true}>
-                    <div className="space-y-3">
-                      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-4 rounded-lg border border-emerald-200">
-                        <div className="text-center">
-                          <p className="text-sm text-gray-600 mb-1">Budget Total</p>
-                          <p className="text-2xl font-bold text-emerald-600">{formatCurrency(selectedHospital.budget.annual)}</p>
-                        </div>
+                  {/* Image de la formation sanitaire */}
+                  {selectedHospital.image && (
+                    <div className="w-full h-48 bg-gray-100 rounded-lg overflow-hidden border border-emerald-200">
+                      <img
+                        src={selectedHospital.image}
+                        alt={selectedHospital.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = '/placeholder-hospital.jpg';
+                        }}
+                      />
+                    </div>
+                  )}
+                  {!selectedHospital.image && (
+                    <div className="w-full h-48 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg flex items-center justify-center border border-emerald-200">
+                      <div className="text-center text-gray-400">
+                        <Building className="w-16 h-16 mx-auto mb-2" />
+                        <p className="text-sm">Image non disponible</p>
                       </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="bg-white p-2 rounded-lg border border-emerald-100 text-center">
-                          <p className="text-xs text-gray-600 mb-1">Personnel</p>
-                          <p className="text-xs font-semibold text-emerald-600">{formatCurrency(selectedHospital.budget.personnel)}</p>
-                        </div>
-                        <div className="bg-white p-2 rounded-lg border border-emerald-100 text-center">
-                          <p className="text-xs text-gray-600 mb-1">Équipements</p>
-                          <p className="text-xs font-semibold text-teal-600">{formatCurrency(selectedHospital.budget.equipment)}</p>
-                        </div>
-                        <div className="bg-white p-2 rounded-lg border border-emerald-100 text-center">
-                          <p className="text-xs text-gray-600 mb-1">Maintenance</p>
-                          <p className="text-xs font-semibold text-cyan-600">{formatCurrency(selectedHospital.budget.maintenance)}</p>
-                        </div>
+                    </div>
+                  )}
+
+                  {/* Onglet Capacité */}
+                  <CollapsibleSection id={`capacity-${selectedHospital.id}`} title="Capacité" icon={Activity} defaultExpanded={true}>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="bg-emerald-50 p-3 rounded-lg text-center border border-emerald-200">
+                        <p className="text-2xl font-bold text-emerald-600">{selectedHospital.capacity?.beds || 0}</p>
+                        <p className="text-xs text-gray-600 mt-1">Lits</p>
+                      </div>
+                      <div className="bg-teal-50 p-3 rounded-lg text-center border border-teal-200">
+                        <p className="text-2xl font-bold text-teal-600">{selectedHospital.batimentsCount || 0}</p>
+                        <p className="text-xs text-gray-600 mt-1">Bâtiments</p>
+                      </div>
+                      <div className="bg-cyan-50 p-3 rounded-lg text-center border border-cyan-200">
+                        <p className="text-2xl font-bold text-cyan-600">{selectedHospital.vehiculesCount || 0}</p>
+                        <p className="text-xs text-gray-600 mt-1">Véhicules</p>
+                      </div>
+                      <div className="bg-blue-50 p-3 rounded-lg text-center border border-blue-200">
+                        <p className="text-2xl font-bold text-blue-600">{selectedHospital.ambulancesCount || 0}</p>
+                        <p className="text-xs text-gray-600 mt-1">Ambulances</p>
                       </div>
                     </div>
                   </CollapsibleSection>
 
-                  <CollapsibleSection id={`capacity-${selectedHospital.id}`} title="Capacité et Personnel" icon={Activity} defaultExpanded={true}>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="bg-emerald-50 p-3 rounded-lg text-center border border-emerald-200">
-                        <p className="text-2xl font-bold text-emerald-600">{selectedHospital.capacity.beds}</p>
-                        <p className="text-xs text-gray-600 mt-1">Lits</p>
+                  {/* Onglet Personnel */}
+                  <CollapsibleSection id={`personnel-${selectedHospital.id}`} title="Personnel" icon={Users} defaultExpanded={true}>
+                    <div className="space-y-2">
+                      {selectedHospital.personnelByCategory && selectedHospital.personnelByCategory.length > 0 ? (
+                        selectedHospital.personnelByCategory.map((cat: any, idx: number) => (
+                          <div key={idx} className="flex justify-between items-center bg-gray-50 p-2 rounded-lg border border-gray-200">
+                            <span className="text-xs text-gray-700">{cat.category}</span>
+                            <span className="text-sm font-bold text-emerald-600">{cat.count}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center text-gray-400 text-xs py-4">
+                          Aucune donnée de personnel disponible
+                        </div>
+                      )}
+                    </div>
+                  </CollapsibleSection>
+
+                  {/* Nouvel onglet Sécurité */}
+                  <CollapsibleSection id={`security-${selectedHospital.id}`} title="Sécurité" icon={Shield} defaultExpanded={false}>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className={`p-3 rounded-lg text-center border ${selectedHospital.aTitreFoncier ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                        <p className="text-xs text-gray-600 mb-1">Titre Foncier</p>
+                        <p className={`text-lg font-bold ${selectedHospital.aTitreFoncier ? 'text-green-600' : 'text-red-600'}`}>
+                          {selectedHospital.aTitreFoncier ? 'Oui' : 'Non'}
+                        </p>
                       </div>
-                      <div className="bg-teal-50 p-3 rounded-lg text-center border border-teal-200">
-                        <p className="text-2xl font-bold text-teal-600">{selectedHospital.capacity.staff}</p>
-                        <p className="text-xs text-gray-600 mt-1">Personnel</p>
-                      </div>
-                      <div className="bg-cyan-50 p-3 rounded-lg text-center border border-cyan-200">
-                        <p className="text-2xl font-bold text-cyan-600">{selectedHospital.capacity.doctors}</p>
-                        <p className="text-xs text-gray-600 mt-1">Médecins</p>
+                      <div className={`p-3 rounded-lg text-center border ${selectedHospital.aCloture ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                        <p className="text-xs text-gray-600 mb-1">Clôture</p>
+                        <p className={`text-lg font-bold ${selectedHospital.aCloture ? 'text-green-600' : 'text-red-600'}`}>
+                          {selectedHospital.aCloture ? 'Oui' : 'Non'}
+                        </p>
                       </div>
                     </div>
                   </CollapsibleSection>
