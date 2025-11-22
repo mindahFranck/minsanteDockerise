@@ -45,6 +45,12 @@ export default function FosasPage() {
     aTitreFoncier: false,
     connecteeElectricite: false,
     typeCourant: "",
+    // Nouveaux champs (Page 4 du document)
+    orgUnit: "",
+    fonction: true,
+    statutRec: "",
+    catRec: "",
+    nomDirect: "",
   })
 
   useEffect(() => {
@@ -97,6 +103,11 @@ export default function FosasPage() {
       aTitreFoncier: false,
       connecteeElectricite: false,
       typeCourant: "",
+      orgUnit: "",
+      fonction: true,
+      statutRec: "",
+      catRec: "",
+      nomDirect: "",
     })
     setImageFile(null)
     setImagePreview("")
@@ -138,6 +149,11 @@ export default function FosasPage() {
       aTitreFoncier: item.aTitreFoncier || false,
       connecteeElectricite: item.connecteeElectricite || false,
       typeCourant: item.typeCourant || "",
+      orgUnit: (item as any).orgUnit || "",
+      fonction: (item as any).fonction !== undefined ? (item as any).fonction : true,
+      statutRec: (item as any).statutRec || "",
+      catRec: (item as any).catRec || "",
+      nomDirect: (item as any).nomDirect || "",
     })
     if (item.image) {
       setImagePreview(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}${item.image}`)
@@ -454,17 +470,83 @@ export default function FosasPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center pt-4 border-t mt-4">
-                  <input
-                    type="checkbox"
-                    id="estFerme"
-                    checked={formData.estFerme}
-                    onChange={(e) => setFormData({ ...formData, estFerme: e.target.checked })}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <label htmlFor="estFerme" className="ml-2 text-sm text-gray-700">
-                    Formation fermée
-                  </label>
+                {/* Nouveaux champs (Page 4) */}
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t mt-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Org Unit (Nom officiel)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.orgUnit}
+                      onChange={(e) => setFormData({ ...formData, orgUnit: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Statut
+                    </label>
+                    <select
+                      value={formData.statutRec}
+                      onChange={(e) => setFormData({ ...formData, statutRec: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">Sélectionner...</option>
+                      <option value="Formation Sanitaire">Formation Sanitaire</option>
+                      <option value="Centre de Formation">Centre de Formation</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Catégorie
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.catRec}
+                      onChange={(e) => setFormData({ ...formData, catRec: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Ex: CHU, CHR, CHD, CMA, CSI"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Nom du Directeur
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.nomDirect}
+                      onChange={(e) => setFormData({ ...formData, nomDirect: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 pt-4 border-t mt-4">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="fonction"
+                      checked={formData.fonction}
+                      onChange={(e) => setFormData({ ...formData, fonction: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="fonction" className="ml-2 text-sm text-gray-700">
+                      Fonctionnel
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="estFerme"
+                      checked={formData.estFerme}
+                      onChange={(e) => setFormData({ ...formData, estFerme: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="estFerme" className="ml-2 text-sm text-gray-700">
+                      Formation fermée
+                    </label>
+                  </div>
                 </div>
               </div>
           </div>
