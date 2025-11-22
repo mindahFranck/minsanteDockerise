@@ -214,6 +214,41 @@ export default function FosasPage() {
     },
     { key: "situation", label: "Situation" },
     {
+      key: "statutRec",
+      label: "Statut",
+      render: (f: Fosa) => (f as any).statutRec || "-"
+    },
+    {
+      key: "catRec",
+      label: "Catégorie",
+      render: (f: Fosa) => (f as any).catRec || "-"
+    },
+    {
+      key: "nomDirect",
+      label: "Directeur",
+      render: (f: Fosa) => (f as any).nomDirect || "-"
+    },
+    {
+      key: "fonction",
+      label: "Fonctionnel",
+      render: (f: Fosa) => (
+        <span className={`px-2 py-1 rounded text-xs ${(f as any).fonction ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}>
+          {(f as any).fonction ? "Oui" : "Non"}
+        </span>
+      ),
+    },
+    {
+      key: "securite",
+      label: "Sécurité",
+      render: (f: Fosa) => (
+        <div className="flex gap-1">
+          {f.aTitreFoncier && <span className="px-1 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">TF</span>}
+          {f.aCloture && <span className="px-1 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">Clôture</span>}
+          {!f.aTitreFoncier && !f.aCloture && <span className="text-gray-400 text-xs">-</span>}
+        </div>
+      ),
+    },
+    {
       key: "arrondissement",
       label: "Arrondissement",
       render: (f: Fosa) => f.arrondissement?.nom || "-"
