@@ -25,6 +25,7 @@ import Loader, { CardSkeleton } from "../components/common/Loader"
 export default function Dashboard() {
   const [stats, setStats] = useState<Statistics | null>(null)
   const [additionalStats, setAdditionalStats] = useState<any>(null)
+  const [comparativeStats, setComparativeStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -40,6 +41,10 @@ export default function Dashboard() {
       // Charger les statistiques de l'API
       const response = await statisticsService.getOverview()
       setStats(response.data)
+
+      // Charger les statistiques comparatives
+      const comparativeResponse = await statisticsService.getComparativeStats()
+      setComparativeStats(comparativeResponse.data)
 
       // Charger des statistiques additionnelles
       const [regions, fosas, districts, airesantes] = await Promise.all([
@@ -314,6 +319,204 @@ export default function Dashboard() {
             </BarChart>
           </ResponsiveContainer>
         </div>
+      )}
+
+      {/* STATISTIQUES COMPARATIVES */}
+      {comparativeStats && (
+        <>
+          {/* Titre Section */}
+          <div className="col-span-full">
+            <h2 className="text-2xl font-bold text-gray-900 border-b-2 border-blue-600 pb-2">
+              Analyses Comparatives
+            </h2>
+          </div>
+
+          {/* Tableau: FOSA par Catégorie avec TF/Clôture */}
+          {comparativeStats.fosasByCategory && comparativeStats.fosasByCategory.length > 0 && (
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 lg:col-span-2">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-blue-600" />
+                FOSA par Catégorie (avec sécurisation)
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Catégorie</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Avec TF</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Avec Clôture</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Opérationnelles</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {comparativeStats.fosasByCategory.map((item: any, idx: number) => (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.category}</td>
+                        <td className="px-4 py-3 text-sm text-center text-gray-700">{item.total}</td>
+                        <td className="px-4 py-3 text-sm text-center">
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded">{item.withTF}</span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-center">
+                          <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded">{item.withCloture}</span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-center">
+                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded">{item.operational}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Graphique: Sécurité des FOSA (TF/Clôture) */}
+          {comparativeStats.securityStats && (
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
+                <Activity className="w-5 h-5 text-orange-600" />
+                Sécurisation des FOSA
+              </h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'TF + Clôture', value: Number(comparativeStats.securityStats.both) || 0 },
+                      { name: 'TF seulement', value: Number(comparativeStats.securityStats.tfOnly) || 0 },
+                      { name: 'Clôture seulement', value: Number(comparativeStats.securityStats.clotureOnly) || 0 },
+                      { name: 'Aucune', value: Number(comparativeStats.securityStats.neither) || 0 }
+                    ]}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    label={(entry) => `${entry.name}: ${entry.value}`}
+                  >
+                    <Cell fill="#10B981" />
+                    <Cell fill="#3B82F6" />
+                    <Cell fill="#8B5CF6" />
+                    <Cell fill="#EF4444" />
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Tableau: FOSA par Statut */}
+          {comparativeStats.fosasByStatus && comparativeStats.fosasByStatus.length > 0 && (
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
+                <HeartPulse className="w-5 h-5 text-pink-600" />
+                FOSA par Statut
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Avec TF</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Avec Clôture</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {comparativeStats.fosasByStatus.map((item: any, idx: number) => (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.status}</td>
+                        <td className="px-4 py-3 text-sm text-center text-gray-700">{item.total}</td>
+                        <td className="px-4 py-3 text-sm text-center">
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded">{item.withTF}</span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-center">
+                          <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded">{item.withCloture}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Graphique: Top 10 FOSA par Nombre de Bâtiments */}
+          {comparativeStats.buildingsByFosa && comparativeStats.buildingsByFosa.length > 0 && (
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 lg:col-span-2">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-indigo-600" />
+                Top 10 FOSA par Nombre de Bâtiments
+              </h3>
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={comparativeStats.buildingsByFosa}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="fosaName" angle={-45} textAnchor="end" height={120} />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="buildingCount" fill="#6366F1" name="Nombre de bâtiments" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Graphique: Véhicules par Type et Énergie */}
+          {comparativeStats.vehiclesByTypeEnergy && comparativeStats.vehiclesByTypeEnergy.length > 0 && (
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 lg:col-span-2">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
+                <Package className="w-5 h-5 text-cyan-600" />
+                Véhicules par Type et Source d'Énergie
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type Véhicule</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Énergie</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Nombre</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Quantité Totale</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {comparativeStats.vehiclesByTypeEnergy.map((item: any, idx: number) => (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.vehicleType}</td>
+                        <td className="px-4 py-3 text-sm text-gray-700">{item.energy}</td>
+                        <td className="px-4 py-3 text-sm text-center">
+                          <span className="px-2 py-1 bg-cyan-100 text-cyan-800 rounded">{item.count}</span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-center text-gray-700">{item.totalQuantity || item.count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Graphique: Distribution du Personnel */}
+          {comparativeStats.personnelDistribution && comparativeStats.personnelDistribution.length > 0 && (
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
+                <Users className="w-5 h-5 text-teal-600" />
+                Distribution du Personnel
+              </h3>
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={comparativeStats.personnelDistribution}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="category" angle={-45} textAnchor="end" height={100} />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="count" fill="#14B8A6" name="Nombre total" />
+                  <Bar dataKey="fosasCount" fill="#F59E0B" name="Nombre de FOSA" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

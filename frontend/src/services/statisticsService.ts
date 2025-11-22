@@ -35,6 +35,11 @@ class StatisticsService {
     const response = await api.get("/statistics/equipment-status")
     return response.data
   }
+
+  async getComparativeStats(): Promise<any> {
+    const response = await api.get("/statistics/comparative")
+    return response.data
+  }
 }
 
 const statisticsService = new StatisticsService()
