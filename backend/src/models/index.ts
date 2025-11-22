@@ -53,7 +53,7 @@ export const setupAssociations = () => {
   });
 
   // District associations
-  District.belongsTo(Region, { foreignKey: "regionId", as: "region" });
+  District.belongsTo(Region, { foreignKey: "regionId", as: "regionData" });
   District.hasMany(Airesante, { foreignKey: "districtId", as: "airesantes" });
 
   // Airesante associations

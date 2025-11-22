@@ -12,6 +12,13 @@ export class Fosa extends Model {
   public arrondissementId!: number
   public airesanteId!: number
 
+  // Nouveaux champs (Page 4 du document)
+  public orgUnit?: string        // Nom de la FOSA ou centre de formation
+  public fonction?: boolean       // Fonctionnel (oui/non)
+  public statutRec?: string       // Statut de la FOSA (formation sanitaire/centre de formation)
+  public catRec?: string          // Catégorie de la FOSA
+  public nomDirect?: string       // Nom du directeur
+
   // Coordonnées
   public longitude?: number
   public latitude?: number
@@ -25,9 +32,13 @@ export class Fosa extends Model {
   public readonly createdAt!: Date
   public readonly updatedAt!: Date
 
-  // Relations
+  // Relations (counts calculés via includes)
   public readonly arrondissement?: any
   public readonly airesante?: any
+  public readonly batiments?: any[]
+  public readonly vehicules?: any[]
+  public readonly equipements?: any[]
+  public readonly personnels?: any[]
 }
 
 Fosa.init(
@@ -63,6 +74,32 @@ Fosa.init(
     image: {
       type: DataTypes.STRING(500),
       allowNull: true,
+    },
+    // Nouveaux champs
+    orgUnit: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+      field: "org_unit",
+    },
+    fonction: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: true,
+    },
+    statutRec: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      field: "statut_rec",
+    },
+    catRec: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      field: "cat_rec",
+    },
+    nomDirect: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+      field: "nom_direct",
     },
     arrondissementId: {
       type: DataTypes.BIGINT.UNSIGNED,
