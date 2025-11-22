@@ -36,6 +36,19 @@ export default function MaterielroulantsPage() {
     etat: "",
     quantite: 1,
     fosaId: 0,
+    // Nouveaux champs (Page 4 du document)
+    dateMiseService: "",
+    acteAffectation: "",
+    typeVehicule: "",
+    immatriculation: "",
+    usage: "",
+    code: "",
+    structure: "",
+    serviceId: 0,
+    nomUtilisateur: "",
+    fonctionUtilisateur: "",
+    energie: "",
+    financement: "",
   })
 
   useEffect(() => {
@@ -70,7 +83,29 @@ export default function MaterielroulantsPage() {
       }
       setIsModalOpen(false)
       setEditingItem(null)
-      setFormData({ numeroChassis: "", annee: new Date().getFullYear(), marque: "", modele: "", type: "", dateMiseEnCirculation: "", etat: "", quantite: 1, fosaId: 0 })
+      setFormData({
+        numeroChassis: "",
+        annee: new Date().getFullYear(),
+        marque: "",
+        modele: "",
+        type: "",
+        dateMiseEnCirculation: "",
+        etat: "",
+        quantite: 1,
+        fosaId: 0,
+        dateMiseService: "",
+        acteAffectation: "",
+        typeVehicule: "",
+        immatriculation: "",
+        usage: "",
+        code: "",
+        structure: "",
+        serviceId: 0,
+        nomUtilisateur: "",
+        fonctionUtilisateur: "",
+        energie: "",
+        financement: "",
+      })
       loadData()
     } catch (error) {
       console.error("Error saving:", error)
@@ -81,16 +116,29 @@ export default function MaterielroulantsPage() {
 
   const handleEdit = (item: Materielroulant) => {
     setEditingItem(item)
+    const itemAny = item as any
     setFormData({
-      numeroChassis: item.numeroChassis,
-      annee: item.annee,
-      marque: item.marque,
-      modele: item.modele,
-      type: item.type,
+      numeroChassis: item.numeroChassis || "",
+      annee: item.annee || new Date().getFullYear(),
+      marque: item.marque || "",
+      modele: item.modele || "",
+      type: item.type || "",
       dateMiseEnCirculation: item.dateMiseEnCirculation?.split('T')[0] || "",
       etat: item.etat || "",
       quantite: item.quantite || 1,
       fosaId: item.fosaId,
+      dateMiseService: itemAny.dateMiseService?.split('T')[0] || "",
+      acteAffectation: itemAny.acteAffectation || "",
+      typeVehicule: itemAny.typeVehicule || "",
+      immatriculation: itemAny.immatriculation || "",
+      usage: itemAny.usage || "",
+      code: itemAny.code || "",
+      structure: itemAny.structure || "",
+      serviceId: itemAny.serviceId || 0,
+      nomUtilisateur: itemAny.nomUtilisateur || "",
+      fonctionUtilisateur: itemAny.fonctionUtilisateur || "",
+      energie: itemAny.energie || "",
+      financement: itemAny.financement || "",
     })
     setIsModalOpen(true)
   }
@@ -278,6 +326,121 @@ export default function MaterielroulantsPage() {
               <option value="Hors service">Hors service</option>
             </select>
           </div>
+
+          {/* Nouveaux champs (Page 4) */}
+          <div className="grid grid-cols-2 gap-4 border-t pt-4 mt-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Date Mise en Service</label>
+              <input
+                type="date"
+                value={formData.dateMiseService}
+                onChange={(e) => setFormData({ ...formData, dateMiseService: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Type Véhicule</label>
+              <input
+                type="text"
+                value={formData.typeVehicule}
+                onChange={(e) => setFormData({ ...formData, typeVehicule: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="Ex: PICK UP, SUV, Ambulance"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Immatriculation</label>
+              <input
+                type="text"
+                value={formData.immatriculation}
+                onChange={(e) => setFormData({ ...formData, immatriculation: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="Ex: CA 6161 D"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Usage</label>
+              <input
+                type="text"
+                value={formData.usage}
+                onChange={(e) => setFormData({ ...formData, usage: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="Ex: Fonction"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Code</label>
+              <input
+                type="text"
+                value={formData.code}
+                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Structure</label>
+              <input
+                type="text"
+                value={formData.structure}
+                onChange={(e) => setFormData({ ...formData, structure: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="Ex: Cabinet du Ministre"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Nom Utilisateur</label>
+              <input
+                type="text"
+                value={formData.nomUtilisateur}
+                onChange={(e) => setFormData({ ...formData, nomUtilisateur: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Fonction Utilisateur</label>
+              <input
+                type="text"
+                value={formData.fonctionUtilisateur}
+                onChange={(e) => setFormData({ ...formData, fonctionUtilisateur: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="Ex: Ministre de la santé"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Énergie</label>
+              <select
+                value={formData.energie}
+                onChange={(e) => setFormData({ ...formData, energie: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Sélectionner...</option>
+                <option value="Gasoil">Gasoil</option>
+                <option value="Essence">Essence</option>
+                <option value="Électrique">Électrique</option>
+                <option value="Hybride">Hybride</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Financement</label>
+              <input
+                type="text"
+                value={formData.financement}
+                onChange={(e) => setFormData({ ...formData, financement: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Acte d'Affectation</label>
+              <textarea
+                value={formData.acteAffectation}
+                onChange={(e) => setFormData({ ...formData, acteAffectation: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                rows={3}
+                placeholder="Ex: Décision n°1320/D/MINSANTE/CAB du 03/07/2020"
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">FOSA</label>
             <select
