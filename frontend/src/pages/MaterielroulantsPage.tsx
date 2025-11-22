@@ -227,19 +227,19 @@ export default function MaterielroulantsPage() {
         />
       )}
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingItem ? "Modifier" : "Ajouter"}>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingItem ? "Modifier" : "Ajouter"} size="large">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Numéro de Chassis</label>
-            <input
-              type="text"
-              value={formData.numeroChassis}
-              onChange={(e) => setFormData({ ...formData, numeroChassis: e.target.value })}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Numéro de Chassis</label>
+              <input
+                type="text"
+                value={formData.numeroChassis}
+                onChange={(e) => setFormData({ ...formData, numeroChassis: e.target.value })}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Marque</label>
               <input
@@ -261,7 +261,7 @@ export default function MaterielroulantsPage() {
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
               <select
@@ -289,17 +289,6 @@ export default function MaterielroulantsPage() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Date de mise en circulation</label>
-              <input
-                type="date"
-                value={formData.dateMiseEnCirculation}
-                onChange={(e) => setFormData({ ...formData, dateMiseEnCirculation: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Quantité</label>
               <input
@@ -311,24 +300,35 @@ export default function MaterielroulantsPage() {
               />
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">État</label>
-            <select
-              value={formData.etat}
-              onChange={(e) => setFormData({ ...formData, etat: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Sélectionner...</option>
-              <option value="Neuf">Neuf</option>
-              <option value="Bon">Bon</option>
-              <option value="Moyen">Moyen</option>
-              <option value="Mauvais">Mauvais</option>
-              <option value="Hors service">Hors service</option>
-            </select>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Date de mise en circulation</label>
+              <input
+                type="date"
+                value={formData.dateMiseEnCirculation}
+                onChange={(e) => setFormData({ ...formData, dateMiseEnCirculation: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">État</label>
+              <select
+                value={formData.etat}
+                onChange={(e) => setFormData({ ...formData, etat: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Sélectionner...</option>
+                <option value="Neuf">Neuf</option>
+                <option value="Bon">Bon</option>
+                <option value="Moyen">Moyen</option>
+                <option value="Mauvais">Mauvais</option>
+                <option value="Hors service">Hors service</option>
+              </select>
+            </div>
           </div>
 
           {/* Nouveaux champs (Page 4) */}
-          <div className="grid grid-cols-2 gap-4 border-t pt-4 mt-4">
+          <div className="grid grid-cols-3 gap-4 border-t pt-4 mt-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Date Mise en Service</label>
               <input
@@ -420,7 +420,7 @@ export default function MaterielroulantsPage() {
                 <option value="Hybride">Hybride</option>
               </select>
             </div>
-            <div>
+            <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">Financement</label>
               <input
                 type="text"
@@ -429,7 +429,7 @@ export default function MaterielroulantsPage() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <div className="col-span-2">
+            <div className="col-span-3">
               <label className="block text-sm font-medium text-gray-700 mb-2">Acte d'Affectation</label>
               <textarea
                 value={formData.acteAffectation}
