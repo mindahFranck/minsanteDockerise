@@ -61,6 +61,32 @@ export default function MapPage() {
                       {fosa.fermeture ? "Fermé" : "Ouvert"}
                     </span>
                   </p>
+
+                  {/* Statistiques des ressources */}
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <p className="text-xs font-semibold text-gray-700 mb-2">Ressources</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="text-xs">
+                        <span className="text-gray-600">Bâtiments:</span>{" "}
+                        <span className="font-semibold">{fosa.batiments?.length || 0}</span>
+                      </div>
+                      <div className="text-xs">
+                        <span className="text-gray-600">Véhicules:</span>{" "}
+                        <span className="font-semibold">{fosa.materielroulants?.length || 0}</span>
+                      </div>
+                      <div className="text-xs">
+                        <span className="text-gray-600">Ambulance:</span>{" "}
+                        <span className="font-semibold">
+                          {fosa.materielroulants?.filter((v: any) => v.type?.toLowerCase().includes("ambulance") || v.typeVehicule?.toLowerCase().includes("ambulance")).length || 0}
+                        </span>
+                      </div>
+                      <div className="text-xs">
+                        <span className="text-gray-600">Personnel:</span>{" "}
+                        <span className="font-semibold">{fosa.personnels?.length || 0}</span>
+                      </div>
+                    </div>
+                  </div>
+
                   {fosa.image && (
                     <img
                       src={`${import.meta.env.VITE_API_URL || "http://localhost:5000"}${fosa.image}`}

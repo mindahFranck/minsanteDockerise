@@ -329,10 +329,19 @@ export interface Fosa {
   connecteeElectricite?: boolean;
   typeCourant?: string;
 
+  // Relations
   arrondissement?: Arrondissement;
   airesante?: Airesante;
+  batiments?: Batiment[];
+  materielroulants?: Materielroulant[];
+  personnels?: Personnel[];
+
   createdAt?: string;
   updatedAt?: string;
+
+  // Legacy fields for compatibility
+  capacite?: number;
+  fermeture?: boolean;
 }
 
 export interface Batiment {

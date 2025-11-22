@@ -292,7 +292,7 @@ export class StatisticsService {
     // FOSA avec sécurité (TF et Clôture)
     const securityStats = await sequelize.query(`
       SELECT
-        SUM(CASE WHEN a_titre_foncier = 1 AND a_cloture = 1 THEN 1 ELSE 0 END) as both,
+        SUM(CASE WHEN a_titre_foncier = 1 AND a_cloture = 1 THEN 1 ELSE 0 END) as \`both\`,
         SUM(CASE WHEN a_titre_foncier = 1 AND a_cloture = 0 THEN 1 ELSE 0 END) as tfOnly,
         SUM(CASE WHEN a_titre_foncier = 0 AND a_cloture = 1 THEN 1 ELSE 0 END) as clotureOnly,
         SUM(CASE WHEN a_titre_foncier = 0 AND a_cloture = 0 THEN 1 ELSE 0 END) as neither,
