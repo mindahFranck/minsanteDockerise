@@ -167,6 +167,7 @@ const MapView: React.FC = () => {
   const [cameroonPolygon, setCameroonPolygon] = useState<[number, number][]>([]);
   const [regionsPolygons, setRegionsPolygons] = useState<{ [key: string]: [number, number][] }>({});
   const [departementsPolygons, setDepartementsPolygons] = useState<{ [key: string]: [number, number][] }>({});
+  const [arrondissementsPolygons, setArrondissementsPolygons] = useState<{ [key: string]: [number, number][] }>({});
   const [communesPolygons, setCommunesPolygons] = useState<{ [key: string]: [number, number][] }>({});
   const [districtsPolygons, setDistrictsPolygons] = useState<{ [key: string]: [number, number][] }>({});
   const [airesantesPolygons, setAiresantesPolygons] = useState<{ [key: string]: [number, number][] }>({});
@@ -196,6 +197,7 @@ const MapView: React.FC = () => {
     cameroon: true,
     regions: true,
     departements: true,
+    arrondissements: true,
     communes: true,
     districts: true,
     airesantes: true,
@@ -392,6 +394,31 @@ const MapView: React.FC = () => {
 
       // Stocker les arrondissements
       setArrondissementsData(arrondissements);
+
+      // Créer les polygones des arrondissements
+      const arrondissementsMap: { [key: string]: [number, number][] } = {};
+      arrondissements.forEach((arrondissement: any) => {
+        if (arrondissement.geom) {
+          try {
+            let geojson = arrondissement.geom;
+            if (typeof geojson === 'string') {
+              geojson = JSON.parse(geojson);
+            }
+
+            if (geojson.coordinates && geojson.coordinates.length > 0) {
+              const coords = geojson.type === 'MultiPolygon'
+                ? geojson.coordinates[0][0]
+                : geojson.coordinates[0];
+
+              const transformed: [number, number][] = coords.map((coord: any) => [coord[1], coord[0]]);
+              arrondissementsMap[arrondissement.nom] = transformed;
+            }
+          } catch (parseErr) {
+            console.warn(`Erreur parsing polygon pour arrondissement ${arrondissement.nom}:`, parseErr);
+          }
+        }
+      });
+      setArrondissementsPolygons(arrondissementsMap);
 
       const transformed: Hospital[] = fosas.map((fosa: any) => {
         // Trouver l'arrondissement, le département et la région
@@ -1185,6 +1212,21 @@ const MapView: React.FC = () => {
                   />
                 ))}
 
+                {/* Afficher tous les polygones des arrondissements */}
+                {layersVisibility.arrondissements && Object.entries(arrondissementsPolygons).map(([arrondName, polygon]) => (
+                  <Polygon
+                    key={`arrond-${arrondName}`}
+                    positions={polygon}
+                    pathOptions={{
+                      fillColor: selectedArrondissement === arrondName ? '#3b82f6' : '#60a5fa',
+                      fillOpacity: selectedArrondissement === arrondName ? 0.25 : 0.08,
+                      color: selectedArrondissement === arrondName ? '#3b82f6' : '#60a5fa',
+                      weight: selectedArrondissement === arrondName ? 3 : 1.2,
+                      opacity: selectedArrondissement === arrondName ? 0.9 : 0.35
+                    }}
+                  />
+                ))}
+
                 {/* Afficher tous les polygones des districts */}
                 {layersVisibility.districts && Object.entries(districtsPolygons).map(([districtName, polygon]) => {
                   // Appliquer la couleur thématique si un thème est actif
@@ -1228,8 +1270,8 @@ const MapView: React.FC = () => {
                 ))}
               </MapContainer>
 
-              {/* Analyses Thématiques */}
-              <div className="absolute top-4 left-4 z-[1000] max-w-sm space-y-3">
+              {/* Analyses Thématiques - Positionné en bas à gauche sous le zoom */}
+              <div className="absolute bottom-8 left-4 z-[1000] max-w-sm space-y-3">
                 <ThematicAnalysis
                   districtsData={districtsData}
                   airesantesData={airesantesData}
@@ -1283,6 +1325,16 @@ const MapView: React.FC = () => {
                         />
                         <div className="w-4 h-4 border-2 border-cyan-600 bg-cyan-50"></div>
                         <span>Départements</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer hover:bg-blue-50 p-1 rounded">
+                        <input
+                          type="checkbox"
+                          checked={layersVisibility.arrondissements}
+                          onChange={() => toggleLayer('arrondissements')}
+                          className="w-4 h-4 text-blue-600 rounded"
+                        />
+                        <div className="w-4 h-4 border-2 border-blue-600 bg-blue-50"></div>
+                        <span>Arrondissements</span>
                       </label>
                       <label className="flex items-center space-x-2 cursor-pointer hover:bg-purple-50 p-1 rounded">
                         <input
