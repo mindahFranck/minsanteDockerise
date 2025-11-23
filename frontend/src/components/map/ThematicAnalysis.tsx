@@ -232,21 +232,6 @@ export default function ThematicAnalysis({
 
       <div className="space-y-2">
         <button
-          onClick={analyzeFosaDensity}
-          className={`w-full px-4 py-3 rounded-lg flex items-center gap-3 transition-colors ${
-            activeTheme === 'density'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-        >
-          <TrendingUp className="w-5 h-5" />
-          <div className="text-left">
-            <div className="font-medium">Densité FOSA</div>
-            <div className="text-xs opacity-80">FOSA par km² par district</div>
-          </div>
-        </button>
-
-        <button
           onClick={analyzeArea}
           className={`w-full px-4 py-3 rounded-lg flex items-center gap-3 transition-colors ${
             activeTheme === 'area'
@@ -258,21 +243,6 @@ export default function ThematicAnalysis({
           <div className="text-left">
             <div className="font-medium">Superficie</div>
             <div className="text-xs opacity-80">Taille des districts en km²</div>
-          </div>
-        </button>
-
-        <button
-          onClick={analyzeAiresCount}
-          className={`w-full px-4 py-3 rounded-lg flex items-center gap-3 transition-colors ${
-            activeTheme === 'count'
-              ? 'bg-purple-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-        >
-          <Layers className="w-5 h-5" />
-          <div className="text-left">
-            <div className="font-medium">Aires de Santé</div>
-            <div className="text-xs opacity-80">Nombre par district</div>
           </div>
         </button>
 

@@ -1012,10 +1012,6 @@ const MapView: React.FC = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <h3 className="text-xl font-bold mb-2">{selectedHospital.name}</h3>
-                      <div className="text-emerald-50 text-sm space-y-1">
-                        <p className="flex items-center gap-2"><MapPin className="w-4 h-4" />{selectedHospital.address}</p>
-                        <p className="ml-6">{selectedHospital.city}, {selectedHospital.region}</p>
-                      </div>
                     </div>
                     <button onClick={() => setSelectedHospital(null)} className="p-1 hover:bg-white/20 rounded-lg transition-colors">
                       <X className="w-5 h-5" />
