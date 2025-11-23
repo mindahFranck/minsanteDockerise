@@ -25,6 +25,7 @@ import ParametresPage from "./pages/ParametresPage"
 import UsersPage from "./pages/UsersPage"
 import MapPage from "./pages/MapPage"
 import MapView from "./components/map/MapView"
+import ImportExcelPage from "./pages/ImportExcelPage"
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -80,6 +81,7 @@ function App() {
           <Route path="users" element={<UsersPage />} />
           <Route path="parametres" element={<ParametresPage />} />
           <Route path="degradations" element={<DegradationsPage />} />
+          <Route path="import" element={<ImportExcelPage />} />
 
           {/* Visualisation */}
           <Route path="map" element={<MapPage />} />

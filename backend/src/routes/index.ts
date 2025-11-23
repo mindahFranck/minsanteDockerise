@@ -21,6 +21,7 @@ import degradationRoutes from "./degradation.routes"
 import auditRoutes from "./audit.routes"
 import communeRoutes from "./commune.routes"
 import camerounRoutes from "./cameroun.routes"
+import importRoutes from "./import.routes"
 
 const router = Router()
 
@@ -46,5 +47,6 @@ router.use("/categories", categorieRoutes)
 router.use("/degradations", degradationRoutes)
 router.use("/statistics", statisticsRoutes)
 router.use("/audit", auditRoutes)
+router.use("/import", importRoutes)
 
 export default router

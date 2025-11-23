@@ -4,7 +4,7 @@ import { Outlet, Link, useLocation, useNavigate } from "react-router-dom"
 import {
   LayoutDashboard, Map, Building2, Users, Package, Truck, MapPin, LogOut, Menu, X,
   Building, Wrench, Activity, Tag, AlertTriangle, Settings, UserCircle, Stethoscope,
-  ChevronDown, ChevronRight
+  ChevronDown, ChevronRight, FileSpreadsheet
 } from "lucide-react"
 import { useState } from "react"
 
@@ -96,6 +96,7 @@ export default function Layout({ onLogout }: LayoutProps) {
       collapsible: true,
       items: [
         { name: "Utilisateurs", href: "/dashboard/users", icon: UserCircle },
+        { name: "Import Excel", href: "/dashboard/import", icon: FileSpreadsheet },
         { name: "Paramètres", href: "/dashboard/parametres", icon: Settings },
         { name: "Dégradations", href: "/dashboard/degradations", icon: AlertTriangle },
       ]

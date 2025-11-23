@@ -75,6 +75,7 @@
     "vite": "latest",
     "winston": "latest",
     "winston-daily-rotate-file": "latest",
+    "xlsx": "^0.18.5",
     "yaml": "latest",
     "zod": "^3.22.4"
   },
