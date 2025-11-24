@@ -44,14 +44,14 @@ const options: swaggerJsdoc.Options = {
   },
   apis: [
     process.env.NODE_ENV === "production"
-      ? "./dist/routes/*.js"
-      : "./src/routes/*.ts",
+      ? "./dist/routes/**/*.js"
+      : "./src/routes/**/*.ts",
     process.env.NODE_ENV === "production"
-      ? "./dist/controllers/*.js"
-      : "./src/controllers/*.ts",
+      ? "./dist/controllers/**/*.js"
+      : "./src/controllers/**/*.ts",
     process.env.NODE_ENV === "production"
-      ? "./dist/models/*.js"
-      : "./src/models/*.ts",
+      ? "./dist/models/**/*.js"
+      : "./src/models/**/*.ts",
   ],
 };
 
