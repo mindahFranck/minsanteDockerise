@@ -59,6 +59,9 @@ COPY --from=builder /app/dist ./dist
 # Copy database files (migrations, seeders, SQL files)
 COPY --from=builder /app/database ./database
 
+# Copy scripts directory (contains SQL import files)
+COPY --from=builder /app/scripts ./scripts
+
 # Create directories for uploads and logs
 RUN mkdir -p /app/uploads /app/logs && \
     chown -R nodejs:nodejs /app
