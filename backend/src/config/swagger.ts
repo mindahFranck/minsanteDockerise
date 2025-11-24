@@ -1,4 +1,4 @@
-import swaggerJsdoc from "swagger-jsdoc"
+import swaggerJsdoc from "swagger-jsdoc";
 
 const options: swaggerJsdoc.Options = {
   definition: {
@@ -15,8 +15,16 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: `http://localhost:${process.env.PORT || 3000}/api/${process.env.API_VERSION || "v1"}`,
+        url: `http://localhost:${process.env.PORT || 3000}/api/${
+          process.env.API_VERSION || "v1"
+        }`,
         description: "Development server",
+      },
+      {
+        url: `https://apiminsante.it-grafik.com/api/${
+          process.env.API_VERSION || "v1"
+        }`,
+        description: "Production server",
       },
     ],
     components: {
@@ -45,6 +53,6 @@ const options: swaggerJsdoc.Options = {
       ? "./dist/models/*.js"
       : "./src/models/*.ts",
   ],
-}
+};
 
-export const swaggerSpec = swaggerJsdoc(options)
+export const swaggerSpec = swaggerJsdoc(options);
