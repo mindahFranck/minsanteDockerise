@@ -388,35 +388,17 @@ const MapView: React.FC = () => {
     }
   };
 
-  // Fonction pour transformer les FOSA en format Hospital
+  // Remplacer la fonction transformFosasToHospitals par cette version corrigée
   const transformFosasToHospitals = async (fosas: any[]): Promise<Hospital[]> => {
-    // Charger les données de référence si nécessaire
-    let arrondissements = arrondissementsData;
-    let departements = departementsData;
-    let regions = regionsData;
-
-    if (arrondissements.length === 0) {
-      arrondissements = await apiService.getArrondissements();
-      setArrondissementsData(arrondissements);
-    }
-    if (departements.length === 0) {
-      departements = await apiService.getDepartements();
-      setDepartementsData(departements);
-    }
-    if (regions.length === 0) {
-      regions = await apiService.getRegions();
-      setRegionsData(regions);
-    }
+    console.log('Transformation des FOSA:', fosas.length, 'éléments');
 
     return fosas.map((fosa: any) => {
-      // Trouver l'arrondissement, le département et la région
-      const arrond = arrondissements.find(a => a.id === fosa.arrondissementId);
-      const departement = arrond ? departements.find(d => d.id === arrond.departementId) : null;
-      const region = departement ? regions.find(r => r.id === departement.regionId) : null;
 
-      // Trouver le district et l'aire de santé
-      const airesante = fosa.airesante || (fosa.airesanteId ? { id: fosa.airesanteId, nom_as: fosa.airesante?.nom_as || fosa.airesante?.nom } : null);
-      const district = airesante?.district || null;
+      // Utiliser les données directement depuis l'objet FOSA
+      const region = fosa.region?.nom || 'Non spécifié';
+      const arrondissement = fosa.arrondissement?.nom || 'Non spécifié';
+      const district = fosa.district?.nom || null;
+      const airesante = fosa.airesante?.nom || null;
 
       // Utiliser les coordonnées du FOSA directement si disponibles
       const fosaLat = fosa.latitude !== undefined && fosa.latitude !== null ? parseFloat(fosa.latitude) : null;
@@ -424,79 +406,96 @@ const MapView: React.FC = () => {
 
       const coordinates: [number, number] = (fosaLat !== null && fosaLng !== null && !isNaN(fosaLat) && !isNaN(fosaLng))
         ? [fosaLat, fosaLng]
-        : (arrond && arrond.latitude && arrond.longitude)
-          ? [arrond.latitude, arrond.longitude]
-          : [3.8667, 11.5167]; // Coordonnées par défaut (Yaoundé)
+        : [3.8667, 11.5167]; // Coordonnées par défaut (Yaoundé)
 
-      return {
+      // Déterminer le type
+      let type: 'public' | 'private' | 'confessional' | 'military' = 'public';
+      if (fosa.type?.toLowerCase().includes('privé') || fosa.nom?.toLowerCase().includes('cabinet')) {
+        type = 'private';
+      } else if (fosa.type?.toLowerCase().includes('confessionnel') || fosa.nom?.toLowerCase().includes('islamique') || fosa.nom?.toLowerCase().includes('baptist')) {
+        type = 'confessional';
+      }
+
+      // Déterminer le statut
+      let status: 'operational' | 'maintenance' | 'construction' | 'closed' = 'operational';
+      if (fosa.estFerme === 1 || fosa.nom?.toLowerCase().includes('(closed)')) {
+        status = 'closed';
+      } else if (fosa.situation?.toLowerCase().includes('maintenance')) {
+        status = 'maintenance';
+      } else if (fosa.situation?.toLowerCase().includes('construction')) {
+        status = 'construction';
+      }
+
+      const hospital: Hospital = {
         id: fosa.id.toString(),
         name: fosa.nom,
-        // Ajouter des champs pour le filtrage
-        _district: district?.nom_ds || district?.nom || null,
-        _airesante: airesante?.nom_as || airesante?.nom || null,
-        type: fosa.type?.toLowerCase().includes('public') ? 'public' :
-          fosa.type?.toLowerCase().includes('privé') ? 'private' :
-            fosa.type?.toLowerCase().includes('confessionnel') ? 'confessional' : 'public',
+        // Champs pour le filtrage géographique
+        _district: district,
+        _airesante: airesante,
+        type,
         category: fosa.type || 'FOSA',
-        status: fosa.estFerme ? 'closed' :
-          fosa.situation?.toLowerCase().includes('maintenance') ? 'maintenance' :
-            fosa.situation?.toLowerCase().includes('construction') ? 'construction' : 'operational',
+        status,
         coordinates,
-        address: arrond?.nom || 'Non spécifié',
-        city: arrond?.nom || 'Non spécifié',
-        region: region?.nom || 'Non spécifié',
+        address: arrondissement,
+        city: arrondissement,
+        region: region,
 
         // Nouveaux champs pour popup
         image: fosa.image || null,
         aTitreFoncier: fosa.aTitreFoncier || false,
         aCloture: fosa.aCloture || false,
 
-        // Counts
-        batimentsCount: fosa.batiments?.length || 0,
-        vehiculesCount: fosa.materielroulants?.length || 0,
-        ambulancesCount: fosa.materielroulants?.filter((v: any) => v.type?.toLowerCase().includes('ambulance')).length || 0,
-        personnelByCategory: fosa.personnels ?
-          Object.values(fosa.personnels.reduce((acc: any, p: any) => {
-            const cat = p.categorie || 'Autre';
-            if (!acc[cat]) acc[cat] = { category: cat, count: 0 };
-            acc[cat].count++;
-            return acc;
-          }, {})) : [],
+        // Counts (valeurs par défaut pour l'instant)
+        batimentsCount: 1,
+        vehiculesCount: 0,
+        ambulancesCount: 0,
+        personnelByCategory: [],
 
         budget: {
-          annual: fosa.budget_annuel || 0,
+          annual: 0,
           personnel: 0,
           equipment: 0,
           maintenance: 0
         },
         capacity: {
           beds: fosa.capaciteLits || 0,
-          staff: fosa.personnels?.length || 0,
-          doctors: fosa.personnels?.filter((p: any) => p.categorie?.toLowerCase().includes('docteur') || p.categorie?.toLowerCase().includes('médecin')).length || 0
+          staff: 0,
+          doctors: 0
         },
-        services: fosa.services || ['Urgences', 'Consultation', 'Chirurgie', 'Pédiatrie', 'Maternité', 'Radiologie', 'Laboratoire', 'Pharmacie'].slice(0, Math.floor(Math.random() * 4) + 3),
-        equipment: [
-          {
-            category: 'Imagerie médicale',
-            items: [
-              { name: 'Scanner', quantity: Math.floor(Math.random() * 2) + 1, condition: "excellent" },
-              { name: 'IRM', quantity: Math.floor(Math.random() * 2), condition: "excellent" },
-              { name: 'Échographe', quantity: Math.floor(Math.random() * 3) + 1, condition: "excellent" }
-            ]
-          }
-        ],
+        services: getServicesFromType(fosa.type),
+        equipment: [],
         maintenance: {
           lastInspection: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
           nextInspection: new Date(Date.now() + Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
           priority: ['low', 'medium', 'high', 'urgent'][Math.floor(Math.random() * 4)] as any,
-          issues: ['Équipement vieillissant', 'Besoin de maintenance préventive', 'Matériel obsolète'].slice(0, Math.floor(Math.random() * 2) + 1),
+          issues: [],
         },
         contact: {
           phone: fosa.telephone || `+237 6${Math.floor(Math.random() * 90) + 10} ${Math.floor(Math.random() * 1000)} ${Math.floor(Math.random() * 1000)}`,
-          email: fosa.email || `${fosa.nom.toLowerCase().replace(/\s+/g, '.')}@sante.cm`,
+          email: fosa.email || `${fosa.nom.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '')}@sante.cm`,
         }
       };
+
+      console.log('Hospital transformé:', hospital);
+      return hospital;
     });
+  };
+
+  // Ajouter cette fonction utilitaire pour déterminer les services selon le type
+  const getServicesFromType = (type: string): string[] => {
+    const baseServices = ['Consultation'];
+
+    if (type?.toLowerCase().includes('csi') || type?.toLowerCase().includes('centre de santé')) {
+      return [...baseServices, 'Soins primaires', 'Vaccination', 'Maternité'];
+    } else if (type?.toLowerCase().includes('cma')) {
+      return [...baseServices, 'Soins primaires', 'Petite chirurgie', 'Maternité', 'Laboratoire'];
+    } else if (type?.toLowerCase().includes('cabinet')) {
+      return [...baseServices, 'Soins ambulatoires'];
+    } else if (type?.toLowerCase().includes('infirmerie')) {
+      return [...baseServices, 'Soins de base'];
+    }
+
+    return baseServices;
   };
 
   // Charger toutes les FOSA
@@ -539,6 +538,7 @@ const MapView: React.FC = () => {
   };
 
   // Charger les FOSA selon les filtres géographiques avec requêtes spatiales
+  // Remplacer la fonction fetchFosasBySpatialFilter par cette version
   const fetchFosasBySpatialFilter = async () => {
     try {
       let endpoint = '';
@@ -577,14 +577,24 @@ const MapView: React.FC = () => {
         console.log('Chargement FOSA spatial depuis:', endpoint);
         const response: any = await axios.get(`${import.meta.env.VITE_API_URL || 'https://minsante.vps.it-grafik.com/api/v1'}${endpoint}`);
 
-        if (response.data && response.data.data) {
+        console.log('Réponse API spatiale:', response.data);
+
+        if (response.data && response.data.success && response.data.data) {
           spatialData = response.data.data;
           console.log(`${spatialData.length} FOSA chargées via filtre spatial`);
 
-          // Transformer les FOSAs depuis l'API spatiale vers le format Hospital
-          const transformedHospitals = await transformFosasToHospitals(spatialData);
-          setHospitals(transformedHospitals);
+          if (spatialData.length > 0) {
+            // Transformer les FOSAs depuis l'API spatiale vers le format Hospital
+            const transformedHospitals = await transformFosasToHospitals(spatialData);
+            console.log('Hôpitaux transformés:', transformedHospitals.length);
+            setHospitals(transformedHospitals);
+          } else {
+            console.log('Aucune FOSA trouvée pour ce filtre spatial');
+            setHospitals([]);
+          }
           return;
+        } else {
+          console.warn('Réponse API spatiale invalide:', response.data);
         }
       }
 
@@ -598,7 +608,6 @@ const MapView: React.FC = () => {
       fetchHospitalsData();
     }
   };
-
   useEffect(() => {
     const allLoaded = !loadingProgress.cameroonPolygon &&
       !loadingProgress.regionsData &&
