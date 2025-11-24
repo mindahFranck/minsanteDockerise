@@ -577,13 +577,22 @@ const MapView: React.FC = () => {
         }
       }
 
-      // Si un filtre spatial est actif, charger depuis l'API
+      // Si un filtre spatial est actif, charger depuis l'API spatiale
       if (endpoint) {
         const response: any = await axios.get(`${import.meta.env.VITE_API_URL || 'https://minsante.vps.it-grafik.com/api/v1'}${endpoint}`);
         if (response.data && response.data.data) {
-          // Transformer les FOSAs depuis l'API spatiale
-          const spatialFosas = response.data.data;
-          fetchHospitalsData(); // Recharger pour transformer en Hospital[]
+          // Transformer les FOSAs depuis l'API spatiale vers le format Hospital
+          const spatialFosas = response.data.data.map((fosa: any) => ({
+            id: fosa.id,
+            nom: fosa.nom,
+            type: fosa.type,
+            latitude: fosa.latitude,
+            longitude: fosa.longitude,
+            estFerme: fosa.estFerme || false,
+            situation: fosa.situation,
+            capaciteLits: fosa.capaciteLits,
+          }));
+          setHospitals(spatialFosas);
         }
       } else {
         // Aucun filtre spatial actif, charger toutes les FOSA
@@ -591,6 +600,8 @@ const MapView: React.FC = () => {
       }
     } catch (err) {
       console.error('Erreur chargement FOSA spatial:', err);
+      // En cas d'erreur, charger toutes les FOSA
+      fetchHospitalsData();
     }
   };
 
