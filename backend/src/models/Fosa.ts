@@ -23,6 +23,9 @@ export class Fosa extends Model {
   public longitude?: number
   public latitude?: number
 
+  // Géométrie spatiale (POINT)
+  public geom?: any
+
   // Questions OUI/NON
   public aCloture?: boolean
   public aTitreFoncier?: boolean
@@ -127,6 +130,11 @@ Fosa.init(
     latitude: {
       type: DataTypes.DECIMAL(10, 7),
       allowNull: true,
+    },
+    // Géométrie spatiale (POINT)
+    geom: {
+      type: DataTypes.GEOMETRY('POINT', 4326),
+      allowNull: false,
     },
     // Questions OUI/NON
     aCloture: {

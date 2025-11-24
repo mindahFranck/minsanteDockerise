@@ -3,14 +3,16 @@
 import type React from "react"
 
 import { useEffect, useState } from "react"
-import { Plus, Search, ImageIcon } from "lucide-react"
+import { Plus, Search, ImageIcon, Filter, X as XIcon } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
 import ConfirmDialog from "../components/ConfirmDialog"
-import { fosaService } from "../services/fosaService"
+import { fosaService, type Fosa as FosaServiceType } from "../services/fosaService"
 import { arrondissementService } from "../services/arrondissementService"
 import { airesanteService } from "../services/airesanteService"
-import type { Fosa, Arrondissement, Airesante } from "../types"
+import type { Arrondissement, Airesante } from "../types"
+
+type Fosa = FosaServiceType
 
 export default function FosasPage() {
   const [fosas, setFosas] = useState<Fosa[]>([])
@@ -25,6 +27,15 @@ export default function FosasPage() {
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>("")
+
+  // Filtres
+  const [showFilters, setShowFilters] = useState(false)
+  const [filterType, setFilterType] = useState("")
+  const [filterCategorie, setFilterCategorie] = useState("")
+  const [filterStatut, setFilterStatut] = useState("all") // all, ouvert, fermé
+  const [filterFonctionnel, setFilterFonctionnel] = useState("all") // all, oui, non
+  const [filterSecurite, setFilterSecurite] = useState("all") // all, titre_foncier, cloture, both, none
+
   // Tabs removed - single simple form now
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean
@@ -75,6 +86,52 @@ export default function FosasPage() {
       setLoading(false)
     }
   }
+
+  // Appliquer les filtres côté client
+  const filteredFosas = fosas.filter((fosa) => {
+    // Filtre Type
+    if (filterType && fosa.type !== filterType) return false
+
+    // Filtre Catégorie
+    if (filterCategorie && (fosa as any).catRec !== filterCategorie) return false
+
+    // Filtre Statut (Ouvert/Fermé)
+    if (filterStatut !== "all") {
+      if (filterStatut === "ouvert" && fosa.estFerme) return false
+      if (filterStatut === "fermé" && !fosa.estFerme) return false
+    }
+
+    // Filtre Fonctionnel
+    if (filterFonctionnel !== "all") {
+      const isFonctionnel = (fosa as any).fonction
+      if (filterFonctionnel === "oui" && !isFonctionnel) return false
+      if (filterFonctionnel === "non" && isFonctionnel) return false
+    }
+
+    // Filtre Sécurité
+    if (filterSecurite !== "all") {
+      const hasTF = fosa.aTitreFoncier
+      const hasCloture = fosa.aCloture
+      if (filterSecurite === "titre_foncier" && !hasTF) return false
+      if (filterSecurite === "cloture" && !hasCloture) return false
+      if (filterSecurite === "both" && (!hasTF || !hasCloture)) return false
+      if (filterSecurite === "none" && (hasTF || hasCloture)) return false
+    }
+
+    return true
+  })
+
+  // Fonction pour réinitialiser tous les filtres
+  const clearFilters = () => {
+    setFilterType("")
+    setFilterCategorie("")
+    setFilterStatut("all")
+    setFilterFonctionnel("all")
+    setFilterSecurite("all")
+  }
+
+  // Vérifier si des filtres sont actifs
+  const hasActiveFilters = filterType || filterCategorie || filterStatut !== "all" || filterFonctionnel !== "all" || filterSecurite !== "all"
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -277,24 +334,140 @@ export default function FosasPage() {
         </button>
       </div>
 
-      <div className="flex gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Rechercher..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          />
+      <div className="space-y-4">
+        <div className="flex gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Rechercher..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
+              showFilters || hasActiveFilters
+                ? "bg-blue-50 border-blue-500 text-blue-700"
+                : "border-gray-300 text-gray-700 hover:bg-gray-50"
+            }`}
+          >
+            <Filter className="w-5 h-5" />
+            Filtres
+            {hasActiveFilters && (
+              <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
+                Actifs
+              </span>
+            )}
+          </button>
         </div>
+
+        {/* Panneau de filtres */}
+        {showFilters && (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-gray-800">Filtres</h3>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                >
+                  <XIcon className="w-4 h-4" />
+                  Réinitialiser
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-5 gap-4">
+              {/* Filtre Type */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Tous</option>
+                  <option value="Hôpital">Hôpital</option>
+                  <option value="Centre de Santé">Centre de Santé</option>
+                  <option value="Dispensaire">Dispensaire</option>
+                  <option value="Clinique">Clinique</option>
+                  <option value="Poste de Santé">Poste de Santé</option>
+                </select>
+              </div>
+
+              {/* Filtre Catégorie */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
+                <select
+                  value={filterCategorie}
+                  onChange={(e) => setFilterCategorie(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Toutes</option>
+                  <option value="CHU">CHU</option>
+                  <option value="CHR">CHR</option>
+                  <option value="CHD">CHD</option>
+                  <option value="CMA">CMA</option>
+                  <option value="CSI">CSI</option>
+                </select>
+              </div>
+
+              {/* Filtre Statut */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+                <select
+                  value={filterStatut}
+                  onChange={(e) => setFilterStatut(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">Tous</option>
+                  <option value="ouvert">Ouvert</option>
+                  <option value="fermé">Fermé</option>
+                </select>
+              </div>
+
+              {/* Filtre Fonctionnel */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Fonctionnel</label>
+                <select
+                  value={filterFonctionnel}
+                  onChange={(e) => setFilterFonctionnel(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">Tous</option>
+                  <option value="oui">Oui</option>
+                  <option value="non">Non</option>
+                </select>
+              </div>
+
+              {/* Filtre Sécurité */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Sécurité</label>
+                <select
+                  value={filterSecurite}
+                  onChange={(e) => setFilterSecurite(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">Tous</option>
+                  <option value="titre_foncier">Titre Foncier</option>
+                  <option value="cloture">Clôture</option>
+                  <option value="both">TF + Clôture</option>
+                  <option value="none">Aucun</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center h-64">Chargement...</div>
       ) : (
         <DataTable
-          data={fosas}
+          data={filteredFosas}
           columns={columns}
           onEdit={handleEdit}
           onDelete={handleDelete}

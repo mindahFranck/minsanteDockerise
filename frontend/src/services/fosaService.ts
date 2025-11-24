@@ -10,6 +10,21 @@ export interface Fosa {
   image?: string | null
   airesanteId: number
   arrondissementId: number
+
+  // Coordonnées
+  longitude?: number
+  latitude?: number
+
+  // Questions OUI/NON
+  aCloture?: boolean
+  aTitreFoncier?: boolean
+  connecteeElectricite?: boolean
+  typeCourant?: string
+
+  // Relations
+  arrondissement?: any
+  airesante?: any
+
   createdAt?: string
   updatedAt?: string
 }

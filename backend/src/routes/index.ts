@@ -22,6 +22,7 @@ import auditRoutes from "./audit.routes"
 import communeRoutes from "./commune.routes"
 import camerounRoutes from "./cameroun.routes"
 import importRoutes from "./import.routes"
+import importFosaRoutes from "./import-fosa.routes"
 
 const router = Router()
 
@@ -36,6 +37,7 @@ router.use("/arrondissements", arrondissementRoutes)
 router.use("/districts", districtRoutes)
 router.use("/airesantes", airesanteRoutes)
 router.use("/fosas", fosaRoutes)
+router.use("/import-fosa", importFosaRoutes)
 router.use("/batiments", batimentRoutes)
 router.use("/services", serviceRoutes)
 router.use("/personnels", personnelRoutes)

@@ -173,6 +173,26 @@ export class FosaController extends BaseController<any> {
     })
   })
 
+  getFosasByDepartementSpatial = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const departementId = Number.parseInt(req.params.departementId)
+    const fosas = await this.fosaService.getFosasByDepartementSpatial(departementId)
+    res.json({
+      success: true,
+      data: fosas,
+      count: fosas.length
+    })
+  })
+
+  getFosasByArrondissementSpatial = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const arrondissementId = Number.parseInt(req.params.arrondissementId)
+    const fosas = await this.fosaService.getFosasByArrondissementSpatial(arrondissementId)
+    res.json({
+      success: true,
+      data: fosas,
+      count: fosas.length
+    })
+  })
+
   static validation = [
     body("nom").notEmpty().withMessage("Name is required"),
     body("type").optional().isString(),

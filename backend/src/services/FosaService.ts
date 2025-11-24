@@ -8,6 +8,30 @@ export class FosaService extends BaseService<Fosa> {
     super(Fosa)
   }
 
+  // Override findAll to exclude geom
+  async findAll(options?: any): Promise<Fosa[]> {
+    const updatedOptions = {
+      ...options,
+      attributes: {
+        exclude: ['geom'],
+        ...options?.attributes
+      }
+    };
+    return await super.findAll(updatedOptions);
+  }
+
+  // Override findById to exclude geom
+  async findById(id: number, options?: any): Promise<Fosa> {
+    const updatedOptions = {
+      ...options,
+      attributes: {
+        exclude: ['geom'],
+        ...options?.attributes
+      }
+    };
+    return await super.findById(id, updatedOptions);
+  }
+
   async getWithRelations(id: number) {
     return await this.findById(id, {
       include: [
@@ -239,7 +263,7 @@ export class FosaService extends BaseService<Fosa> {
     };
   }
 
-  // Méthode avec vraie jointure spatiale PostGIS - FOSAs dans une région
+  // Méthode avec vraie jointure spatiale - FOSAs dans une région
   async getFosasByRegionSpatial(regionId: number) {
     const query = `
       SELECT
@@ -254,21 +278,17 @@ export class FosaService extends BaseService<Fosa> {
         a.id as airesante_id,
         a.nom_as as airesante_nom,
         a.code_as as airesante_code,
-        ST_AsGeoJSON(a.geom) as airesante_geojson,
         d.id as district_id,
         d.nom_ds as district_nom,
         d.code_ds as district_code,
-        ST_AsGeoJSON(d.geom) as district_geojson,
         r.id as region_id,
         r.nom as region_nom,
-        ST_AsGeoJSON(r.geom) as region_geojson,
         arr.id as arrondissement_id,
-        arr.nom as arrondissement_nom,
-        ST_AsGeoJSON(arr.geom) as arrondissement_geojson
+        arr.nom as arrondissement_nom
       FROM fosas f
-      INNER JOIN airesantes a ON f.airesante_id = a.id
-      INNER JOIN districts d ON a.district_id = d.id
-      INNER JOIN regions r ON ST_Contains(r.geom, d.geom) AND r.id = :regionId
+      INNER JOIN regions r ON r.id = :regionId AND ST_Within(f.geom, r.geom)
+      LEFT JOIN airesantes a ON f.airesante_id = a.id
+      LEFT JOIN districts d ON a.district_id = d.id
       LEFT JOIN arrondissements arr ON f.arrondissement_id = arr.id
       ORDER BY d.nom_ds, a.nom_as, f.nom
     `;
@@ -287,27 +307,23 @@ export class FosaService extends BaseService<Fosa> {
       estFerme: row.est_ferme,
       situation: row.situation,
       capaciteLits: row.capacite_lits,
-      airesante: {
+      airesante: row.airesante_id ? {
         id: row.airesante_id,
         nom: row.airesante_nom,
         code: row.airesante_code,
-        geojson: row.airesante_geojson ? JSON.parse(row.airesante_geojson) : null,
-      },
-      district: {
+      } : null,
+      district: row.district_id ? {
         id: row.district_id,
         nom: row.district_nom,
         code: row.district_code,
-        geojson: row.district_geojson ? JSON.parse(row.district_geojson) : null,
-      },
-      region: {
+      } : null,
+      region: row.region_id ? {
         id: row.region_id,
         nom: row.region_nom,
-        geojson: row.region_geojson ? JSON.parse(row.region_geojson) : null,
-      },
+      } : null,
       arrondissement: row.arrondissement_id ? {
         id: row.arrondissement_id,
         nom: row.arrondissement_nom,
-        geojson: row.arrondissement_geojson ? JSON.parse(row.arrondissement_geojson) : null,
       } : null,
     }));
   }
@@ -325,13 +341,11 @@ export class FosaService extends BaseService<Fosa> {
         f.situation,
         a.id as airesante_id,
         a.nom_as as airesante_nom,
-        ST_AsGeoJSON(a.geom) as airesante_geojson,
         d.id as district_id,
-        d.nom_ds as district_nom,
-        ST_AsGeoJSON(d.geom) as district_geojson
+        d.nom_ds as district_nom
       FROM fosas f
-      INNER JOIN airesantes a ON f.airesante_id = a.id
-      INNER JOIN districts d ON ST_Contains(d.geom, a.geom) AND d.id = :districtId
+      INNER JOIN districts d ON d.id = :districtId AND ST_Within(f.geom, d.geom)
+      LEFT JOIN airesantes a ON f.airesante_id = a.id
       ORDER BY a.nom_as, f.nom
     `;
 
@@ -348,16 +362,14 @@ export class FosaService extends BaseService<Fosa> {
       longitude: row.longitude,
       estFerme: row.est_ferme,
       situation: row.situation,
-      airesante: {
+      airesante: row.airesante_id ? {
         id: row.airesante_id,
         nom: row.airesante_nom,
-        geojson: row.airesante_geojson ? JSON.parse(row.airesante_geojson) : null,
-      },
-      district: {
+      } : null,
+      district: row.district_id ? {
         id: row.district_id,
         nom: row.district_nom,
-        geojson: row.district_geojson ? JSON.parse(row.district_geojson) : null,
-      },
+      } : null,
     }));
   }
 
@@ -374,10 +386,9 @@ export class FosaService extends BaseService<Fosa> {
         f.situation,
         f.capacite_lits,
         a.id as airesante_id,
-        a.nom_as as airesante_nom,
-        ST_AsGeoJSON(a.geom) as airesante_geojson
+        a.nom_as as airesante_nom
       FROM fosas f
-      INNER JOIN airesantes a ON f.airesante_id = a.id AND a.id = :airesanteId
+      INNER JOIN airesantes a ON a.id = :airesanteId AND ST_Within(f.geom, a.geom)
       ORDER BY f.nom
     `;
 
@@ -395,11 +406,104 @@ export class FosaService extends BaseService<Fosa> {
       estFerme: row.est_ferme,
       situation: row.situation,
       capaciteLits: row.capacite_lits,
-      airesante: {
+      airesante: row.airesante_id ? {
         id: row.airesante_id,
         nom: row.airesante_nom,
-        geojson: row.airesante_geojson ? JSON.parse(row.airesante_geojson) : null,
-      },
+      } : null,
+    }));
+  }
+
+  // FOSAs dans un arrondissement avec jointure spatiale
+  async getFosasByArrondissementSpatial(arrondissementId: number) {
+    const query = `
+      SELECT
+        f.id,
+        f.nom,
+        f.type,
+        f.latitude,
+        f.longitude,
+        f.est_ferme,
+        f.situation,
+        f.capacite_lits,
+        arr.id as arrondissement_id,
+        arr.nom as arrondissement_nom,
+        a.id as airesante_id,
+        a.nom_as as airesante_nom
+      FROM fosas f
+      INNER JOIN arrondissements arr ON arr.id = :arrondissementId AND ST_Within(f.geom, arr.geom)
+      LEFT JOIN airesantes a ON f.airesante_id = a.id
+      ORDER BY f.nom
+    `;
+
+    const results = await sequelize.query(query, {
+      replacements: { arrondissementId },
+      type: QueryTypes.SELECT,
+    });
+
+    return results.map((row: any) => ({
+      id: row.id,
+      nom: row.nom,
+      type: row.type,
+      latitude: row.latitude,
+      longitude: row.longitude,
+      estFerme: row.est_ferme,
+      situation: row.situation,
+      capaciteLits: row.capacite_lits,
+      arrondissement: row.arrondissement_id ? {
+        id: row.arrondissement_id,
+        nom: row.arrondissement_nom,
+      } : null,
+      airesante: row.airesante_id ? {
+        id: row.airesante_id,
+        nom: row.airesante_nom,
+      } : null,
+    }));
+  }
+
+  // FOSAs dans un département avec jointure spatiale
+  async getFosasByDepartementSpatial(departementId: number) {
+    const query = `
+      SELECT
+        f.id,
+        f.nom,
+        f.type,
+        f.latitude,
+        f.longitude,
+        f.est_ferme,
+        f.situation,
+        f.capacite_lits,
+        dep.id as departement_id,
+        dep.departement as departement_nom,
+        a.id as airesante_id,
+        a.nom_as as airesante_nom
+      FROM fosas f
+      INNER JOIN departements dep ON dep.id = :departementId AND ST_Within(f.geom, dep.geom)
+      LEFT JOIN airesantes a ON f.airesante_id = a.id
+      ORDER BY f.nom
+    `;
+
+    const results = await sequelize.query(query, {
+      replacements: { departementId },
+      type: QueryTypes.SELECT,
+    });
+
+    return results.map((row: any) => ({
+      id: row.id,
+      nom: row.nom,
+      type: row.type,
+      latitude: row.latitude,
+      longitude: row.longitude,
+      estFerme: row.est_ferme,
+      situation: row.situation,
+      capaciteLits: row.capacite_lits,
+      departement: row.departement_id ? {
+        id: row.departement_id,
+        nom: row.departement_nom,
+      } : null,
+      airesante: row.airesante_id ? {
+        id: row.airesante_id,
+        nom: row.airesante_nom,
+      } : null,
     }));
   }
 }

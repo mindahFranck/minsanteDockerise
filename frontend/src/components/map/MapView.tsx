@@ -544,6 +544,63 @@ const MapView: React.FC = () => {
     if (allLoaded) setLoading(false);
   }, [loadingProgress]);
 
+  // Charger les FOSA selon les filtres géographiques avec requêtes spatiales
+  const fetchFosasBySpatialFilter = async () => {
+    try {
+      let endpoint = '';
+
+      // Déterminer quelle route spatiale utiliser selon le filtre actif
+      if (selectedAiresante !== 'all') {
+        const airesante = airesantesData.find(a => a.nom_as === selectedAiresante);
+        if (airesante) {
+          endpoint = `/fosas/spatial/airesante/${airesante.id}`;
+        }
+      } else if (selectedDistrict !== 'all') {
+        const district = districtsData.find(d => d.nom_ds === selectedDistrict);
+        if (district) {
+          endpoint = `/fosas/spatial/district/${district.id}`;
+        }
+      } else if (selectedArrondissement !== 'all') {
+        const arrondissement = arrondissementsData.find(a => a.nom === selectedArrondissement);
+        if (arrondissement) {
+          endpoint = `/fosas/spatial/arrondissement/${arrondissement.id}`;
+        }
+      } else if (selectedDepartement !== 'all') {
+        const departement = departementsData.find(d => d.departement === selectedDepartement);
+        if (departement) {
+          endpoint = `/fosas/spatial/departement/${departement.id}`;
+        }
+      } else if (selectedRegion !== 'all') {
+        const region = regionsData.find(r => r.nom === selectedRegion);
+        if (region) {
+          endpoint = `/fosas/spatial/region/${region.id}`;
+        }
+      }
+
+      // Si un filtre spatial est actif, charger depuis l'API
+      if (endpoint) {
+        const response: any = await axios.get(`${import.meta.env.VITE_API_URL || 'https://minsante.vps.it-grafik.com/api/v1'}${endpoint}`);
+        if (response.data && response.data.data) {
+          // Transformer les FOSAs depuis l'API spatiale
+          const spatialFosas = response.data.data;
+          fetchHospitalsData(); // Recharger pour transformer en Hospital[]
+        }
+      } else {
+        // Aucun filtre spatial actif, charger toutes les FOSA
+        fetchHospitalsData();
+      }
+    } catch (err) {
+      console.error('Erreur chargement FOSA spatial:', err);
+    }
+  };
+
+  // Recharger les FOSA quand les filtres géographiques changent
+  useEffect(() => {
+    if (regionsData.length > 0 && departementsData.length > 0) {
+      fetchFosasBySpatialFilter();
+    }
+  }, [selectedRegion, selectedDepartement, selectedArrondissement, selectedDistrict, selectedAiresante]);
+
   // Chargement initial : uniquement Cameroun, régions, départements, communes et FOSA
   useEffect(() => {
     const loadInitial = async () => {

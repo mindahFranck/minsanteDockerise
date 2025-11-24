@@ -10,7 +10,8 @@ async function importFosaData() {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     port: process.env.DB_PORT || 3306,
-    multipleStatements: true
+    multipleStatements: true,
+    connectTimeout: 120000
   });
 
   try {
@@ -86,13 +87,14 @@ async function importFosaData() {
           cloture,         // 10 (clôture dans le fichier)
           longitude,       // 11
           latitude,        // 12
-          geom            // 13
+          geom,            // 13
+          libelle          // 14 - NOUVEAU: Nom de la FOSA
         ] = parts;
 
         // Préparer les valeurs avec défauts
         const insertData = {
           // Champs requis
-          nom: `FOSA ${id}`,  // Valeur par défaut pour le nom
+          nom: libelle || `FOSA ${id}`,  // Utiliser LIBELLE si disponible, sinon valeur par défaut
           arrondissement_id: defaultArrondissementId,
           airesante_id: defaultAiresanteId,
 
@@ -123,15 +125,21 @@ async function importFosaData() {
           updated_at: new Date()
         };
 
+        // Créer la géométrie POINT à partir des coordonnées
+        let geomValue = 'ST_GeomFromText(\'POINT(0 0)\', 4326)'; // Point par défaut
+        if (insertData.longitude && insertData.latitude) {
+          geomValue = `ST_GeomFromText('POINT(${insertData.longitude} ${insertData.latitude})', 4326)`;
+        }
+
         // Insérer dans la base de données
         await conn.execute(
           `INSERT INTO fosas (
             nom, type, capacite_lits, est_ferme, situation, image,
-            arrondissement_id, airesante_id, longitude, latitude,
+            arrondissement_id, airesante_id, longitude, latitude, geom,
             a_cloture, connectee_electricite, type_courant, a_titre_foncier,
             org_unit, fonction, statut_rec, cat_rec, nom_direct,
             created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ${geomValue}, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             insertData.nom,
             insertData.type,
@@ -143,6 +151,7 @@ async function importFosaData() {
             insertData.airesante_id,
             insertData.longitude,
             insertData.latitude,
+            // geom est inséré via la fonction SQL ST_GeomFromText
             insertData.a_cloture,
             insertData.connectee_electricite,
             insertData.type_courant,
