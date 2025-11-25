@@ -1,47 +1,47 @@
-import { Model, DataTypes } from "sequelize"
-import sequelize from "../config/database"
+import { Model, DataTypes } from "sequelize";
+import sequelize from "../config/database";
 
 export class Fosa extends Model {
-  public id!: number
-  public nom!: string
-  public type?: string
-  public capaciteLits?: number
-  public estFerme?: boolean
-  public situation?: string
-  public image?: string
-  public arrondissementId!: number
-  public airesanteId!: number
+  public id!: number;
+  public nom!: string;
+  public type?: string;
+  public capaciteLits?: number;
+  public estFerme?: boolean;
+  public situation?: string;
+  public image?: string;
+  public arrondissementId!: number;
+  public airesanteId!: number;
 
   // Nouveaux champs (Page 4 du document)
-  public orgUnit?: string        // Nom de la FOSA ou centre de formation
-  public fonction?: boolean       // Fonctionnel (oui/non)
-  public statutRec?: string       // Statut de la FOSA (formation sanitaire/centre de formation)
-  public catRec?: string          // Catégorie de la FOSA
-  public nomDirect?: string       // Nom du directeur
+  public orgUnit?: string; // Nom de la FOSA ou centre de formation
+  public fonction?: boolean; // Fonctionnel (oui/non)
+  public statutRec?: string; // Statut de la FOSA (formation sanitaire/centre de formation)
+  public catRec?: string; // Catégorie de la FOSA
+  public nomDirect?: string; // Nom du directeur
 
   // Coordonnées
-  public longitude?: number
-  public latitude?: number
+  public longitude?: number;
+  public latitude?: number;
 
   // Géométrie spatiale (POINT)
-  public geom?: any
+  public geom?: any;
 
   // Questions OUI/NON
-  public aCloture?: boolean
-  public aTitreFoncier?: boolean
-  public connecteeElectricite?: boolean
-  public typeCourant?: string
+  public aCloture?: boolean;
+  public aTitreFoncier?: boolean;
+  public connecteeElectricite?: boolean;
+  public typeCourant?: string;
 
-  public readonly createdAt!: Date
-  public readonly updatedAt!: Date
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 
   // Relations (counts calculés via includes)
-  public readonly arrondissement?: any
-  public readonly airesante?: any
-  public readonly batiments?: any[]
-  public readonly vehicules?: any[]
-  public readonly equipements?: any[]
-  public readonly personnels?: any[]
+  public readonly arrondissement?: any;
+  public readonly airesante?: any;
+  public readonly batiments?: any[];
+  public readonly vehicules?: any[];
+  public readonly equipements?: any[];
+  public readonly personnels?: any[];
 }
 
 Fosa.init(
@@ -106,21 +106,13 @@ Fosa.init(
     },
     arrondissementId: {
       type: DataTypes.BIGINT.UNSIGNED,
-      allowNull: false,
+      allowNull: true,
       field: "arrondissement_id",
-      references: {
-        model: "arrondissements",
-        key: "id",
-      },
     },
     airesanteId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       field: "airesante_id",
-      references: {
-        model: "airesantes",
-        key: "id",
-      },
     },
     // Coordonnées
     longitude: {
@@ -133,7 +125,7 @@ Fosa.init(
     },
     // Géométrie spatiale (POINT)
     geom: {
-      type: DataTypes.GEOMETRY('POINT', 4326),
+      type: DataTypes.GEOMETRY("POINT", 4326),
       allowNull: false,
     },
     // Questions OUI/NON
@@ -160,9 +152,9 @@ Fosa.init(
   },
   {
     sequelize,
-    tableName: "fosas",
+    tableName: "tmpfosa",
     timestamps: true,
-  },
-)
+  }
+);
 
-export default Fosa
+export default Fosa;

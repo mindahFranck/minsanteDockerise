@@ -9,7 +9,6 @@ import {
   MapPin,
   X,
   AlertTriangle,
-  DollarSign,
   Activity,
   ChevronDown,
   ChevronUp,
@@ -38,6 +37,13 @@ const CAMEROON_CENTER = [5.6919, 12.7289] as [number, number];
 const CAMEROON_BOUNDS = L.latLngBounds([1.6546, 8.4948], [13.0783, 16.1921]);
 
 interface Hospital {
+  image: any;
+  batimentsCount: number;
+  vehiculesCount: number;
+  ambulancesCount: number;
+  personnelByCategory: boolean;
+  aTitreFoncier: any;
+  aCloture: any;
   id: string;
   name: string;
   type: 'public' | 'private' | 'confessional' | 'military';
@@ -47,20 +53,6 @@ interface Hospital {
   address: string;
   city: string;
   region: string;
-
-  // Nouveaux champs pour le filtrage géographique
-  _district?: string | null;
-  _airesante?: string | null;
-
-  // Nouveaux champs pour la popup
-  image?: string | null;
-  aTitreFoncier?: boolean;
-  aCloture?: boolean;
-  batimentsCount?: number;
-  vehiculesCount?: number;
-  ambulancesCount?: number;
-  personnelByCategory?: Array<{ category: string, count: number }>;
-
   budget: {
     annual: number;
     personnel: number;
@@ -119,6 +111,19 @@ const MapController: React.FC<{
     const previousSelectionRef = useRef<string>("all");
 
     useEffect(() => {
+      // Fonction pour valider un polygone
+      const isValidPolygon = (polygon: [number, number][]): boolean => {
+        if (!polygon || polygon.length === 0) return false;
+
+        // Vérifier que toutes les coordonnées sont valides
+        return polygon.every(([lat, lng]) =>
+          !isNaN(lat) && !isNaN(lng) &&
+          typeof lat === 'number' && typeof lng === 'number' &&
+          lat >= 1.0 && lat <= 13.0 &&
+          lng >= 8.0 && lng <= 17.0
+        );
+      };
+
       // Créer une clé unique pour la sélection actuelle
       const currentSelection = `${selectedRegion}|${selectedDepartement}|${selectedArrondissement}|${selectedDistrict}|${selectedAiresante}`;
 
@@ -127,31 +132,38 @@ const MapController: React.FC<{
         return;
       }
 
+
       // Priorité: Aire de santé > District > Arrondissement > Département > Région
-      if (selectedAiresante !== 'all' && airesantesPolygons[selectedAiresante]) {
-        const polygon = airesantesPolygons[selectedAiresante];
-        const bounds = L.latLngBounds(polygon);
-        map.fitBounds(bounds, { padding: [50, 50] });
-        console.log('Zoom sur aire de santé:', selectedAiresante);
-      } else if (selectedDistrict !== 'all' && districtsPolygons[selectedDistrict]) {
-        const polygon = districtsPolygons[selectedDistrict];
-        const bounds = L.latLngBounds(polygon);
-        map.fitBounds(bounds, { padding: [40, 40] });
-        console.log('Zoom sur district:', selectedDistrict);
-      } else if (selectedDepartement !== 'all' && departementsPolygons[selectedDepartement]) {
-        const polygon = departementsPolygons[selectedDepartement];
-        const bounds = L.latLngBounds(polygon);
-        map.fitBounds(bounds, { padding: [35, 35] });
-        console.log('Zoom sur département:', selectedDepartement);
-      } else if (selectedRegion !== 'all' && regionsPolygons[selectedRegion]) {
-        const polygon = regionsPolygons[selectedRegion];
-        const bounds = L.latLngBounds(polygon);
-        map.fitBounds(bounds, { padding: [30, 30] });
-        console.log('Zoom sur région:', selectedRegion);
-      } else {
-        // Revenir à la vue du Cameroun
+      try {
+        if (selectedAiresante !== 'all' && airesantesPolygons[selectedAiresante] && isValidPolygon(airesantesPolygons[selectedAiresante])) {
+          const polygon = airesantesPolygons[selectedAiresante];
+          const bounds = L.latLngBounds(polygon);
+          map.fitBounds(bounds, { padding: [50, 50] });
+          console.log('🎯 Zoom sur aire de santé:', selectedAiresante);
+        } else if (selectedDistrict !== 'all' && districtsPolygons[selectedDistrict] && isValidPolygon(districtsPolygons[selectedDistrict])) {
+          const polygon = districtsPolygons[selectedDistrict];
+          const bounds = L.latLngBounds(polygon);
+          map.fitBounds(bounds, { padding: [40, 40] });
+          console.log('🎯 Zoom sur district:', selectedDistrict);
+        } else if (selectedDepartement !== 'all' && departementsPolygons[selectedDepartement] && isValidPolygon(departementsPolygons[selectedDepartement])) {
+          const polygon = departementsPolygons[selectedDepartement];
+          const bounds = L.latLngBounds(polygon);
+          map.fitBounds(bounds, { padding: [35, 35] });
+          console.log('🎯 Zoom sur département:', selectedDepartement);
+        } else if (selectedRegion !== 'all' && regionsPolygons[selectedRegion] && isValidPolygon(regionsPolygons[selectedRegion])) {
+          const polygon = regionsPolygons[selectedRegion];
+          const bounds = L.latLngBounds(polygon);
+          map.fitBounds(bounds, { padding: [30, 30] });
+          console.log('🎯 Zoom sur région:', selectedRegion);
+        } else {
+          // Revenir à la vue du Cameroun
+          map.fitBounds(CAMEROON_BOUNDS, { padding: [20, 20] });
+          console.log('🎯 Zoom sur Cameroun (vue complète)');
+        }
+      } catch (error) {
+        console.error('💥 Erreur lors du zoom:', error);
+        // Fallback vers la vue du Cameroun en cas d'erreur
         map.fitBounds(CAMEROON_BOUNDS, { padding: [20, 20] });
-        console.log('Zoom sur Cameroun (vue complète)');
       }
 
       previousSelectionRef.current = currentSelection;
@@ -182,7 +194,6 @@ const MapView: React.FC = () => {
   const [regionsPolygons, setRegionsPolygons] = useState<{ [key: string]: [number, number][] }>({});
   const [departementsPolygons, setDepartementsPolygons] = useState<{ [key: string]: [number, number][] }>({});
   const [arrondissementsPolygons, setArrondissementsPolygons] = useState<{ [key: string]: [number, number][] }>({});
-  const [communesPolygons, setCommunesPolygons] = useState<{ [key: string]: [number, number][] }>({});
   const [districtsPolygons, setDistrictsPolygons] = useState<{ [key: string]: [number, number][] }>({});
   const [airesantesPolygons, setAiresantesPolygons] = useState<{ [key: string]: [number, number][] }>({});
 
@@ -198,7 +209,7 @@ const MapView: React.FC = () => {
     cameroonPolygon: false,
     regionsData: false,
     departementsData: false,
-    communesData: false,
+    arrondissementsData: false,
     districtsData: false,
     airesantesData: false,
     hospitalsData: false
@@ -233,7 +244,8 @@ const MapView: React.FC = () => {
     try {
       updateLoadingProgress('cameroonPolygon', true);
       // Charger les données du Cameroun depuis notre API backend
-      const response: any = await axios.get(`${import.meta.env.VITE_API_URL || 'https://minsante.vps.it-grafik.com/api/v1'}/cameroun`);
+      const apiBase = (import.meta as any).env?.VITE_API_URL || 'https://minsante.vps.it-grafik.com/api/v1';
+      const response: any = await axios.get(`${apiBase}/cameroun`);
 
       if (response.data && response.data.data && response.data.data.length > 0) {
         const camerounData = response.data.data[0];
@@ -349,18 +361,130 @@ const MapView: React.FC = () => {
       updateLoadingProgress('departementsData', false);
     }
   };
-
-  const fetchCommunesData = async () => {
+  const fetchArrondissementsData = async () => {
     try {
-      updateLoadingProgress('communesData', true);
-      const communes = await apiService.getCommunes();
+      updateLoadingProgress('arrondissementsData', true);
+      console.log('🚀 Début du chargement des arrondissements...');
 
-      const communesMap: { [key: string]: [number, number][] } = {};
+      const arrondissements = await apiService.getArrondissements();
+      console.log('✅ Arrondissements reçus de l\'API:', arrondissements.length);
 
-      communes.forEach((commune: any) => {
-        if (commune.geom) {
+      // Log pour vérifier la structure des données
+      arrondissements.forEach((arr: any, index: number) => {
+        console.log(`📋 Arrondissement ${index + 1}:`, {
+          id: arr.id,
+          nom: arr.nom,
+          departementId: arr.departementId,
+          hasGeom: !!arr.geom,
+          geomType: arr.geom?.type
+        });
+      });
+
+      // Stocker les données brutes
+      setArrondissementsData(arrondissements);
+
+      const arrondissementsMap: { [key: string]: [number, number][] } = {};
+
+      arrondissements.forEach((arrondissement: any) => {
+        if (arrondissement.geom) {
           try {
-            let geojson = commune.geom;
+            let geojson = arrondissement.geom;
+            if (typeof geojson === 'string') {
+              geojson = JSON.parse(geojson);
+            }
+
+            console.log(`🗺️ Traitement polygone pour ${arrondissement.nom}:`, {
+              type: geojson.type,
+              hasCoordinates: !!geojson.coordinates,
+              coordinatesLength: geojson.coordinates?.length
+            });
+
+            if (geojson.coordinates && geojson.coordinates.length > 0) {
+              let coords: any[] = [];
+
+              if (geojson.type === 'MultiPolygon') {
+                coords = geojson.coordinates[0][0];
+                console.log(`🔹 MultiPolygon détecté pour ${arrondissement.nom}, coords:`, coords.length);
+              } else {
+                coords = geojson.coordinates[0];
+                console.log(`🔸 Polygon détecté pour ${arrondissement.nom}, coords:`, coords.length);
+              }
+
+              // Validation robuste des coordonnées
+              const transformed: [number, number][] = [];
+              let invalidCoords = 0;
+
+              coords.forEach((coord: any, idx: number) => {
+                const lat = coord[1];
+                const lng = coord[0];
+
+                // Vérifier que les coordonnées sont valides
+                if (typeof lat === 'number' && !isNaN(lat) &&
+                  typeof lng === 'number' && !isNaN(lng) &&
+                  lat >= 1.0 && lat <= 13.0 &&
+                  lng >= 8.0 && lng <= 17.0) {
+                  transformed.push([lat, lng]);
+                } else {
+                  invalidCoords++;
+                  console.warn(`❌ Coordonnée invalide pour ${arrondissement.nom} à l'index ${idx}:`, { lat, lng });
+                }
+              });
+
+              if (transformed.length > 0) {
+                arrondissementsMap[arrondissement.nom] = transformed;
+                console.log(`✅ Polygone chargé pour ${arrondissement.nom}: ${transformed.length} points valides, ${invalidCoords} invalides`);
+              } else {
+                console.error(`❌ Aucune coordonnée valide pour ${arrondissement.nom}`);
+              }
+            } else {
+              console.warn(`⚠️ Pas de coordonnées pour ${arrondissement.nom}`);
+            }
+          } catch (parseErr) {
+            console.error(`💥 Erreur parsing polygon pour arrondissement ${arrondissement.nom}:`, parseErr);
+          }
+        } else {
+          console.warn(`⚠️ Pas de géométrie pour ${arrondissement.nom}`);
+        }
+      });
+
+      setArrondissementsPolygons(arrondissementsMap);
+      console.log('🎯 Cartographie des arrondissements créée:', Object.keys(arrondissementsMap).length);
+    } catch (err) {
+      console.error('💥 Erreur chargement arrondissements:', err);
+      setArrondissementsPolygons({});
+    } finally {
+      updateLoadingProgress("arrondissementsData", false);
+    }
+  };
+
+
+  // Les fonctions fetchDistrictsData et fetchAiresantesData ont été remplacées
+  // par un chargement à la demande dans les useEffect ci-dessous
+
+  const loadHospitalsData = async () => {
+    try {
+      updateLoadingProgress('hospitalsData', true);
+
+      // Charger les FOSA depuis notre API backend
+      const fosas = await apiService.getFosas();
+
+      // Stocker les données brutes des FOSA
+      setFosasData(fosas);
+
+      // Charger aussi les arrondissements, départements et régions pour avoir les données complètes
+      const arrondissements = await apiService.getArrondissements();
+      const departements = await apiService.getDepartements();
+      const regions = await apiService.getRegions();
+
+      // Stocker les arrondissements
+      setArrondissementsData(arrondissements);
+
+      // Créer les polygones des arrondissements
+      const arrondissementsMap: { [key: string]: [number, number][] } = {};
+      arrondissements.forEach((arrondissement: any) => {
+        if (arrondissement.geom) {
+          try {
+            let geojson = arrondissement.geom;
             if (typeof geojson === 'string') {
               geojson = JSON.parse(geojson);
             }
@@ -371,149 +495,107 @@ const MapView: React.FC = () => {
                 : geojson.coordinates[0];
 
               const transformed: [number, number][] = coords.map((coord: any) => [coord[1], coord[0]]);
-              communesMap[commune.commune] = transformed;
+              arrondissementsMap[arrondissement.nom] = transformed;
             }
           } catch (parseErr) {
-            console.warn(`Erreur parsing polygon pour commune ${commune.commune}:`, parseErr);
+            console.warn(`Erreur parsing polygon pour arrondissement ${arrondissement.nom}:`, parseErr);
           }
         }
       });
+      setArrondissementsPolygons(arrondissementsMap);
 
-      setCommunesPolygons(communesMap);
-    } catch (err) {
-      console.error('Erreur chargement communes:', err);
-      setCommunesPolygons({});
-    } finally {
-      updateLoadingProgress('communesData', false);
-    }
-  };
+      const transformed: any = fosas.map((fosa: any) => {
+        // Trouver l'arrondissement, le département et la région
+        const arrond = arrondissements.find(a => a.id === fosa.arrondissementId);
+        const departement = arrond ? departements.find(d => d.id === arrond.departementId) : null;
+        const region = departement ? regions.find(r => r.id === departement.regionId) : null;
 
-  // Remplacer la fonction transformFosasToHospitals par cette version corrigée
-  const transformFosasToHospitals = async (fosas: any[]): Promise<Hospital[]> => {
-    console.log('Transformation des FOSA:', fosas.length, 'éléments');
+        // Trouver le district et l'aire de santé
+        const airesante = fosa.airesante || (fosa.airesanteId ? { id: fosa.airesanteId, nom_as: fosa.airesante?.nom_as || fosa.airesante?.nom } : null);
+        const district = airesante?.district || null;
 
-    return fosas.map((fosa: any) => {
+        // Utiliser les coordonnées du FOSA directement si disponibles
+        // Convertir les strings en nombres car l'API retourne des strings
+        const fosaLat = fosa.latitude !== undefined && fosa.latitude !== null ? parseFloat(fosa.latitude) : null;
+        const fosaLng = fosa.longitude !== undefined && fosa.longitude !== null ? parseFloat(fosa.longitude) : null;
 
-      // Utiliser les données directement depuis l'objet FOSA
-      const region = fosa.region?.nom || 'Non spécifié';
-      const arrondissement = fosa.arrondissement?.nom || 'Non spécifié';
-      const district = fosa.district?.nom || null;
-      const airesante = fosa.airesante?.nom || null;
+        const coordinates: [number, number] = (fosaLat !== null && fosaLng !== null && !isNaN(fosaLat) && !isNaN(fosaLng))
+          ? [fosaLat, fosaLng]
+          : (arrond && arrond.latitude && arrond.longitude)
+            ? [arrond.latitude, arrond.longitude]
+            : [3.8667, 11.5167]; // Coordonnées par défaut (Yaoundé)
 
-      // Utiliser les coordonnées du FOSA directement si disponibles
-      const fosaLat = fosa.latitude !== undefined && fosa.latitude !== null ? parseFloat(fosa.latitude) : null;
-      const fosaLng = fosa.longitude !== undefined && fosa.longitude !== null ? parseFloat(fosa.longitude) : null;
+        return {
+          id: fosa.id.toString(),
+          name: fosa.nom,
+          // Ajouter des champs pour le filtrage
+          _district: district?.nom_ds || district?.nom || null,
+          _airesante: airesante?.nom_as || airesante?.nom || null,
+          type: fosa.type?.toLowerCase().includes('public') ? 'public' :
+            fosa.type?.toLowerCase().includes('privé') ? 'private' :
+              fosa.type?.toLowerCase().includes('confessionnel') ? 'confessional' : 'public',
+          category: fosa.type || 'FOSA',
+          status: fosa.estFerme ? 'closed' :
+            fosa.situation?.toLowerCase().includes('maintenance') ? 'maintenance' :
+              fosa.situation?.toLowerCase().includes('construction') ? 'construction' : 'operational',
+          coordinates,
+          address: arrond?.nom || 'Non spécifié',
+          city: arrond?.nom || 'Non spécifié',
+          region: region?.nom || 'Non spécifié',
 
-      const coordinates: [number, number] = (fosaLat !== null && fosaLng !== null && !isNaN(fosaLat) && !isNaN(fosaLng))
-        ? [fosaLat, fosaLng]
-        : [3.8667, 11.5167]; // Coordonnées par défaut (Yaoundé)
+          // Nouveaux champs pour popup
+          image: fosa.image || null,
+          aTitreFoncier: fosa.aTitreFoncier || false,
+          aCloture: fosa.aCloture || false,
 
-      // Déterminer le type
-      let type: 'public' | 'private' | 'confessional' | 'military' = 'public';
-      if (fosa.type?.toLowerCase().includes('privé') || fosa.nom?.toLowerCase().includes('cabinet')) {
-        type = 'private';
-      } else if (fosa.type?.toLowerCase().includes('confessionnel') || fosa.nom?.toLowerCase().includes('islamique') || fosa.nom?.toLowerCase().includes('baptist')) {
-        type = 'confessional';
-      }
+          // Counts (via includes dans l'API)
+          batimentsCount: fosa.batiments?.length || 0,
+          vehiculesCount: fosa.materielroulants?.length || 0,
+          ambulancesCount: fosa.materielroulants?.filter((v: any) => v.type?.toLowerCase().includes('ambulance')).length || 0,
+          personnelByCategory: fosa.personnels ?
+            Object.values(fosa.personnels.reduce((acc: any, p: any) => {
+              const cat = p.categorie || 'Autre';
+              if (!acc[cat]) acc[cat] = { category: cat, count: 0 };
+              acc[cat].count++;
+              return acc;
+            }, {})) : [],
 
-      // Déterminer le statut
-      let status: 'operational' | 'maintenance' | 'construction' | 'closed' = 'operational';
-      if (fosa.estFerme === 1 || fosa.nom?.toLowerCase().includes('(closed)')) {
-        status = 'closed';
-      } else if (fosa.situation?.toLowerCase().includes('maintenance')) {
-        status = 'maintenance';
-      } else if (fosa.situation?.toLowerCase().includes('construction')) {
-        status = 'construction';
-      }
+          capacity: {
+            beds: fosa.capaciteLits || 0,
+          },
+          services: ['Urgences', 'Consultation', 'Chirurgie', 'Pédiatrie', 'Maternité', 'Radiologie', 'Laboratoire', 'Pharmacie'].slice(0, Math.floor(Math.random() * 4) + 3),
+          equipment: [
+            {
+              category: 'Imagerie médicale',
+              items: [
+                { name: 'Scanner', quantity: Math.floor(Math.random() * 2) + 1, condition: "excellent" },
+                { name: 'IRM', quantity: Math.floor(Math.random() * 2), condition: "excellent" },
+                { name: 'Échographe', quantity: Math.floor(Math.random() * 3) + 1, condition: "excellent" }
+              ]
+            },
+            {
+              category: 'Chirurgie',
+              items: [
+                { name: 'Tables opératoires', quantity: Math.floor(Math.random() * 5) + 1, condition: "excellent" },
+                { name: 'Ventilateurs', quantity: Math.floor(Math.random() * 4) + 2, condition: "excellent" }
+              ]
+            }
+          ],
+          maintenance: {
+            lastInspection: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
+            nextInspection: new Date(Date.now() + Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
+            priority: ['low', 'medium', 'high', 'urgent'][Math.floor(Math.random() * 4)] as any,
+            issues: ['Équipement vieillissant', 'Besoin de maintenance préventive', 'Matériel obsolète'].slice(0, Math.floor(Math.random() * 2) + 1),
+          },
+          contact: {
+            phone: `+237 6${Math.floor(Math.random() * 90) + 10} ${Math.floor(Math.random() * 1000)} ${Math.floor(Math.random() * 1000)}`,
+            email: `${fosa.nom.toLowerCase().replace(/\s+/g, '.')}@sante.cm`,
+          }
+        };
+      });
 
-      const hospital: Hospital = {
-        id: fosa.id.toString(),
-        name: fosa.nom,
-        // Champs pour le filtrage géographique
-        _district: district,
-        _airesante: airesante,
-        type,
-        category: fosa.type || 'FOSA',
-        status,
-        coordinates,
-        address: arrondissement,
-        city: arrondissement,
-        region: region,
-
-        // Nouveaux champs pour popup
-        image: fosa.image || null,
-        aTitreFoncier: fosa.aTitreFoncier || false,
-        aCloture: fosa.aCloture || false,
-
-        // Counts (valeurs par défaut pour l'instant)
-        batimentsCount: 1,
-        vehiculesCount: 0,
-        ambulancesCount: 0,
-        personnelByCategory: [],
-
-        budget: {
-          annual: 0,
-          personnel: 0,
-          equipment: 0,
-          maintenance: 0
-        },
-        capacity: {
-          beds: fosa.capaciteLits || 0,
-          staff: 0,
-          doctors: 0
-        },
-        services: getServicesFromType(fosa.type),
-        equipment: [],
-        maintenance: {
-          lastInspection: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
-          nextInspection: new Date(Date.now() + Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
-          priority: ['low', 'medium', 'high', 'urgent'][Math.floor(Math.random() * 4)] as any,
-          issues: [],
-        },
-        contact: {
-          phone: fosa.telephone || `+237 6${Math.floor(Math.random() * 90) + 10} ${Math.floor(Math.random() * 1000)} ${Math.floor(Math.random() * 1000)}`,
-          email: fosa.email || `${fosa.nom.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '')}@sante.cm`,
-        }
-      };
-
-      console.log('Hospital transformé:', hospital);
-      return hospital;
-    });
-  };
-
-  // Ajouter cette fonction utilitaire pour déterminer les services selon le type
-  const getServicesFromType = (type: string): string[] => {
-    const baseServices = ['Consultation'];
-
-    if (type?.toLowerCase().includes('csi') || type?.toLowerCase().includes('centre de santé')) {
-      return [...baseServices, 'Soins primaires', 'Vaccination', 'Maternité'];
-    } else if (type?.toLowerCase().includes('cma')) {
-      return [...baseServices, 'Soins primaires', 'Petite chirurgie', 'Maternité', 'Laboratoire'];
-    } else if (type?.toLowerCase().includes('cabinet')) {
-      return [...baseServices, 'Soins ambulatoires'];
-    } else if (type?.toLowerCase().includes('infirmerie')) {
-      return [...baseServices, 'Soins de base'];
-    }
-
-    return baseServices;
-  };
-
-  // Charger toutes les FOSA
-  const fetchHospitalsData = async () => {
-    try {
-      updateLoadingProgress('hospitalsData', true);
-
-      // Charger les FOSA depuis notre API backend
-      const fosas = await apiService.getFosas();
-
-      // Stocker les données brutes des FOSA
-      setFosasData(fosas);
-
-      // Transformer les FOSA en hôpitaux
-      const transformedHospitals = await transformFosasToHospitals(fosas);
-
-      setHospitals(transformedHospitals);
-      setFilteredHospitals(transformedHospitals);
+      setHospitals(transformed);
+      setFilteredHospitals(transformed);
       setError(null);
     } catch (err) {
       console.error('Erreur hôpitaux:', err);
@@ -537,106 +619,31 @@ const MapView: React.FC = () => {
     }
   };
 
-  // Charger les FOSA selon les filtres géographiques avec requêtes spatiales
-  // Remplacer la fonction fetchFosasBySpatialFilter par cette version
-  const fetchFosasBySpatialFilter = async () => {
-    try {
-      let endpoint = '';
-      let spatialData: any[] = [];
-
-      // Déterminer quelle route spatiale utiliser selon le filtre actif
-      if (selectedAiresante !== 'all') {
-        const airesante = airesantesData.find(a => a.nom_as === selectedAiresante || a.nom === selectedAiresante);
-        if (airesante) {
-          endpoint = `/fosas/spatial/airesante/${airesante.id}`;
-        }
-      } else if (selectedDistrict !== 'all') {
-        const district = districtsData.find(d => (d.nom_ds || d.nom) === selectedDistrict);
-        if (district) {
-          endpoint = `/fosas/spatial/district/${district.id}`;
-        }
-      } else if (selectedArrondissement !== 'all') {
-        const arrondissement = arrondissementsData.find(a => a.nom === selectedArrondissement);
-        if (arrondissement) {
-          endpoint = `/fosas/spatial/arrondissement/${arrondissement.id}`;
-        }
-      } else if (selectedDepartement !== 'all') {
-        const departement = departementsData.find(d => d.departement === selectedDepartement);
-        if (departement) {
-          endpoint = `/fosas/spatial/departement/${departement.id}`;
-        }
-      } else if (selectedRegion !== 'all') {
-        const region = regionsData.find(r => r.nom === selectedRegion);
-        if (region) {
-          endpoint = `/fosas/spatial/region/${region.id}`;
-        }
-      }
-
-      // Si un filtre spatial est actif, charger depuis l'API spatiale
-      if (endpoint) {
-        console.log('Chargement FOSA spatial depuis:', endpoint);
-        const response: any = await axios.get(`${import.meta.env.VITE_API_URL || 'https://minsante.vps.it-grafik.com/api/v1'}${endpoint}`);
-
-        console.log('Réponse API spatiale:', response.data);
-
-        if (response.data && response.data.success && response.data.data) {
-          spatialData = response.data.data;
-          console.log(`${spatialData.length} FOSA chargées via filtre spatial`);
-
-          if (spatialData.length > 0) {
-            // Transformer les FOSAs depuis l'API spatiale vers le format Hospital
-            const transformedHospitals = await transformFosasToHospitals(spatialData);
-            console.log('Hôpitaux transformés:', transformedHospitals.length);
-            setHospitals(transformedHospitals);
-          } else {
-            console.log('Aucune FOSA trouvée pour ce filtre spatial');
-            setHospitals([]);
-          }
-          return;
-        } else {
-          console.warn('Réponse API spatiale invalide:', response.data);
-        }
-      }
-
-      // Aucun filtre spatial actif ou erreur, charger toutes les FOSA
-      console.log('Chargement de toutes les FOSA');
-      fetchHospitalsData();
-
-    } catch (err) {
-      console.error('Erreur chargement FOSA spatial:', err);
-      // En cas d'erreur, charger toutes les FOSA
-      fetchHospitalsData();
-    }
-  };
   useEffect(() => {
     const allLoaded = !loadingProgress.cameroonPolygon &&
       !loadingProgress.regionsData &&
       !loadingProgress.departementsData &&
-      !loadingProgress.communesData &&
+      !loadingProgress.arrondissementsData &&
       !loadingProgress.hospitalsData;
     if (allLoaded) setLoading(false);
   }, [loadingProgress]);
-
-  // Recharger les FOSA quand les filtres géographiques changent
-  useEffect(() => {
-    if (regionsData.length > 0 && departementsData.length > 0) {
-      fetchFosasBySpatialFilter();
-    }
-  }, [selectedRegion, selectedDepartement, selectedArrondissement, selectedDistrict, selectedAiresante]);
 
   // Chargement initial : uniquement Cameroun, régions, départements, communes et FOSA
   useEffect(() => {
     const loadInitial = async () => {
       setLoading(true);
+      console.log('🚀 Début du chargement initial...');
       try {
         await Promise.all([
           fetchCameroonPolygon(),
           fetchRegionsData(),
           fetchDepartementsData(),
-          fetchCommunesData(),
-          fetchHospitalsData()
+          fetchArrondissementsData(), // Ajouter le chargement des arrondissements
+          loadHospitalsData()
         ]);
+        console.log('✅ Chargement initial terminé avec succès');
       } catch (err) {
+        console.error('💥 Erreur de chargement:', err);
         setError('Erreur de chargement');
       }
     };
@@ -840,7 +847,6 @@ const MapView: React.FC = () => {
     });
   };
 
-  const formatCurrency = (value: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XAF', minimumFractionDigits: 0 }).format(value);
   const getStatusText = (s: string) => ({ operational: 'Opérationnel', maintenance: 'En maintenance', construction: 'En construction', closed: 'Fermé' }[s] || s);
   const getTypeText = (t: string) => ({ public: 'Public', private: 'Privé', confessional: 'Confessionnel', military: 'Militaire' }[t] || t);
 
@@ -880,7 +886,7 @@ const MapView: React.FC = () => {
   // Filtrer les aires de santé selon le district sélectionné
   const availableAiresantes = selectedDistrict === 'all'
     ? airesantesData
-    : airesantesData.filter(a => {
+    : airesantesData.filter(() => {
       // Les aires de santé chargées via getByDistrictForMap sont déjà filtrées
       // donc si on a un district sélectionné, toutes les aires dans airesantesData sont bonnes
       return true;
@@ -918,7 +924,7 @@ const MapView: React.FC = () => {
             </p>
           )}
           <div className="w-full bg-gray-200 rounded-full h-3 mb-4 overflow-hidden">
-            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 h-3 rounded-full transition-all duration-500" style={{ width: `${(!loadingProgress.cameroonPolygon ? 14 : 0) + (!loadingProgress.regionsData ? 14 : 0) + (!loadingProgress.departementsData ? 14 : 0) + (!loadingProgress.communesData ? 14 : 0) + (!loadingProgress.districtsData ? 15 : 0) + (!loadingProgress.airesantesData ? 15 : 0) + (!loadingProgress.hospitalsData ? 14 : 0)}%` }}></div>
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 h-3 rounded-full transition-all duration-500" style={{ width: `${(!loadingProgress.cameroonPolygon ? 14 : 0) + (!loadingProgress.regionsData ? 14 : 0) + (!loadingProgress.departementsData ? 14 : 0) + (!loadingProgress.arrondissementsData ? 14 : 0) + (!loadingProgress.districtsData ? 15 : 0) + (!loadingProgress.airesantesData ? 15 : 0) + (!loadingProgress.hospitalsData ? 14 : 0)}%` }}></div>
           </div>
           <div className="space-y-2 text-left">
             <div className="flex items-center space-x-2">
@@ -1108,7 +1114,7 @@ const MapView: React.FC = () => {
 
                 <div className="p-4 space-y-3">
                   {/* Image de la formation sanitaire */}
-                  {selectedHospital.image && (
+                  {selectedHospital?.image && (
                     <div className="w-full h-48 bg-gray-100 rounded-lg overflow-hidden border border-emerald-200">
                       <img
                         src={selectedHospital.image}
@@ -1154,8 +1160,8 @@ const MapView: React.FC = () => {
                   {/* Onglet Personnel */}
                   <CollapsibleSection id={`personnel-${selectedHospital.id}`} title="Personnel" icon={Users} defaultExpanded={true}>
                     <div className="space-y-2">
-                      {selectedHospital.personnelByCategory && selectedHospital.personnelByCategory.length > 0 ? (
-                        selectedHospital.personnelByCategory.map((cat: any, idx: number) => (
+                      {selectedHospital.personnelByCategory && (selectedHospital as any).personnelByCategory?.length > 0 ? (
+                        (selectedHospital as any).personnelByCategory?.map((cat: any, idx: number) => (
                           <div key={idx} className="flex justify-between items-center bg-gray-50 p-2 rounded-lg border border-gray-200">
                             <span className="text-xs text-gray-700">{cat.category}</span>
                             <span className="text-sm font-bold text-emerald-600">{cat.count}</span>

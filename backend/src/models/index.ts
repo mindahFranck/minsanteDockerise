@@ -44,7 +44,6 @@ export const setupAssociations = () => {
     foreignKey: "departementId",
     as: "arrondissementDepartement", // ← Unique alias
   });
-  Arrondissement.hasMany(Fosa, { foreignKey: "arrondissementId", as: "fosas" });
 
   // Commune associations - CHANGED ALIAS
   Commune.belongsTo(Departement, {
@@ -58,14 +57,7 @@ export const setupAssociations = () => {
 
   // Airesante associations
   Airesante.belongsTo(District, { foreignKey: "districtId", as: "district" });
-  Airesante.hasMany(Fosa, { foreignKey: "airesanteId", as: "fosas" });
 
-  // Fosa associations
-  Fosa.belongsTo(Arrondissement, {
-    foreignKey: "arrondissementId",
-    as: "arrondissement",
-  });
-  Fosa.belongsTo(Airesante, { foreignKey: "airesanteId", as: "airesante" });
   Fosa.hasMany(Batiment, { foreignKey: "fosaId", as: "batiments" });
   Fosa.hasMany(Personnel, { foreignKey: "fosaId", as: "personnels" });
   Fosa.hasMany(Materielroulant, {
@@ -112,7 +104,10 @@ export const setupAssociations = () => {
 
   // Materielroulant associations
   Materielroulant.belongsTo(Fosa, { foreignKey: "fosaId", as: "fosa" });
-  Materielroulant.belongsTo(Service, { foreignKey: "serviceId", as: "service" });
+  Materielroulant.belongsTo(Service, {
+    foreignKey: "serviceId",
+    as: "service",
+  });
 
   // Parametre associations
   Parametre.belongsTo(Fosa, { foreignKey: "fosaId", as: "fosa" });
