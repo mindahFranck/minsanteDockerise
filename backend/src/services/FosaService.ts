@@ -103,7 +103,7 @@ export class FosaService extends BaseService<Fosa> {
         f.fonction,
         f.statut_rec,
         f.cat_rec,
-        f.nom_direct,
+        f.nom_directeur,
         -- Jointure spatiale avec airesante
         a.id as airesante_id,
         a.nom_as as airesante_nom,
@@ -162,7 +162,7 @@ export class FosaService extends BaseService<Fosa> {
         f.fonction,
         f.statut_rec,
         f.cat_rec,
-        f.nom_direct,
+        f.nom_directeur,
         -- Jointure spatiale avec airesante
         a.id as airesante_id,
         a.nom_as as airesante_nom,
@@ -219,7 +219,7 @@ export class FosaService extends BaseService<Fosa> {
         f.fonction,
         f.statut_rec,
         f.cat_rec,
-        f.nom_direct,
+        f.nom_directeur,
         a.id as airesante_id,
         a.nom_as as airesante_nom,
         a.code_as as airesante_code,
@@ -258,7 +258,7 @@ export class FosaService extends BaseService<Fosa> {
       fonction: row.fonction,
       statutRec: row.statut_rec,
       catRec: row.cat_rec,
-      nomDirect: row.nom_direct,
+      nomDirect: row.nom_directeur,
       airesante: {
         id: row.airesante_id,
         nom: row.airesante_nom,
@@ -303,7 +303,7 @@ export class FosaService extends BaseService<Fosa> {
       fonction: row.fonction,
       statutRec: row.statut_rec,
       catRec: row.cat_rec,
-      nomDirect: row.nom_direct,
+      nomDirect: row.nom_directeur,
 
       // Relations includes
       batiments: fosaWithRelations?.batiments || [],
@@ -513,7 +513,7 @@ export class FosaService extends BaseService<Fosa> {
         f.capacite_lits,
         f.fonction,
         f.org_unit,
-        f.nom_direct,
+        f.nom_directeur,
         f.a_cloture,
         f.a_titre_foncier,
         f.connectee_electricite,
@@ -542,7 +542,7 @@ export class FosaService extends BaseService<Fosa> {
       capaciteLits: row.capacite_lits,
       fonction: row.fonction,
       orgUnit: row.org_unit,
-      nomDirect: row.nom_direct,
+      nomDirect: row.nom_directeur,
       aCloture: row.a_cloture,
       aTitreFoncier: row.a_titre_foncier,
       connecteeElectricite: row.connectee_electricite,

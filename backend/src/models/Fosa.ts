@@ -99,10 +99,10 @@ Fosa.init(
       allowNull: true,
       field: "cat_rec",
     },
-    nomDirect: {
+    nom_directeur: {
       type: DataTypes.STRING(200),
       allowNull: true,
-      field: "nom_direct",
+      field: "nom_directeur",
     },
     arrondissementId: {
       type: DataTypes.BIGINT.UNSIGNED,
