@@ -41,7 +41,6 @@ interface Hospital {
   batimentsCount: number;
   vehiculesCount: number;
   ambulancesCount: number;
-  // personnelByCategory is an array of category/count objects (or empty) produced by transformFosasToHospitals
   personnelByCategory: Array<{ category: string; count: number }>;
   aTitreFoncier: any;
   aCloture: any;
@@ -227,6 +226,9 @@ const MapView: React.FC = () => {
 
   const [activeTheme, setActiveTheme] = useState<ThematicTheme | null>(null);
 
+  // Référence pour suivre la sélection précédente
+  const previousSelectionRef = useRef<string>("all");
+
   const toggleLayer = (layer: keyof typeof layersVisibility) => {
     setLayersVisibility(prev => ({ ...prev, [layer]: !prev[layer] }));
   };
@@ -323,11 +325,22 @@ const MapView: React.FC = () => {
     });
   };
 
+  // Fonction pour nettoyer complètement les données FOSA
+  const clearFosaData = () => {
+    console.log('🧹 Nettoyage des données FOSA précédentes');
+    setHospitals([]);
+    setFilteredHospitals([]);
+    setFosasData([]);
+  };
+
   // Fonction pour charger les FOSA avec filtres spatiaux
   const fetchFosasBySpatialFilter = async () => {
     try {
       setLoadingFosas(true);
       setShowFosaLoader(true);
+
+      // Nettoyer les données précédentes avant de charger les nouvelles
+      clearFosaData();
 
       let endpoint = '';
       let spatialData: any[] = [];
@@ -336,51 +349,59 @@ const MapView: React.FC = () => {
         const airesante = allAiresantesData.find(a => a.nom_as === selectedAiresante || a.nom === selectedAiresante);
         if (airesante) {
           endpoint = `/fosas/spatial/airesante/${airesante.id}`;
+          console.log(`📍 Chargement FOSA pour aire de santé: ${selectedAiresante}`);
         }
       } else if (selectedDistrict !== 'all') {
         const district = allDistrictsData.find(d => (d.nom_ds || d.nom) === selectedDistrict);
         if (district) {
           endpoint = `/fosas/spatial/district/${district.id}`;
+          console.log(`📍 Chargement FOSA pour district: ${selectedDistrict}`);
         }
       } else if (selectedArrondissement !== 'all') {
         const arrondissement = allArrondissementsData.find(a => a.nom === selectedArrondissement);
         if (arrondissement) {
           endpoint = `/fosas/spatial/arrondissement/${arrondissement.id}`;
+          console.log(`📍 Chargement FOSA pour arrondissement: ${selectedArrondissement}`);
         }
       } else if (selectedDepartement !== 'all') {
         const departement = allDepartementsData.find(d => d.departement === selectedDepartement);
         if (departement) {
           endpoint = `/fosas/spatial/departement/${departement.id}`;
+          console.log(`📍 Chargement FOSA pour département: ${selectedDepartement}`);
         }
       } else if (selectedRegion !== 'all') {
         const region = allRegionsData.find(r => r.nom === selectedRegion);
         if (region) {
           endpoint = `/fosas/spatial/region/${region.id}`;
+          console.log(`📍 Chargement FOSA pour région: ${selectedRegion}`);
         }
       }
 
       if (endpoint) {
-        console.log('Chargement FOSA spatial depuis:', endpoint);
+        console.log('🌐 Appel API:', endpoint);
         const apiBase = (import.meta as any).env?.VITE_API_URL || 'https://minsante.vps.it-grafik.com/api/v1';
         const response: any = await axios.get(`${apiBase}${endpoint}`);
 
         if (response.data && response.data.data) {
           spatialData = response.data.data;
-          console.log(`${spatialData.length} FOSA chargées via filtre spatial`);
+          console.log(`✅ ${spatialData.length} FOSA chargées via filtre spatial`);
 
           const transformedHospitals = await transformFosasToHospitals(spatialData);
           setHospitals(transformedHospitals);
+          setFosasData(spatialData);
           setLoadingFosas(false);
           setShowFosaLoader(false);
           return;
         }
       }
 
-      console.log('Chargement de toutes les FOSA');
+      // Si aucun filtre spatial, charger toutes les FOSA
+      console.log('🌍 Chargement de toutes les FOSA');
       fetchHospitalsData();
 
     } catch (err) {
-      console.error('Erreur chargement FOSA spatial:', err);
+      console.error('❌ Erreur chargement FOSA spatial:', err);
+      // En cas d'erreur, charger toutes les FOSA
       fetchHospitalsData();
     } finally {
       setLoadingFosas(false);
@@ -392,6 +413,7 @@ const MapView: React.FC = () => {
   const fetchHospitalsData = async () => {
     try {
       updateLoadingProgress('hospitalsData', true);
+      console.log('🔄 Chargement de toutes les FOSA...');
       const fosas = await apiService.getFosas();
       setAllFosasData(fosas);
       setFosasData(fosas);
@@ -399,8 +421,9 @@ const MapView: React.FC = () => {
       setHospitals(transformedHospitals);
       setFilteredHospitals(transformedHospitals);
       setError(null);
+      console.log(`✅ ${fosas.length} FOSA chargées avec succès`);
     } catch (err) {
-      console.error('Erreur hôpitaux:', err);
+      console.error('❌ Erreur chargement hôpitaux:', err);
       try {
         const response = await fetch('/data/hospitals.json');
         if (response.ok) {
@@ -412,7 +435,7 @@ const MapView: React.FC = () => {
           setError('Impossible de charger les données');
         }
       } catch (fallbackErr) {
-        console.error('Erreur fallback hôpitaux:', fallbackErr);
+        console.error('❌ Erreur fallback hôpitaux:', fallbackErr);
         setError('Impossible de charger les données');
       }
     } finally {
@@ -443,12 +466,12 @@ const MapView: React.FC = () => {
               return;
             }
           } catch (parseErr) {
-            console.warn('Erreur parsing GeoJSON Cameroun:', parseErr);
+            console.warn('⚠️ Erreur parsing GeoJSON Cameroun:', parseErr);
           }
         }
       }
     } catch (err) {
-      console.error('Erreur polygone Cameroun:', err);
+      console.error('❌ Erreur polygone Cameroun:', err);
     } finally {
       updateLoadingProgress('cameroonPolygon', false);
     }
@@ -476,13 +499,13 @@ const MapView: React.FC = () => {
               regionsMap[region.nom] = transformed;
             }
           } catch (parseErr) {
-            console.warn(`Erreur parsing polygon pour région ${region.nom}:`, parseErr);
+            console.warn(`⚠️ Erreur parsing polygon pour région ${region.nom}:`, parseErr);
           }
         }
       });
       setRegionsPolygons(regionsMap);
     } catch (err) {
-      console.error('Erreur chargement régions:', err);
+      console.error('❌ Erreur chargement régions:', err);
       setRegionsPolygons({});
     } finally {
       updateLoadingProgress('regionsData', false);
@@ -511,13 +534,13 @@ const MapView: React.FC = () => {
               departementsMap[departement.departement] = transformed;
             }
           } catch (parseErr) {
-            console.warn(`Erreur parsing polygon pour département ${departement.departement}:`, parseErr);
+            console.warn(`⚠️ Erreur parsing polygon pour département ${departement.departement}:`, parseErr);
           }
         }
       });
       setDepartementsPolygons(departementsMap);
     } catch (err) {
-      console.error('Erreur chargement départements:', err);
+      console.error('❌ Erreur chargement départements:', err);
       setDepartementsPolygons({});
     } finally {
       updateLoadingProgress('departementsData', false);
@@ -546,13 +569,13 @@ const MapView: React.FC = () => {
               arrondissementsMap[arrondissement.nom] = transformed;
             }
           } catch (parseErr) {
-            console.warn(`Erreur parsing polygon pour arrondissement ${arrondissement.nom}:`, parseErr);
+            console.warn(`⚠️ Erreur parsing polygon pour arrondissement ${arrondissement.nom}:`, parseErr);
           }
         }
       });
       setArrondissementsPolygons(arrondissementsMap);
     } catch (err) {
-      console.error('Erreur chargement arrondissements:', err);
+      console.error('❌ Erreur chargement arrondissements:', err);
       setArrondissementsPolygons({});
     } finally {
       updateLoadingProgress('arrondissementsData', false);
@@ -654,14 +677,14 @@ const MapView: React.FC = () => {
                 }
               }
             } catch (parseErr) {
-              console.warn(`Erreur parsing polygon pour district ${district.nom_ds || district.nom}:`, parseErr);
+              console.warn(`⚠️ Erreur parsing polygon pour district ${district.nom_ds || district.nom}:`, parseErr);
             }
           }
         });
         setDistrictsPolygons(districtsMap);
         setProgressMessage('');
       } catch (err) {
-        console.error('Erreur chargement districts:', err);
+        console.error('❌ Erreur chargement districts:', err);
         setProgressMessage('Erreur lors du chargement des districts');
       } finally {
         updateLoadingProgress('districtsData', false);
@@ -712,14 +735,14 @@ const MapView: React.FC = () => {
                 }
               }
             } catch (parseErr) {
-              console.warn(`Erreur parsing polygon pour aire de santé:`, parseErr);
+              console.warn(`⚠️ Erreur parsing polygon pour aire de santé:`, parseErr);
             }
           }
         });
         setAiresantesPolygons(airesantesMap);
         setProgressMessage('');
       } catch (err) {
-        console.error('Erreur chargement aires de santé:', err);
+        console.error('❌ Erreur chargement aires de santé:', err);
         setProgressMessage('Erreur lors du chargement des aires de santé');
       } finally {
         updateLoadingProgress('airesantesData', false);
@@ -729,19 +752,35 @@ const MapView: React.FC = () => {
     loadAiresantesByDistrict();
   }, [selectedDistrict, allDistrictsData]);
 
-  // Recharger les FOSA quand la sélection géographique change
+  // Recharger les FOSA quand la sélection géographique change - CORRIGÉ
   useEffect(() => {
+    const currentSelection = `${selectedRegion}|${selectedDepartement}|${selectedArrondissement}|${selectedDistrict}|${selectedAiresante}`;
+
+    // Éviter les appels inutiles si la sélection n'a pas changé
+    if (currentSelection === previousSelectionRef.current) {
+      return;
+    }
+
+    console.log('🔄 Changement de sélection géographique:', currentSelection);
+
     if (selectedRegion !== 'all' || selectedDepartement !== 'all' || selectedArrondissement !== 'all' ||
       selectedDistrict !== 'all' || selectedAiresante !== 'all') {
       fetchFosasBySpatialFilter();
     } else {
+      // Si on revient à "all", charger toutes les FOSA
+      console.log('🌍 Retour à la vue globale - Chargement de toutes les FOSA');
+      clearFosaData(); // Nettoyer d'abord
       fetchHospitalsData();
     }
+
+    // Mettre à jour la référence
+    previousSelectionRef.current = currentSelection;
   }, [selectedRegion, selectedDepartement, selectedArrondissement, selectedDistrict, selectedAiresante]);
 
   // Filtrer les FOSA par type, statut, catégorie et recherche
   useEffect(() => {
     if (hospitals.length === 0) return;
+
     let filtered = hospitals;
 
     if (selectedType !== 'all') filtered = filtered.filter(h => h.type === selectedType);
@@ -755,6 +794,7 @@ const MapView: React.FC = () => {
       h.region.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    console.log(`🔍 Filtrage appliqué: ${filtered.length} FOSA affichées`);
     setFilteredHospitals(filtered);
   }, [selectedType, selectedStatus, selectedCategory, searchTerm, hospitals]);
 
@@ -1290,10 +1330,10 @@ const MapView: React.FC = () => {
 
               <div className="absolute bottom-8 left-4 z-[1000] max-w-sm space-y-3">
                 <ThematicAnalysis
-                  districtsData={districtsData}
-                  airesantesData={airesantesData}
-                  fosasData={allFosasData} // Utiliser toutes les FOSA pour l'analyse
+                  entitiesData={districtsData}
+                  fosasData={allFosasData}
                   onThemeChange={setActiveTheme}
+                  entityType="district"
                 />
 
                 {activeTheme && (
