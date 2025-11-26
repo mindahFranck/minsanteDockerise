@@ -705,7 +705,7 @@ export class FosaService extends BaseService<Fosa> {
       f.connectee_electricite,
       -- Informations du département
       dep.id as departement_id,
-      dep.nom as departement_nom,
+      dep.departement as departement_nom,
       -- Informations de l'aire de santé
       a.id as airesante_id,
       a.nom_as as airesante_nom,
