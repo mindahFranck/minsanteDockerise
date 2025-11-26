@@ -1,18 +1,19 @@
-import axios from 'axios';
-import { cacheService, CacheTTL, CacheKeys } from './cacheService';
+import axios from "axios";
+import { cacheService, CacheTTL, CacheKeys } from "./cacheService";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 // Add token to requests if available
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -141,7 +142,7 @@ export const apiService = {
     return cacheService.getOrFetch(
       CacheKeys.regions(),
       async () => {
-        const response = await apiClient.get('/regions');
+        const response = await apiClient.get("/regions");
         return response.data.data;
       },
       CacheTTL.REGIONS
@@ -153,7 +154,7 @@ export const apiService = {
     return cacheService.getOrFetch(
       CacheKeys.departements(),
       async () => {
-        const response = await apiClient.get('/departements');
+        const response = await apiClient.get("/departements");
         return response.data.data;
       },
       CacheTTL.DEPARTEMENTS
@@ -165,7 +166,7 @@ export const apiService = {
     return cacheService.getOrFetch(
       CacheKeys.arrondissements(),
       async () => {
-        const response = await apiClient.get('/arrondissements');
+        const response = await apiClient.get("/arrondissements");
         return response.data.data;
       },
       CacheTTL.ARRONDISSEMENTS
@@ -177,7 +178,7 @@ export const apiService = {
     return cacheService.getOrFetch(
       CacheKeys.fosas(),
       async () => {
-        const response = await apiClient.get('/fosas');
+        const response = await apiClient.get("/fosas");
         return response.data.data;
       },
       CacheTTL.FOSAS
@@ -200,7 +201,7 @@ export const apiService = {
     return cacheService.getOrFetch(
       CacheKeys.communes(),
       async () => {
-        const response = await apiClient.get('/communes');
+        const response = await apiClient.get("/communes");
         return response.data.data;
       },
       CacheTTL.COMMUNES
@@ -212,7 +213,7 @@ export const apiService = {
     return cacheService.getOrFetch(
       CacheKeys.cameroon(),
       async () => {
-        const response = await apiClient.get('/cameroun');
+        const response = await apiClient.get("/cameroun");
         return response.data.data;
       },
       CacheTTL.CAMEROON
@@ -224,7 +225,7 @@ export const apiService = {
     return cacheService.getOrFetch(
       CacheKeys.districts(),
       async () => {
-        const response = await apiClient.get('/districts');
+        const response = await apiClient.get("/districts");
         return response.data.data;
       },
       CacheTTL.DISTRICTS
@@ -236,7 +237,7 @@ export const apiService = {
     return cacheService.getOrFetch(
       CacheKeys.airesantes(),
       async () => {
-        const response = await apiClient.get('/airesantes');
+        const response = await apiClient.get("/airesantes");
         return response.data.data;
       },
       CacheTTL.AIRESANTES
