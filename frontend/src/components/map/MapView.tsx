@@ -172,6 +172,8 @@ const MapView: React.FC = () => {
   const [mapStyle, setMapStyle] = useState("osm");
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
+  const [allDataLoaded, setAllDataLoaded] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedHospital, setSelectedHospital] = useState<Hospital | null>(null);
@@ -584,10 +586,35 @@ const MapView: React.FC = () => {
 
   // Chargement initial
   useEffect(() => {
+    const checkAllDataLoaded = () => {
+      const criticalDataLoaded =
+        !loadingProgress.cameroonPolygon &&
+        !loadingProgress.regionsData &&
+        !loadingProgress.departementsData &&
+        !loadingProgress.arrondissementsData &&
+        !loadingProgress.hospitalsData &&
+        allRegionsData.length > 0 &&
+        allDepartementsData.length > 0 &&
+        allArrondissementsData.length > 0 &&
+        allFosasData.length > 0;
+
+      if (criticalDataLoaded && !allDataLoaded) {
+        console.log('✅ Toutes les données critiques sont chargées');
+        setAllDataLoaded(true);
+        setLoading(false);
+      }
+    };
+
+    checkAllDataLoaded();
+  }, [loadingProgress, allRegionsData, allDepartementsData, allArrondissementsData, allFosasData, allDataLoaded]);
+  useEffect(() => {
     const loadInitial = async () => {
       setLoading(true);
+      setAllDataLoaded(false);
       console.log('🚀 Début du chargement initial...');
+
       try {
+        // Charger les données critiques en parallèle
         await Promise.all([
           fetchCameroonPolygon(),
           fetchRegionsData(),
@@ -595,12 +622,16 @@ const MapView: React.FC = () => {
           fetchArrondissementsData(),
           fetchHospitalsData()
         ]);
-        console.log('✅ Chargement initial terminé avec succès');
+
+        console.log('✅ Chargement initial des données critiques terminé');
+
       } catch (err) {
         console.error('💥 Erreur de chargement:', err);
-        setError('Erreur de chargement');
+        setError('Erreur de chargement des données principales');
+        setLoading(false);
       }
     };
+
     loadInitial();
   }, []);
 
@@ -856,6 +887,48 @@ const MapView: React.FC = () => {
   };
 
   // Loader pour le filtrage des FOSA
+  // Ajouter ces fonctions utilitaires pour le loader
+  const calculateLoadingProgress = () => {
+    const totalItems = 5;
+    const loadedItems = [
+      !loadingProgress.cameroonPolygon,
+      !loadingProgress.regionsData && allRegionsData.length > 0,
+      !loadingProgress.departementsData && allDepartementsData.length > 0,
+      !loadingProgress.arrondissementsData && allArrondissementsData.length > 0,
+      !loadingProgress.hospitalsData && allFosasData.length > 0
+    ].filter(Boolean).length;
+
+    return (loadedItems / totalItems) * 100;
+  };
+
+  const DataLoadingIndicator = ({ label, isLoading, isLoaded }: {
+    label: string;
+    isLoading: boolean;
+    isLoaded: boolean
+  }) => (
+    <div className="flex items-center space-x-2">
+      <div className={`w-2 h-2 rounded-full ${isLoading ? 'bg-yellow-500 animate-pulse' :
+          isLoaded ? 'bg-green-500' : 'bg-gray-300'
+        }`}></div>
+      <span className="text-xs text-gray-500">{label}</span>
+      {isLoading && (
+        <svg className="animate-spin h-3 w-3 text-emerald-600 ml-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      )}
+    </div>
+  );
+
+  const getLoadingDetails = () => {
+    if (loadingProgress.regionsData) return "Chargement des régions...";
+    if (loadingProgress.departementsData) return "Chargement des départements...";
+    if (loadingProgress.arrondissementsData) return "Chargement des arrondissements...";
+    if (loadingProgress.hospitalsData) return "Chargement des FOSA...";
+    if (loadingProgress.cameroonPolygon) return "Chargement de la carte...";
+    return "Finalisation...";
+  };
+
   const FosaLoader = () => (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]">
       <div className="text-center bg-white p-8 rounded-2xl shadow-2xl border border-emerald-200 max-w-md w-full mx-4">
@@ -885,7 +958,7 @@ const MapView: React.FC = () => {
     </div>
   );
 
-  if (loading) {
+  if (loading && !allDataLoaded) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 flex items-center justify-center">
         <div className="text-center bg-white p-8 rounded-2xl shadow-2xl border border-emerald-200 max-w-md w-full mx-4">
@@ -893,45 +966,60 @@ const MapView: React.FC = () => {
             <Activity className="w-12 h-12 text-white animate-spin" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Chargement des données</h2>
-          <p className="text-gray-600 mb-6">Récupération des informations...</p>
+          <p className="text-gray-600 mb-6">Préparation de la cartographie...</p>
+
           {progressMessage && (
             <p className="text-sm text-emerald-600 font-semibold mb-4 animate-pulse">
               {progressMessage}
             </p>
           )}
+
           <div className="w-full bg-gray-200 rounded-full h-3 mb-4 overflow-hidden">
-            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 h-3 rounded-full transition-all duration-500" style={{ width: `${(!loadingProgress.cameroonPolygon ? 14 : 0) + (!loadingProgress.regionsData ? 14 : 0) + (!loadingProgress.departementsData ? 14 : 0) + (!loadingProgress.arrondissementsData ? 14 : 0) + (!loadingProgress.districtsData ? 15 : 0) + (!loadingProgress.airesantesData ? 15 : 0) + (!loadingProgress.hospitalsData ? 14 : 0)}%` }}></div>
+            <div
+              className="bg-gradient-to-r from-emerald-600 to-teal-600 h-3 rounded-full transition-all duration-500"
+              style={{
+                width: `${calculateLoadingProgress()}%`
+              }}
+            ></div>
           </div>
+
           <div className="space-y-2 text-left">
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${loadingProgress.cameroonPolygon ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
-              <span className="text-xs text-gray-500">Cameroun</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${loadingProgress.regionsData ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
-              <span className="text-xs text-gray-500">Régions</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${loadingProgress.departementsData ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
-              <span className="text-xs text-gray-500">Départements</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${loadingProgress.districtsData ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
-              <span className="text-xs text-gray-500">Districts sanitaires</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${loadingProgress.airesantesData ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
-              <span className="text-xs text-gray-500">Aires de santé</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${loadingProgress.hospitalsData ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
-              <span className="text-xs text-gray-500">FOSA</span>
-            </div>
+            <DataLoadingIndicator
+              label="Cameroun"
+              isLoading={loadingProgress.cameroonPolygon}
+              isLoaded={cameroonPolygon.length > 0}
+            />
+            <DataLoadingIndicator
+              label="Régions"
+              isLoading={loadingProgress.regionsData}
+              isLoaded={allRegionsData.length > 0}
+            />
+            <DataLoadingIndicator
+              label="Départements"
+              isLoading={loadingProgress.departementsData}
+              isLoaded={allDepartementsData.length > 0}
+            />
+            <DataLoadingIndicator
+              label="Arrondissements"
+              isLoading={loadingProgress.arrondissementsData}
+              isLoaded={allArrondissementsData.length > 0}
+            />
+            <DataLoadingIndicator
+              label="FOSA"
+              isLoading={loadingProgress.hospitalsData}
+              isLoaded={allFosasData.length > 0}
+            />
+          </div>
+
+          <div className="mt-4 text-xs text-gray-500">
+            {getLoadingDetails()}
           </div>
         </div>
       </div>
     );
   }
+
+
 
   if (error) {
     return (
