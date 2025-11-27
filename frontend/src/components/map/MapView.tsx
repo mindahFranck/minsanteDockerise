@@ -162,7 +162,8 @@ const MapView: React.FC = () => {
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [filteredHospitals, setFilteredHospitals] = useState<Hospital[]>([]);
   const [selectedType, setSelectedType] = useState<string>("all");
-  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedTitreFoncier, setSelectedTitreFoncier] = useState<string>("all");
+  const [selectedCloture, setSelectedCloture] = useState<string>("all");
   const [selectedRegion, setSelectedRegion] = useState<string>("all");
   const [selectedDepartement, setSelectedDepartement] = useState<string>("all");
   const [selectedArrondissement, setSelectedArrondissement] = useState<string>("all");
@@ -808,15 +809,32 @@ const MapView: React.FC = () => {
     previousSelectionRef.current = currentSelection;
   }, [selectedRegion, selectedDepartement, selectedArrondissement, selectedDistrict, selectedAiresante]);
 
-  // Filtrer les FOSA par type, statut, catégorie et recherche
+  // Filtrer les FOSA par type, titre foncier, clôture, catégorie et recherche
   useEffect(() => {
     if (hospitals.length === 0) return;
 
     let filtered = hospitals;
 
     if (selectedType !== 'all') filtered = filtered.filter(h => h.type === selectedType);
-    if (selectedStatus !== 'all') filtered = filtered.filter(h => h.status === selectedStatus);
     if (selectedCategory !== 'all') filtered = filtered.filter(h => h.category === selectedCategory);
+
+    // Filtre sur le titre foncier
+    if (selectedTitreFoncier !== 'all') {
+      filtered = filtered.filter(h => {
+        if (selectedTitreFoncier === 'yes') return h.aTitreFoncier === true;
+        if (selectedTitreFoncier === 'no') return h.aTitreFoncier === false;
+        return true;
+      });
+    }
+
+    // Filtre sur la clôture
+    if (selectedCloture !== 'all') {
+      filtered = filtered.filter(h => {
+        if (selectedCloture === 'yes') return h.aCloture === true;
+        if (selectedCloture === 'no') return h.aCloture === false;
+        return true;
+      });
+    }
 
     if (searchTerm) filtered = filtered.filter(h =>
       h.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -827,7 +845,7 @@ const MapView: React.FC = () => {
 
     console.log(`🔍 Filtrage appliqué: ${filtered.length} FOSA affichées`);
     setFilteredHospitals(filtered);
-  }, [selectedType, selectedStatus, selectedCategory, searchTerm, hospitals]);
+  }, [selectedType, selectedTitreFoncier, selectedCloture, selectedCategory, searchTerm, hospitals]);
 
   useEffect(() => {
     const allLoaded = !loadingProgress.cameroonPolygon &&
@@ -856,7 +874,7 @@ const MapView: React.FC = () => {
     return L.divIcon({
       html: `<div style="background-color: ${colors[hospital.status]}; width: 26px; height: 26px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 16px;">${icons[hospital.category] || '🏥'}</div>`,
       className: 'custom-marker',
-      iconSize: [20, 20],
+      iconSize: [15, 15],
       iconAnchor: [10, 10]
     });
   };
@@ -908,7 +926,7 @@ const MapView: React.FC = () => {
   }) => (
     <div className="flex items-center space-x-2">
       <div className={`w-2 h-2 rounded-full ${isLoading ? 'bg-yellow-500 animate-pulse' :
-          isLoaded ? 'bg-green-500' : 'bg-gray-300'
+        isLoaded ? 'bg-green-500' : 'bg-gray-300'
         }`}></div>
       <span className="text-xs text-gray-500">{label}</span>
       {isLoading && (
@@ -1018,8 +1036,6 @@ const MapView: React.FC = () => {
       </div>
     );
   }
-
-
 
   if (error) {
     return (
@@ -1141,12 +1157,17 @@ const MapView: React.FC = () => {
                 <option value="confessional">Confessionnel</option>
               </select>
 
-              <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70">
-                <option value="all">Tous statuts</option>
-                <option value="operational">Opérationnel</option>
-                <option value="maintenance">Maintenance</option>
-                <option value="construction">Construction</option>
-                <option value="closed">Fermé</option>
+              {/* Nouveaux filtres pour titre foncier et clôture */}
+              <select value={selectedTitreFoncier} onChange={(e) => setSelectedTitreFoncier(e.target.value)} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70">
+                <option value="all">Titre foncier</option>
+                <option value="yes">Avec titre</option>
+                <option value="no">Sans titre</option>
+              </select>
+
+              <select value={selectedCloture} onChange={(e) => setSelectedCloture(e.target.value)} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70">
+                <option value="all">Clôture</option>
+                <option value="yes">Avec clôture</option>
+                <option value="no">Sans clôture</option>
               </select>
 
               <div className="flex items-center space-x-2">

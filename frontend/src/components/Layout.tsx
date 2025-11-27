@@ -51,7 +51,6 @@ export default function Layout({ onLogout }: LayoutProps) {
       collapsible: false,
       items: [
         { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
-        { name: "Carte", href: "/dashboard/map", icon: Map },
       ]
     },
     {
@@ -112,9 +111,8 @@ export default function Layout({ onLogout }: LayoutProps) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex items-center justify-between h-16 px-6 border-b flex-shrink-0">
           <h1 className="text-xl font-bold text-gray-800">Santé Cameroun</h1>
@@ -133,9 +131,8 @@ export default function Layout({ onLogout }: LayoutProps) {
                   <div>
                     <button
                       onClick={() => toggleSection(section.title)}
-                      className={`flex items-center justify-between w-full px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
-                        hasActiveItem ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
-                      }`}
+                      className={`flex items-center justify-between w-full px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors ${hasActiveItem ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
+                        }`}
                     >
                       <span>{section.title}</span>
                       {isExpanded ? (
@@ -154,9 +151,8 @@ export default function Layout({ onLogout }: LayoutProps) {
                               key={item.name}
                               to={item.href}
                               onClick={() => setSidebarOpen(false)}
-                              className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                                isActive ? "bg-blue-50 text-blue-700" : "text-gray-600 hover:bg-gray-100"
-                              }`}
+                              className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${isActive ? "bg-blue-50 text-blue-700" : "text-gray-600 hover:bg-gray-100"
+                                }`}
                             >
                               <Icon className="w-4 h-4 mr-3" />
                               {item.name}
@@ -180,9 +176,8 @@ export default function Layout({ onLogout }: LayoutProps) {
                             key={item.name}
                             to={item.href}
                             onClick={() => setSidebarOpen(false)}
-                            className={`flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${
-                              isActive ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
-                            }`}
+                            className={`flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${isActive ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
+                              }`}
                           >
                             <Icon className="w-4 h-4 mr-3" />
                             {item.name}

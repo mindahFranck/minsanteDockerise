@@ -23,7 +23,6 @@ import CategoriesPage from "./pages/CategoriesPage"
 import DegradationsPage from "./pages/DegradationsPage"
 import ParametresPage from "./pages/ParametresPage"
 import UsersPage from "./pages/UsersPage"
-import MapPage from "./pages/MapPage"
 import MapView from "./components/map/MapView"
 import ImportExcelPage from "./pages/ImportExcelPage"
 
@@ -84,7 +83,6 @@ function App() {
           <Route path="import" element={<ImportExcelPage />} />
 
           {/* Visualisation */}
-          <Route path="map" element={<MapPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
