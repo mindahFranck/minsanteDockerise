@@ -10,12 +10,16 @@ import ConfirmDialog from "../components/ConfirmDialog"
 import { fosaService, type Fosa as FosaServiceType } from "../services/fosaService"
 import { arrondissementService } from "../services/arrondissementService"
 import { airesanteService } from "../services/airesanteService"
-import type { Arrondissement, Airesante } from "../types"
+import { regionService } from "../services/regionService"
+import { departementService } from "../services/departementService"
+import type { Arrondissement, Airesante, Region, Departement } from "../types"
 
 type Fosa = FosaServiceType
 
 export default function FosasPage() {
   const [fosas, setFosas] = useState<Fosa[]>([])
+  const [regions, setRegions] = useState<Region[]>([])
+  const [departements, setDepartements] = useState<Departement[]>([])
   const [arrondissements, setArrondissements] = useState<Arrondissement[]>([])
   const [airesantes, setAiresantes] = useState<Airesante[]>([])
   const [loading, setLoading] = useState(true)
@@ -30,6 +34,9 @@ export default function FosasPage() {
 
   // Filtres
   const [showFilters, setShowFilters] = useState(false)
+  const [filterRegion, setFilterRegion] = useState("")
+  const [filterDepartement, setFilterDepartement] = useState("")
+  const [filterArrondissement, setFilterArrondissement] = useState("")
   const [filterType, setFilterType] = useState("")
   const [filterCategorie, setFilterCategorie] = useState("")
   const [filterStatut, setFilterStatut] = useState("all") // all, ouvert, fermé
@@ -71,13 +78,17 @@ export default function FosasPage() {
   const loadData = async () => {
     try {
       setLoading(true)
-      const [fosaResponse, arrResponse, airesResponse] = await Promise.all([
+      const [fosaResponse, regionResponse, deptResponse, arrResponse, airesResponse] = await Promise.all([
         fosaService.getAll({ page, limit: 10, search }),
+        regionService.getAll({ limit: 1000 }),
+        departementService.getAll({ limit: 1000 }),
         arrondissementService.getAll({ limit: 1000 }),
         airesanteService.getAll({ limit: 2000 }),
       ])
       setFosas(fosaResponse.data)
       setPagination(fosaResponse.pagination)
+      setRegions(regionResponse.data)
+      setDepartements(deptResponse.data)
       setArrondissements(arrResponse.data)
       setAiresantes(airesResponse.data)
     } catch (error) {
@@ -89,6 +100,30 @@ export default function FosasPage() {
 
   // Appliquer les filtres côté client
   const filteredFosas = fosas.filter((fosa) => {
+    // Filtre Région
+    if (filterRegion) {
+      const arrondissement = arrondissements.find(a => a.id === fosa.arrondissementId)
+      if (!arrondissement) return false
+      const departement = departements.find(d => d.id === arrondissement.departementId)
+      if (!departement) return false
+      const region = regions.find(r => r.id === departement.regionId)
+      if (!region || region.nom !== filterRegion) return false
+    }
+
+    // Filtre Département
+    if (filterDepartement) {
+      const arrondissement = arrondissements.find(a => a.id === fosa.arrondissementId)
+      if (!arrondissement) return false
+      const departement = departements.find(d => d.id === arrondissement.departementId)
+      if (!departement || departement.departement !== filterDepartement) return false
+    }
+
+    // Filtre Arrondissement
+    if (filterArrondissement) {
+      const arrondissement = arrondissements.find(a => a.id === fosa.arrondissementId)
+      if (!arrondissement || arrondissement.nom !== filterArrondissement) return false
+    }
+
     // Filtre Type
     if (filterType && fosa.type !== filterType) return false
 
@@ -123,6 +158,9 @@ export default function FosasPage() {
 
   // Fonction pour réinitialiser tous les filtres
   const clearFilters = () => {
+    setFilterRegion("")
+    setFilterDepartement("")
+    setFilterArrondissement("")
     setFilterType("")
     setFilterCategorie("")
     setFilterStatut("all")
@@ -131,7 +169,7 @@ export default function FosasPage() {
   }
 
   // Vérifier si des filtres sont actifs
-  const hasActiveFilters = filterType || filterCategorie || filterStatut !== "all" || filterFonctionnel !== "all" || filterSecurite !== "all"
+  const hasActiveFilters = filterRegion || filterDepartement || filterArrondissement || filterType || filterCategorie || filterStatut !== "all" || filterFonctionnel !== "all" || filterSecurite !== "all"
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -380,7 +418,79 @@ export default function FosasPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-5 gap-4">
+            <div className="grid grid-cols-4 gap-4 mb-4">
+              {/* Filtre Région */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Région</label>
+                <select
+                  value={filterRegion}
+                  onChange={(e) => {
+                    setFilterRegion(e.target.value)
+                    setFilterDepartement("")
+                    setFilterArrondissement("")
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Toutes les régions</option>
+                  {regions.map((r) => (
+                    <option key={r.id} value={r.nom}>
+                      {r.nom}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtre Département */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Département</label>
+                <select
+                  value={filterDepartement}
+                  onChange={(e) => {
+                    setFilterDepartement(e.target.value)
+                    setFilterArrondissement("")
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  disabled={!filterRegion}
+                >
+                  <option value="">Tous les départements</option>
+                  {departements
+                    .filter((d) => {
+                      if (!filterRegion) return true
+                      const region = regions.find((r) => r.nom === filterRegion)
+                      return region && d.regionId === region.id
+                    })
+                    .map((d) => (
+                      <option key={d.id} value={d.departement}>
+                        {d.departement}
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              {/* Filtre Arrondissement */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Arrondissement</label>
+                <select
+                  value={filterArrondissement}
+                  onChange={(e) => setFilterArrondissement(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  disabled={!filterDepartement}
+                >
+                  <option value="">Tous les arrondissements</option>
+                  {arrondissements
+                    .filter((a) => {
+                      if (!filterDepartement) return true
+                      const departement = departements.find((d) => d.departement === filterDepartement)
+                      return departement && a.departementId === departement.id
+                    })
+                    .map((a) => (
+                      <option key={a.id} value={a.nom}>
+                        {a.nom}
+                      </option>
+                    ))}
+                </select>
+              </div>
+
               {/* Filtre Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
@@ -397,6 +507,9 @@ export default function FosasPage() {
                   <option value="Poste de Santé">Poste de Santé</option>
                 </select>
               </div>
+            </div>
+
+            <div className="grid grid-cols-4 gap-4">
 
               {/* Filtre Catégorie */}
               <div>

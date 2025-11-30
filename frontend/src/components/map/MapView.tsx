@@ -1437,12 +1437,23 @@ const MapView: React.FC = () => {
                 ))}
               </MapContainer>
 
-              <div className="absolute bottom-8 left-4 z-[1000] max-w-sm space-y-3">
+              <div className="absolute bottom-8 left-20 z-[1000] max-w-sm space-y-3">
                 <ThematicAnalysis
-                  entitiesData={districtsData}
-                  fosasData={allFosasData}
+                  entitiesData={
+                    selectedDistrict !== 'all' ? airesantesData :
+                    selectedDepartement !== 'all' ? arrondissementsData :
+                    selectedRegion !== 'all' ? districtsData :
+                    districtsData
+                  }
+                  fosasData={fosasData}
+                  airesantesData={airesantesData}
                   onThemeChange={setActiveTheme}
-                  entityType="district"
+                  entityType={
+                    selectedDistrict !== 'all' ? 'airesante' :
+                    selectedDepartement !== 'all' ? 'arrondissement' :
+                    selectedRegion !== 'all' ? 'district' :
+                    'district'
+                  }
                 />
 
                 {activeTheme && (

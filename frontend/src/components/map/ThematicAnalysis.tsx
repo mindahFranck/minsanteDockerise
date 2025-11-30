@@ -1,13 +1,12 @@
-// ThematicAnalysis.tsx
-import React, { useState, useMemo } from 'react';
-import { Layers, TrendingUp, Shield, Fence, Home, Zap, Building } from 'lucide-react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { Layers, Fence, Home } from 'lucide-react';
 
 export interface ThematicTheme {
   id: string;
   name: string;
   description: string;
-  getColor: (value: any) => string; // ✅ Corrigé: un seul argument
-  getValue: (entity: any, entityType: string, getEntityName: (entity: any, type: string) => string) => any; // ✅ Corrigé: trois arguments
+  getColor: (value: any) => string;
+  getValue: (entity: any, entityType: string, getEntityName: (entity: any, type: string) => string) => any;
   formatValue: (value: any) => string;
   icon: React.ReactNode;
 }
@@ -17,6 +16,7 @@ interface ThematicAnalysisProps {
   fosasData: any[];
   onThemeChange: (theme: ThematicTheme | null) => void;
   entityType: 'region' | 'departement' | 'district' | 'arrondissement' | 'airesante';
+  airesantesData?: any[];
 }
 
 const ThematicAnalysis: React.FC<ThematicAnalysisProps> = ({
@@ -24,46 +24,25 @@ const ThematicAnalysis: React.FC<ThematicAnalysisProps> = ({
   fosasData,
   onThemeChange,
   entityType,
+  airesantesData = [],
 }) => {
   const [selectedTheme, setSelectedTheme] = useState<string>('');
 
-  // Fonction pour trouver les FOSAs d'une entité selon son type
-  const getFosasForEntity = (entity: any) => {
-    switch (entityType) {
-      case 'region':
-        return fosasData.filter(fosa =>
-          fosa.region?.id === entity.id ||
-          fosa.region?.nom === entity.nom
-        );
-      case 'departement':
-        return fosasData.filter(fosa =>
-          fosa.departement?.id === entity.id ||
-          fosa.departement?.nom === entity.nom
-        );
-      case 'district':
-        return fosasData.filter(fosa =>
-          fosa.district?.id === entity.id ||
-          fosa.district?.nom === entity.nom ||
-          fosa.district?.nom_ds === entity.nom_ds
-        );
-      case 'arrondissement':
-        return fosasData.filter(fosa =>
-          fosa.arrondissement?.id === entity.id ||
-          fosa.arrondissement?.nom === entity.nom
-        );
-      case 'airesante':
-        return fosasData.filter(fosa =>
-          fosa.airesante?.id === entity.id ||
-          fosa.airesante?.nom === entity.nom ||
-          fosa.airesante?.nom_as === entity.nom_as
-        );
-      default:
-        return [];
-    }
-  };
+  console.log('🗂️ ThematicAnalysis rendu avec:');
+  console.log('  📁 fosasData:', fosasData.length, 'FOSA');
+  console.log('  🏛️ entitiesData:', entitiesData.length, entityType);
+  console.log('  🏥 airesantesData:', airesantesData.length, 'aires de santé');
 
-  // Fonction utilitaire pour obtenir le nom d'une entité
-  const getEntityName = (entity: any, type: string): string => {
+  // Afficher un échantillon des données pour déboguer
+  if (fosasData.length > 0) {
+    console.log('  📋 Échantillon FOSA:', fosasData[0]);
+  }
+  if (airesantesData.length > 0) {
+    console.log('  📋 Échantillon aire de santé:', airesantesData[0]);
+  }
+
+  // Fonction pour obtenir le nom d'une entité
+  const getEntityName = useCallback((entity: any, type: string): string => {
     switch (type) {
       case 'district':
         return entity.nom_ds || entity.nom || `District ${entity.id}`;
@@ -78,212 +57,231 @@ const ThematicAnalysis: React.FC<ThematicAnalysisProps> = ({
       default:
         return entity.nom || `Entité ${entity.id}`;
     }
-  };
+  }, []);
+
+  // Fonction optimisée pour trouver les FOSA d'une entité
+  const getFosasForEntity = useCallback((entity: any): any[] => {
+    if (!fosasData || fosasData.length === 0) {
+      console.log('⚠️ Aucune FOSA dans fosasData');
+      return [];
+    }
+
+    let filteredFosas: any[] = [];
+
+    switch (entityType) {
+      case 'region':
+        filteredFosas = fosasData.filter(fosa =>
+          fosa.region?.id === entity.id ||
+          fosa.region?.nom === entity.nom
+        );
+        break;
+
+      case 'departement':
+        filteredFosas = fosasData.filter(fosa =>
+          fosa.departement?.id === entity.id ||
+          fosa.departement?.nom === entity.nom
+        );
+        break;
+
+      case 'district':
+        // Pour le district, on peut filtrer de plusieurs façons selon la structure des données
+        filteredFosas = fosasData.filter(fosa => {
+          // Méthode 1 : La FOSA a un champ district direct (structure retournée par filtre région)
+          if (fosa.district) {
+            // Comparer par ID (le plus fiable)
+            if (fosa.district.id === entity.id) {
+              return true;
+            }
+            // Comparer par nom_ds
+            if (fosa.district.nom_ds && entity.nom_ds && fosa.district.nom_ds === entity.nom_ds) {
+              return true;
+            }
+            // Comparer par nom
+            if (fosa.district.nom && entity.nom && fosa.district.nom === entity.nom) {
+              return true;
+            }
+            // Comparer par code
+            if (fosa.district.code && entity.code_ds && fosa.district.code === entity.code_ds) {
+              return true;
+            }
+            return false;
+          }
+
+          // Méthode 2 : La FOSA a une aire de santé avec district
+          if (fosa.airesante?.district) {
+            if (fosa.airesante.district.id === entity.id) return true;
+            if (fosa.airesante.district.nom_ds === entity.nom_ds) return true;
+            if (fosa.airesante.district.nom === entity.nom) return true;
+            return false;
+          }
+
+          // Méthode 3 : Utiliser airesantesData pour le mapping
+          if (airesantesData && airesantesData.length > 0 && (fosa.airesanteId || fosa.airesante?.id)) {
+            const fosaAiresanteId = fosa.airesanteId || fosa.airesante?.id;
+            const airesante = airesantesData.find(as => as.id === fosaAiresanteId);
+            if (airesante) {
+              return airesante.districtId === entity.id || airesante.district?.id === entity.id;
+            }
+          }
+
+          return false;
+        });
+
+        const entityNameForLog = getEntityName(entity, entityType);
+        console.log(`📊 District "${entityNameForLog}" (ID: ${entity.id}): ${filteredFosas.length}/${fosasData.length} FOSA`);
+
+        // Log un exemple de FOSA pour ce district (première trouvée)
+        if (filteredFosas.length > 0) {
+          console.log(`  ✓ Exemple: "${filteredFosas[0].nom}" - district:`, filteredFosas[0].district);
+        }
+        break;
+
+      case 'arrondissement':
+        filteredFosas = fosasData.filter(fosa =>
+          fosa.arrondissementId === entity.id ||
+          fosa.arrondissement?.id === entity.id ||
+          fosa.arrondissement?.nom === entity.nom
+        );
+        break;
+
+      case 'airesante':
+        filteredFosas = fosasData.filter(fosa =>
+          fosa.airesanteId === entity.id ||
+          fosa.airesante?.id === entity.id ||
+          fosa.airesante?.nom === entity.nom ||
+          fosa.airesante?.nom_as === entity.nom_as
+        );
+        break;
+
+      default:
+        filteredFosas = [];
+    }
+
+    return filteredFosas;
+  }, [fosasData, entityType, airesantesData, getEntityName]);
 
   // Calcul des statistiques pour les titres fonciers
   const titreFoncierStats = useMemo(() => {
-    if (!fosasData.length) return {};
+    console.log('🔄 Recalcul des statistiques titres fonciers...');
+    console.log(`📁 ${fosasData.length} FOSA totales`);
+    console.log(`🏛️ ${entitiesData.length} entités (${entityType})`);
+
+    if (!fosasData.length || !entitiesData.length) {
+      console.log('⚠️ Pas de données pour calculer les statistiques');
+      return {};
+    }
 
     const stats: any = {};
 
     entitiesData.forEach(entity => {
       const entityFosas = getFosasForEntity(entity);
-      const withTitreFoncier = entityFosas.filter(fosa =>
-        fosa.aTitreFoncier === true || fosa.aTitreFoncier === 1
-      ).length;
+      const entityName = getEntityName(entity, entityType);
+
+      // Compter les FOSA avec titre foncier
+      const withTitreFoncier = entityFosas.filter(fosa => {
+        const hasTitre = fosa.aTitreFoncier === true || fosa.aTitreFoncier === 1;
+        return hasTitre;
+      }).length;
 
       const percentage = entityFosas.length > 0
         ? Math.round((withTitreFoncier / entityFosas.length) * 100)
         : 0;
 
-      const entityName = getEntityName(entity, entityType);
       stats[entityName] = {
         total: entityFosas.length,
         withTitreFoncier,
         percentage,
         entityId: entity.id
       };
+
+      console.log(`  ✓ ${entityName}: ${withTitreFoncier}/${entityFosas.length} avec titre foncier (${percentage}%)`);
     });
 
+    console.log('✅ Statistiques titres fonciers calculées:', stats);
     return stats;
-  }, [fosasData, entitiesData, entityType]);
+  }, [fosasData, entitiesData, entityType, getFosasForEntity, getEntityName]);
 
   // Calcul des statistiques pour les clôtures
   const clotureStats = useMemo(() => {
-    if (!fosasData.length) return {};
+    console.log('🔄 Recalcul des statistiques clôtures...');
+
+    if (!fosasData.length || !entitiesData.length) {
+      return {};
+    }
 
     const stats: any = {};
 
     entitiesData.forEach(entity => {
       const entityFosas = getFosasForEntity(entity);
-      const withCloture = entityFosas.filter(fosa =>
-        fosa.aCloture === true || fosa.aCloture === 1
-      ).length;
+      const entityName = getEntityName(entity, entityType);
+
+      // Compter les FOSA avec clôture
+      const withCloture = entityFosas.filter(fosa => {
+        const hasCloture = fosa.aCloture === true || fosa.aCloture === 1;
+        return hasCloture;
+      }).length;
 
       const percentage = entityFosas.length > 0
         ? Math.round((withCloture / entityFosas.length) * 100)
         : 0;
 
-      const entityName = getEntityName(entity, entityType);
       stats[entityName] = {
         total: entityFosas.length,
         withCloture,
         percentage,
         entityId: entity.id
       };
+
+      console.log(`  ✓ ${entityName}: ${withCloture}/${entityFosas.length} avec clôture (${percentage}%)`);
     });
 
+    console.log('✅ Statistiques clôtures calculées:', stats);
     return stats;
-  }, [fosasData, entitiesData, entityType]);
+  }, [fosasData, entitiesData, entityType, getFosasForEntity, getEntityName]);
 
-  // Calcul des statistiques pour l'électricité
-  const electriciteStats = useMemo(() => {
-    if (!fosasData.length) return {};
-
-    const stats: any = {};
-
-    entitiesData.forEach(entity => {
-      const entityFosas = getFosasForEntity(entity);
-      const withElectricite = entityFosas.filter(fosa =>
-        fosa.connecteeElectricite === true || fosa.connecteeElectricite === 1
-      ).length;
-
-      const percentage = entityFosas.length > 0
-        ? Math.round((withElectricite / entityFosas.length) * 100)
-        : 0;
-
-      const entityName = getEntityName(entity, entityType);
-      stats[entityName] = {
-        total: entityFosas.length,
-        withElectricite,
-        percentage,
-        entityId: entity.id
-      };
-    });
-
-    return stats;
-  }, [fosasData, entitiesData, entityType]);
-
-  // Calcul des statistiques par type de FOSA
-  const typeStats = useMemo(() => {
-    if (!fosasData.length) return {};
-
-    const stats: any = {};
-
-    entitiesData.forEach(entity => {
-      const entityFosas = getFosasForEntity(entity);
-
-      const typesCount: any = {};
-      entityFosas.forEach(fosa => {
-        const type = fosa.type || fosa.catRec || 'Non spécifié';
-        typesCount[type] = (typesCount[type] || 0) + 1;
-      });
-
-      const entityName = getEntityName(entity, entityType);
-      stats[entityName] = {
-        total: entityFosas.length,
-        types: typesCount,
-        typeCount: Object.keys(typesCount).length,
-        entityId: entity.id
-      };
-    });
-
-    return stats;
-  }, [fosasData, entitiesData, entityType]);
-
-  // Calcul des statistiques pour les FOSA fonctionnelles
-  const fonctionStats = useMemo(() => {
-    if (!fosasData.length) return {};
-
-    const stats: any = {};
-
-    entitiesData.forEach(entity => {
-      const entityFosas = getFosasForEntity(entity);
-      const fonctionnelles = entityFosas.filter(fosa =>
-        fosa.fonction === true || fosa.fonction === 1
-      ).length;
-
-      const percentage = entityFosas.length > 0
-        ? Math.round((fonctionnelles / entityFosas.length) * 100)
-        : 0;
-
-      const entityName = getEntityName(entity, entityType);
-      stats[entityName] = {
-        total: entityFosas.length,
-        fonctionnelles,
-        percentage,
-        entityId: entity.id
-      };
-    });
-
-    return stats;
-  }, [fosasData, entitiesData, entityType]);
-
-  // Calcul de la capacité moyenne en lits
-  const capaciteStats = useMemo(() => {
-    if (!fosasData.length) return {};
-
-    const stats: any = {};
-
-    entitiesData.forEach(entity => {
-      const entityFosas = getFosasForEntity(entity);
-      const fosasAvecLits = entityFosas.filter(fosa =>
-        fosa.capaciteLits && fosa.capaciteLits > 0
-      );
-
-      const capaciteMoyenne = fosasAvecLits.length > 0
-        ? Math.round(fosasAvecLits.reduce((sum, fosa) => sum + (fosa.capaciteLits || 0), 0) / fosasAvecLits.length)
-        : 0;
-
-      const entityName = getEntityName(entity, entityType);
-      stats[entityName] = {
-        total: entityFosas.length,
-        avecLits: fosasAvecLits.length,
-        capaciteMoyenne,
-        entityId: entity.id
-      };
-    });
-
-    return stats;
-  }, [fosasData, entitiesData, entityType]);
-
-  // Thèmes disponibles - CORRIGÉ
-  const themes: ThematicTheme[] = [
+  // Thèmes disponibles
+  const themes: ThematicTheme[] = useMemo(() => [
     {
       id: 'titre-foncier',
       name: 'Titres Fonciers',
-      description: 'Pourcentage de FOSA avec titre foncier',
-      getColor: (stats: any) => { // ✅ Un seul argument
+      description: 'Nombre de FOSA avec titre foncier',
+      getColor: (stats: any) => {
         if (!stats || stats.total === 0) return '#e5e7eb';
         if (stats.percentage >= 80) return '#10b981';
         if (stats.percentage >= 50) return '#f59e0b';
         if (stats.percentage >= 20) return '#f97316';
         return '#ef4444';
       },
-      getValue: (entity: any, entityType: string, getEntityName: (entity: any, type: string) => string) => { // ✅ Trois arguments
+      getValue: (entity: any, entityType: string, getEntityName: (entity: any, type: string) => string) => {
         return titreFoncierStats[getEntityName(entity, entityType)];
       },
-      formatValue: (stats: any) => `${stats?.withTitreFoncier || 0}/${stats?.total || 0} (${stats?.percentage || 0}%)`,
+      formatValue: (stats: any) => {
+        if (!stats) return `0/${fosasData.length}`;
+        return `${stats.withTitreFoncier || 0}/${fosasData.length}`;
+      },
       icon: <Home className="w-4 h-4" />
     },
     {
       id: 'cloture',
       name: 'Clôtures',
-      description: 'Pourcentage de FOSA avec clôture',
-      getColor: (stats: any) => { // ✅ Un seul argument
+      description: 'Nombre de FOSA avec clôture',
+      getColor: (stats: any) => {
         if (!stats || stats.total === 0) return '#e5e7eb';
         if (stats.percentage >= 80) return '#10b981';
         if (stats.percentage >= 50) return '#f59e0b';
         if (stats.percentage >= 20) return '#f97316';
         return '#ef4444';
       },
-      getValue: (entity: any, entityType: string, getEntityName: (entity: any, type: string) => string) => { // ✅ Trois arguments
+      getValue: (entity: any, entityType: string, getEntityName: (entity: any, type: string) => string) => {
         return clotureStats[getEntityName(entity, entityType)];
       },
-      formatValue: (stats: any) => `${stats?.withCloture || 0}/${stats?.total || 0} (${stats?.percentage || 0}%)`,
+      formatValue: (stats: any) => {
+        if (!stats) return `0/${fosasData.length}`;
+        return `${stats.withCloture || 0}/${fosasData.length}`;
+      },
       icon: <Fence className="w-4 h-4" />
     }
-  ];
+  ], [titreFoncierStats, clotureStats, fosasData.length]);
 
   const handleThemeChange = (themeId: string) => {
     if (themeId === selectedTheme) {
@@ -296,15 +294,10 @@ const ThematicAnalysis: React.FC<ThematicAnalysisProps> = ({
     }
   };
 
-  // Obtenir les statistiques pour le thème sélectionné
   const getCurrentStats = () => {
     switch (selectedTheme) {
       case 'titre-foncier': return titreFoncierStats;
       case 'cloture': return clotureStats;
-      case 'electricite': return electriciteStats;
-      case 'fonction': return fonctionStats;
-      case 'type-fosa': return typeStats;
-      case 'capacite': return capaciteStats;
       default: return {};
     }
   };
@@ -313,7 +306,7 @@ const ThematicAnalysis: React.FC<ThematicAnalysisProps> = ({
   const selectedThemeObj = themes.find(t => t.id === selectedTheme);
 
   return (
-    <div className="bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-xl border border-emerald-200 max-w-sm">
+    <div className="bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-xl border border-emerald-200 max-w-sm w-full">
       <div className="flex items-center space-x-2 mb-4">
         <Layers className="w-5 h-5 text-emerald-600" />
         <h3 className="font-semibold text-gray-800 text-sm">Analyse Thématique</h3>
@@ -322,19 +315,21 @@ const ThematicAnalysis: React.FC<ThematicAnalysisProps> = ({
         </span>
       </div>
 
-      <div className="space-y-3 max-h-[500px] overflow-y-auto">
+      <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
         {themes.map(theme => (
           <div key={theme.id} className="border border-gray-200 rounded-lg overflow-hidden">
             <button
               onClick={() => handleThemeChange(theme.id)}
               className={`w-full p-3 text-left transition-colors ${selectedTheme === theme.id
-                ? 'bg-emerald-50 border-emerald-200'
-                : 'bg-white hover:bg-gray-50'
+                  ? 'bg-emerald-50 border-emerald-200'
+                  : 'bg-white hover:bg-gray-50'
                 } border-b border-gray-200`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <div className={`p-1 rounded ${selectedTheme === theme.id ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-600'
+                  <div className={`p-1 rounded ${selectedTheme === theme.id
+                      ? 'bg-emerald-100 text-emerald-600'
+                      : 'bg-gray-100 text-gray-600'
                     }`}>
                     {theme.icon}
                   </div>
@@ -344,8 +339,8 @@ const ThematicAnalysis: React.FC<ThematicAnalysisProps> = ({
                   </div>
                 </div>
                 <div className={`w-3 h-3 rounded-full border-2 ${selectedTheme === theme.id
-                  ? 'bg-emerald-500 border-emerald-500'
-                  : 'bg-white border-gray-300'
+                    ? 'bg-emerald-500 border-emerald-500'
+                    : 'bg-white border-gray-300'
                   }`} />
               </div>
             </button>
@@ -354,20 +349,20 @@ const ThematicAnalysis: React.FC<ThematicAnalysisProps> = ({
               <div className="p-3 bg-gray-50 max-h-48 overflow-y-auto">
                 <div className="space-y-2 text-xs">
                   {entitiesData.map(entity => {
-                    const stats = theme.getValue(entity, entityType, getEntityName); // ✅ Appel correct avec 3 arguments
+                    const stats = theme.getValue(entity, entityType, getEntityName);
 
                     return (
-                      <div key={entity.id} className="flex justify-between items-center">
-                        <span className="font-medium text-gray-700 truncate flex-1 mr-2">
+                      <div key={entity.id} className="flex justify-between items-center group">
+                        <span className="font-medium text-gray-700 truncate flex-1 mr-2 group-hover:text-gray-900">
                           {getEntityName(entity, entityType)}
                         </span>
                         <div className="flex items-center space-x-2 flex-shrink-0">
-                          <span className="text-gray-600 text-xs">
+                          <span className="text-gray-900 font-bold text-xs bg-white px-1.5 py-0.5 rounded border border-gray-200 shadow-sm">
                             {theme.formatValue(stats)}
                           </span>
                           <div
-                            className="w-3 h-3 rounded"
-                            style={{ backgroundColor: theme.getColor(stats) }} // ✅ Appel correct avec 1 argument
+                            className="w-3 h-3 rounded shadow-sm"
+                            style={{ backgroundColor: theme.getColor(stats) }}
                           />
                         </div>
                       </div>
@@ -389,25 +384,25 @@ const ThematicAnalysis: React.FC<ThematicAnalysisProps> = ({
       {selectedTheme && selectedThemeObj && (
         <div className="mt-3 p-2 bg-emerald-50 rounded-lg border border-emerald-200">
           <div className="flex items-center justify-between text-xs mb-2">
-            <span className="text-emerald-700 font-medium">Légende:</span>
-            <span className="text-emerald-600">{selectedThemeObj.name}</span>
+            <span className="text-emerald-700 font-medium">Légende (Proportion):</span>
+            <span className="text-emerald-600 font-bold">{selectedThemeObj.name}</span>
           </div>
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center space-x-2">
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-green-500 rounded"></div>
-                <span>Élevé</span>
+              <div className="flex items-center space-x-1" title=">= 80%">
+                <div className="w-2 h-2 bg-emerald-500 rounded"></div>
+                <span className="text-[10px] text-gray-600">Élevé</span>
               </div>
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-yellow-500 rounded"></div>
-                <span>Moyen</span>
+              <div className="flex items-center space-x-1" title=">= 50%">
+                <div className="w-2 h-2 bg-amber-500 rounded"></div>
+                <span className="text-[10px] text-gray-600">Moyen</span>
               </div>
-              <div className="flex items-center space-x-1">
+              <div className="flex items-center space-x-1" title="< 50%">
                 <div className="w-2 h-2 bg-red-500 rounded"></div>
-                <span>Faible</span>
+                <span className="text-[10px] text-gray-600">Faible</span>
               </div>
             </div>
-            <div className="text-emerald-600">
+            <div className="text-emerald-600 text-[10px]">
               {Object.keys(currentStats).length} {entityType}s
             </div>
           </div>
