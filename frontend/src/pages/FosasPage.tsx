@@ -140,29 +140,8 @@ export default function FosasPage() {
 
   // Appliquer les filtres côté client
   const filteredFosas = fosas.filter((fosa) => {
-    // Filtre Région
-    if (filterRegion) {
-      const arrondissement = arrondissements.find(a => a.id === fosa.arrondissementId)
-      if (!arrondissement) return false
-      const departement = departements.find(d => d.id === arrondissement.departementId)
-      if (!departement) return false
-      const region = regions.find(r => r.id === departement.regionId)
-      if (!region || region.nom !== filterRegion) return false
-    }
-
-    // Filtre Département
-    if (filterDepartement) {
-      const arrondissement = arrondissements.find(a => a.id === fosa.arrondissementId)
-      if (!arrondissement) return false
-      const departement = departements.find(d => d.id === arrondissement.departementId)
-      if (!departement || departement.departement !== filterDepartement) return false
-    }
-
-    // Filtre Arrondissement
-    if (filterArrondissement) {
-      const arrondissement = arrondissements.find(a => a.id === fosa.arrondissementId)
-      if (!arrondissement || arrondissement.nom !== filterArrondissement) return false
-    }
+    // Les filtres géographiques (région, département, arrondissement) sont déjà appliqués par l'API spatiale
+    // On ne les applique plus côté client
 
     // Filtre Type
     if (filterType && fosa.type !== filterType) return false
