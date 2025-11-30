@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Polygon, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Polygon, Tooltip, useMap } from "react-leaflet";
 import {
   Filter,
   Layers,
@@ -46,7 +46,7 @@ interface Hospital {
   aCloture: any;
   id: string;
   name: string;
-  type: 'public' | 'private' | 'confessional' | 'military';
+  type: 'public' | 'parapublic' | 'prive_laic' | 'prive_confessionnel';
   category: string;
   status: 'operational' | 'maintenance' | 'construction' | 'closed';
   coordinates: [number, number];
@@ -268,9 +268,10 @@ const MapView: React.FC = () => {
         name: fosa.nom,
         _district: district?.nom_ds || district?.nom || null,
         _airesante: airesante?.nom_as || airesante?.nom || null,
-        type: fosa.type?.toLowerCase().includes('public') ? 'public' :
-          fosa.type?.toLowerCase().includes('privé') ? 'private' :
-            fosa.type?.toLowerCase().includes('confessionnel') ? 'confessional' : 'public',
+        type: fosa.statutRec === 'Public' ? 'public' :
+          fosa.statutRec === 'Parapublic' ? 'parapublic' :
+            fosa.statutRec === 'Privé laïc' ? 'prive_laic' :
+              fosa.statutRec === 'Privé confessionnel' ? 'prive_confessionnel' : 'public',
         category: fosa.type || 'FOSA',
         status: fosa.estFerme ? 'closed' :
           fosa.situation?.toLowerCase().includes('maintenance') ? 'maintenance' :
@@ -880,7 +881,7 @@ const MapView: React.FC = () => {
   };
 
   const getStatusText = (s: string) => ({ operational: 'Opérationnel', maintenance: 'En maintenance', construction: 'En construction', closed: 'Fermé' }[s] || s);
-  const getTypeText = (t: string) => ({ public: 'Public', private: 'Privé', confessional: 'Confessionnel', military: 'Militaire' }[t] || t);
+  const getTypeText = (t: string) => ({ public: 'Public', parapublic: 'Parapublic', prive_laic: 'Privé laïc', prive_confessionnel: 'Privé confessionnel' }[t] || t);
 
   const mapStyles = [
     { id: "osm", name: "Standard", url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" },
@@ -1153,8 +1154,9 @@ const MapView: React.FC = () => {
               <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70">
                 <option value="all">Tous types</option>
                 <option value="public">Public</option>
-                <option value="private">Privé</option>
-                <option value="confessional">Confessionnel</option>
+                <option value="parapublic">Parapublic</option>
+                <option value="prive_laic">Privé laïc</option>
+                <option value="prive_confessionnel">Privé confessionnel</option>
               </select>
 
               {/* Nouveaux filtres pour titre foncier et clôture */}
@@ -1433,6 +1435,11 @@ const MapView: React.FC = () => {
 
                 {layersVisibility.hospitals && filteredHospitals.map(h => (
                   <Marker key={h.id} position={h.coordinates} icon={getHospitalIcon(h)} eventHandlers={{ click: () => setSelectedHospital(h) }}>
+                    {selectedHospital?.id === h.id && (
+                      <Tooltip permanent direction="top" offset={[0, -20]} className="permanent-tooltip">
+                        <div className="font-semibold text-sm">{h.name}</div>
+                      </Tooltip>
+                    )}
                   </Marker>
                 ))}
               </MapContainer>
@@ -1441,18 +1448,18 @@ const MapView: React.FC = () => {
                 <ThematicAnalysis
                   entitiesData={
                     selectedDistrict !== 'all' ? airesantesData :
-                    selectedDepartement !== 'all' ? arrondissementsData :
-                    selectedRegion !== 'all' ? districtsData :
-                    districtsData
+                      selectedDepartement !== 'all' ? arrondissementsData :
+                        selectedRegion !== 'all' ? districtsData :
+                          districtsData
                   }
                   fosasData={fosasData}
                   airesantesData={airesantesData}
                   onThemeChange={setActiveTheme}
                   entityType={
                     selectedDistrict !== 'all' ? 'airesante' :
-                    selectedDepartement !== 'all' ? 'arrondissement' :
-                    selectedRegion !== 'all' ? 'district' :
-                    'district'
+                      selectedDepartement !== 'all' ? 'arrondissement' :
+                        selectedRegion !== 'all' ? 'district' :
+                          'district'
                   }
                 />
 

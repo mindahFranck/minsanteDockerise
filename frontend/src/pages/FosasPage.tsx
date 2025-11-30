@@ -73,24 +73,64 @@ export default function FosasPage() {
 
   useEffect(() => {
     loadData()
-  }, [page, search])
+  }, [page, search, filterRegion, filterDepartement, filterArrondissement])
 
   const loadData = async () => {
     try {
       setLoading(true)
-      const [fosaResponse, regionResponse, deptResponse, arrResponse, airesResponse] = await Promise.all([
-        fosaService.getAll({ page, limit: 10, search }),
+
+      // Load reference data first
+      const [regionResponse, deptResponse, arrResponse, airesResponse] = await Promise.all([
         regionService.getAll({ limit: 1000 }),
         departementService.getAll({ limit: 1000 }),
         arrondissementService.getAll({ limit: 1000 }),
         airesanteService.getAll({ limit: 2000 }),
       ])
-      setFosas(fosaResponse.data)
-      setPagination(fosaResponse.pagination)
+
       setRegions(regionResponse.data)
       setDepartements(deptResponse.data)
       setArrondissements(arrResponse.data)
       setAiresantes(airesResponse.data)
+
+      // Determine which spatial endpoint to call based on active geographic filters
+      let fosasData: any[] = []
+
+      if (filterArrondissement) {
+        // Get FOSA by arrondissement (spatial)
+        const arrondissement = arrResponse.data.find((a: Arrondissement) => a.nom === filterArrondissement)
+        if (arrondissement) {
+          fosasData = await fosaService.getByArrondissementSpatial(arrondissement.id)
+        }
+      } else if (filterDepartement) {
+        // Get FOSA by departement (spatial)
+        const departement = deptResponse.data.find((d: Departement) => d.departement === filterDepartement)
+        if (departement) {
+          fosasData = await fosaService.getByDepartementSpatial(departement.id)
+        }
+      } else if (filterRegion) {
+        // Get FOSA by region (spatial)
+        const region = regionResponse.data.find((r: Region) => r.nom === filterRegion)
+        if (region) {
+          fosasData = await fosaService.getByRegionSpatial(region.id)
+        }
+      } else {
+        // No geographic filter - use standard pagination endpoint
+        const fosaResponse = await fosaService.getAll({ page, limit: 10, search })
+        fosasData = fosaResponse.data
+        setPagination(fosaResponse.pagination)
+      }
+
+      setFosas(fosasData)
+
+      // If using spatial query, update pagination to show all results
+      if (filterRegion || filterDepartement || filterArrondissement) {
+        setPagination({
+          page: 1,
+          limit: fosasData.length,
+          total: fosasData.length,
+          totalPages: 1
+        })
+      }
     } catch (error) {
       console.error("Error loading data:", error)
     } finally {
@@ -500,11 +540,10 @@ export default function FosasPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Tous</option>
-                  <option value="Hôpital">Hôpital</option>
-                  <option value="Centre de Santé">Centre de Santé</option>
-                  <option value="Dispensaire">Dispensaire</option>
-                  <option value="Clinique">Clinique</option>
-                  <option value="Poste de Santé">Poste de Santé</option>
+                  <option value="Public">Public</option>
+                  <option value="Parapublic">Parapublic</option>
+                  <option value="Privé laïc">Privé laïc</option>
+                  <option value="Privé confessionnel">Privé confessionnel</option>
                 </select>
               </div>
             </div>
@@ -636,11 +675,10 @@ export default function FosasPage() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Sélectionner...</option>
-                    <option value="Hôpital">Hôpital</option>
-                    <option value="Centre de Santé">Centre de Santé</option>
-                    <option value="Dispensaire">Dispensaire</option>
-                    <option value="Clinique">Clinique</option>
-                    <option value="Poste de Santé">Poste de Santé</option>
+                    <option value="Public">Public</option>
+                    <option value="Parapublic">Parapublic</option>
+                    <option value="Privé laïc">Privé laïc</option>
+                    <option value="Privé confessionnel">Privé confessionnel</option>
                   </select>
                 </div>
                 <div>

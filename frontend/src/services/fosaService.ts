@@ -121,6 +121,22 @@ class FosaService {
     return response.data
   }
 
+  // Spatial queries
+  async getByRegionSpatial(regionId: number): Promise<Fosa[]> {
+    const response = await api.get<Fosa[]>(`/fosas/spatial/region/${regionId}`)
+    return response.data
+  }
+
+  async getByDepartementSpatial(departementId: number): Promise<Fosa[]> {
+    const response = await api.get<Fosa[]>(`/fosas/spatial/departement/${departementId}`)
+    return response.data
+  }
+
+  async getByArrondissementSpatial(arrondissementId: number): Promise<Fosa[]> {
+    const response = await api.get<Fosa[]>(`/fosas/spatial/arrondissement/${arrondissementId}`)
+    return response.data
+  }
+
   getImageUrl(imagePath?: string): string {
     if (!imagePath) return "/placeholder-hospital.png"
     return `${api.defaults.baseURL?.replace("/api", "")}${imagePath}`
