@@ -45,7 +45,8 @@
       "Bash(npm run db:import:fosas:*)",
       "Bash(git mv:*)",
       "Bash(docker build:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(git push)"
     ],
     "deny": [],
     "ask": []

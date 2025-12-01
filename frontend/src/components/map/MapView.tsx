@@ -268,10 +268,10 @@ const MapView: React.FC = () => {
         name: fosa.nom,
         _district: district?.nom_ds || district?.nom || null,
         _airesante: airesante?.nom_as || airesante?.nom || null,
-        type: fosa.type === 'Public' ? 'public' :
-          fosa.type === 'Parapublic' ? 'parapublic' :
-          fosa.type === 'Privé laïc' ? 'prive_laic' :
-          fosa.type === 'Privé confessionnel' ? 'prive_confessionnel' : 'public',
+        type: fosa.statutRec === 'Public' ? 'public' :
+          fosa.statutRec === 'Parapublic' ? 'parapublic' :
+            fosa.statutRec === 'Privé laïc' ? 'prive_laic' :
+              fosa.statutRec === 'Privé confessionnel' ? 'prive_confessionnel' : 'public',
         category: fosa.catRec || fosa.statutRec || 'FOSA',
         status: fosa.estFerme ? 'closed' :
           fosa.situation?.toLowerCase().includes('maintenance') ? 'maintenance' :
@@ -587,7 +587,7 @@ const MapView: React.FC = () => {
         allRegionsData.length > 0 &&
         allDepartementsData.length > 0 &&
         allArrondissementsData.length > 0;
-        // Ne plus attendre les FOSA au chargement initial
+      // Ne plus attendre les FOSA au chargement initial
 
       if (criticalDataLoaded && !allDataLoaded) {
         setAllDataLoaded(true);
@@ -833,7 +833,7 @@ const MapView: React.FC = () => {
       !loadingProgress.regionsData &&
       !loadingProgress.departementsData &&
       !loadingProgress.arrondissementsData;
-      // Ne plus attendre hospitalsData
+    // Ne plus attendre hospitalsData
     if (allLoaded) setLoading(false);
   }, [loadingProgress]);
 
