@@ -268,11 +268,11 @@ const MapView: React.FC = () => {
         name: fosa.nom,
         _district: district?.nom_ds || district?.nom || null,
         _airesante: airesante?.nom_as || airesante?.nom || null,
-        type: fosa.statutRec === 'Public' ? 'public' :
-          fosa.statutRec === 'Parapublic' ? 'parapublic' :
-            fosa.statutRec === 'Privé laïc' ? 'prive_laic' :
-              fosa.statutRec === 'Privé confessionnel' ? 'prive_confessionnel' : 'public',
-        category: fosa.type || 'FOSA',
+        type: fosa.type === 'Public' ? 'public' :
+          fosa.type === 'Parapublic' ? 'parapublic' :
+          fosa.type === 'Privé laïc' ? 'prive_laic' :
+          fosa.type === 'Privé confessionnel' ? 'prive_confessionnel' : 'public',
+        category: fosa.catRec || fosa.statutRec || 'FOSA',
         status: fosa.estFerme ? 'closed' :
           fosa.situation?.toLowerCase().includes('maintenance') ? 'maintenance' :
             fosa.situation?.toLowerCase().includes('construction') ? 'construction' : 'operational',
@@ -281,8 +281,8 @@ const MapView: React.FC = () => {
         city: arrond?.nom || 'Non spécifié',
         region: region?.nom || 'Non spécifié',
         image: fosa.image || null,
-        aTitreFoncier: fosa.aTitreFoncier || false,
-        aCloture: fosa.aCloture || false,
+        aTitreFoncier: fosa.aTitreFoncier === true || fosa.aTitreFoncier === 1,
+        aCloture: fosa.aCloture === true || fosa.aCloture === 1,
         batimentsCount: fosa.batiments?.length || 0,
         vehiculesCount: fosa.materielroulants?.length || 0,
         ambulancesCount: fosa.materielroulants?.filter((v: any) => v.type?.toLowerCase().includes('ambulance')).length || 0,
@@ -594,21 +594,20 @@ const MapView: React.FC = () => {
         !loadingProgress.regionsData &&
         !loadingProgress.departementsData &&
         !loadingProgress.arrondissementsData &&
-        !loadingProgress.hospitalsData &&
         allRegionsData.length > 0 &&
         allDepartementsData.length > 0 &&
-        allArrondissementsData.length > 0 &&
-        allFosasData.length > 0;
+        allArrondissementsData.length > 0;
+        // Ne plus attendre les FOSA au chargement initial
 
       if (criticalDataLoaded && !allDataLoaded) {
-        console.log('✅ Toutes les données critiques sont chargées');
+        console.log('✅ Toutes les données critiques sont chargées (FOSA à charger avec filtres)');
         setAllDataLoaded(true);
         setLoading(false);
       }
     };
 
     checkAllDataLoaded();
-  }, [loadingProgress, allRegionsData, allDepartementsData, allArrondissementsData, allFosasData, allDataLoaded]);
+  }, [loadingProgress, allRegionsData, allDepartementsData, allArrondissementsData, allDataLoaded]);
   useEffect(() => {
     const loadInitial = async () => {
       setLoading(true);
@@ -616,16 +615,16 @@ const MapView: React.FC = () => {
       console.log('🚀 Début du chargement initial...');
 
       try {
-        // Charger les données critiques en parallèle
+        // Charger les données critiques en parallèle (sans les FOSA)
         await Promise.all([
           fetchCameroonPolygon(),
           fetchRegionsData(),
           fetchDepartementsData(),
-          fetchArrondissementsData(),
-          fetchHospitalsData()
+          fetchArrondissementsData()
+          // Ne plus charger fetchHospitalsData() au démarrage
         ]);
 
-        console.log('✅ Chargement initial des données critiques terminé');
+        console.log('✅ Chargement initial des données critiques terminé (FOSA seront chargées avec filtres)');
 
       } catch (err) {
         console.error('💥 Erreur de chargement:', err);
@@ -800,10 +799,9 @@ const MapView: React.FC = () => {
       selectedDistrict !== 'all' || selectedAiresante !== 'all') {
       fetchFosasBySpatialFilter();
     } else {
-      // Si on revient à "all", charger toutes les FOSA
-      console.log('🌍 Retour à la vue globale - Chargement de toutes les FOSA');
-      clearFosaData(); // Nettoyer d'abord
-      fetchHospitalsData();
+      // Si on revient à "all", vider les FOSA (ne plus charger toutes les FOSA)
+      console.log('🌍 Retour à la vue globale - Aucune FOSA affichée');
+      clearFosaData();
     }
 
     // Mettre à jour la référence
@@ -852,8 +850,8 @@ const MapView: React.FC = () => {
     const allLoaded = !loadingProgress.cameroonPolygon &&
       !loadingProgress.regionsData &&
       !loadingProgress.departementsData &&
-      !loadingProgress.arrondissementsData &&
-      !loadingProgress.hospitalsData;
+      !loadingProgress.arrondissementsData;
+      // Ne plus attendre hospitalsData
     if (allLoaded) setLoading(false);
   }, [loadingProgress]);
 
@@ -873,9 +871,9 @@ const MapView: React.FC = () => {
     const colors = { operational: '#10B981', maintenance: '#F59E0B', construction: '#3B82F6', closed: '#6B7280' };
     const icons: any = { CHU: '🏥', CHR: '🏥', CHD: '🏥', CMA: '⚕️', CSI: '⚕️', dispensaire: '💊', HR: '🏥', HD: '🏥', HC: '⚕️' };
     return L.divIcon({
-      html: `<div style="background-color: ${colors[hospital.status]}; width: 26px; height: 26px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 16px;">${icons[hospital.category] || '🏥'}</div>`,
+      html: `<div style="background-color: ${colors[hospital.status]}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 12px;">${icons[hospital.category] || '🏥'}</div>`,
       className: 'custom-marker',
-      iconSize: [15, 15],
+      iconSize: [20, 20],
       iconAnchor: [10, 10]
     });
   };
@@ -908,13 +906,13 @@ const MapView: React.FC = () => {
   // Loader pour le filtrage des FOSA
   // Ajouter ces fonctions utilitaires pour le loader
   const calculateLoadingProgress = () => {
-    const totalItems = 5;
+    const totalItems = 4; // Sans les FOSA maintenant
     const loadedItems = [
       !loadingProgress.cameroonPolygon,
       !loadingProgress.regionsData && allRegionsData.length > 0,
       !loadingProgress.departementsData && allDepartementsData.length > 0,
-      !loadingProgress.arrondissementsData && allArrondissementsData.length > 0,
-      !loadingProgress.hospitalsData && allFosasData.length > 0
+      !loadingProgress.arrondissementsData && allArrondissementsData.length > 0
+      // Ne plus inclure hospitalsData
     ].filter(Boolean).length;
 
     return (loadedItems / totalItems) * 100;
@@ -943,7 +941,6 @@ const MapView: React.FC = () => {
     if (loadingProgress.regionsData) return "Chargement des régions...";
     if (loadingProgress.departementsData) return "Chargement des départements...";
     if (loadingProgress.arrondissementsData) return "Chargement des arrondissements...";
-    if (loadingProgress.hospitalsData) return "Chargement des FOSA...";
     if (loadingProgress.cameroonPolygon) return "Chargement de la carte...";
     return "Finalisation...";
   };
@@ -1023,11 +1020,7 @@ const MapView: React.FC = () => {
               isLoading={loadingProgress.arrondissementsData}
               isLoaded={allArrondissementsData.length > 0}
             />
-            <DataLoadingIndicator
-              label="FOSA"
-              isLoading={loadingProgress.hospitalsData}
-              isLoaded={allFosasData.length > 0}
-            />
+            {/* FOSA ne sont plus chargées au démarrage */}
           </div>
 
           <div className="mt-4 text-xs text-gray-500">
