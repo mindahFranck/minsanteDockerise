@@ -331,7 +331,6 @@ const MapView: React.FC = () => {
 
   // Fonction pour nettoyer complètement les données FOSA
   const clearFosaData = () => {
-    console.log('🧹 Nettoyage des données FOSA précédentes');
     setHospitals([]);
     setFilteredHospitals([]);
     setFosasData([]);
@@ -353,42 +352,35 @@ const MapView: React.FC = () => {
         const airesante = allAiresantesData.find(a => a.nom_as === selectedAiresante || a.nom === selectedAiresante);
         if (airesante) {
           endpoint = `/fosas/spatial/airesante/${airesante.id}`;
-          console.log(`📍 Chargement FOSA pour aire de santé: ${selectedAiresante}`);
         }
       } else if (selectedDistrict !== 'all') {
         const district = allDistrictsData.find(d => (d.nom_ds || d.nom) === selectedDistrict);
         if (district) {
           endpoint = `/fosas/spatial/district/${district.id}`;
-          console.log(`📍 Chargement FOSA pour district: ${selectedDistrict}`);
         }
       } else if (selectedArrondissement !== 'all') {
         const arrondissement = allArrondissementsData.find(a => a.nom === selectedArrondissement);
         if (arrondissement) {
           endpoint = `/fosas/spatial/arrondissement/${arrondissement.id}`;
-          console.log(`📍 Chargement FOSA pour arrondissement: ${selectedArrondissement}`);
         }
       } else if (selectedDepartement !== 'all') {
         const departement = allDepartementsData.find(d => d.departement === selectedDepartement);
         if (departement) {
           endpoint = `/fosas/spatial/departement/${departement.id}`;
-          console.log(`📍 Chargement FOSA pour département: ${selectedDepartement}`);
         }
       } else if (selectedRegion !== 'all') {
         const region = allRegionsData.find(r => r.nom === selectedRegion);
         if (region) {
           endpoint = `/fosas/spatial/region/${region.id}`;
-          console.log(`📍 Chargement FOSA pour région: ${selectedRegion}`);
         }
       }
 
       if (endpoint) {
-        console.log('🌐 Appel API:', endpoint);
         const apiBase = (import.meta as any).env?.VITE_API_URL || 'https://minsante.vps.it-grafik.com/api/v1';
         const response: any = await axios.get(`${apiBase}${endpoint}`);
 
         if (response.data && response.data.data) {
           spatialData = response.data.data;
-          console.log(`✅ ${spatialData.length} FOSA chargées via filtre spatial`);
 
           const transformedHospitals = await transformFosasToHospitals(spatialData);
           setHospitals(transformedHospitals);
@@ -417,7 +409,6 @@ const MapView: React.FC = () => {
   const fetchHospitalsData = async () => {
     try {
       updateLoadingProgress('hospitalsData', true);
-      console.log('🔄 Chargement de toutes les FOSA...');
       const fosas = await apiService.getFosas();
       setAllFosasData(fosas);
       setFosasData(fosas);
@@ -425,7 +416,6 @@ const MapView: React.FC = () => {
       setHospitals(transformedHospitals);
       setFilteredHospitals(transformedHospitals);
       setError(null);
-      console.log(`✅ ${fosas.length} FOSA chargées avec succès`);
     } catch (err) {
       console.error('❌ Erreur chargement hôpitaux:', err);
       try {
@@ -600,7 +590,6 @@ const MapView: React.FC = () => {
         // Ne plus attendre les FOSA au chargement initial
 
       if (criticalDataLoaded && !allDataLoaded) {
-        console.log('✅ Toutes les données critiques sont chargées (FOSA à charger avec filtres)');
         setAllDataLoaded(true);
         setLoading(false);
       }
@@ -612,7 +601,6 @@ const MapView: React.FC = () => {
     const loadInitial = async () => {
       setLoading(true);
       setAllDataLoaded(false);
-      console.log('🚀 Début du chargement initial...');
 
       try {
         // Charger les données critiques en parallèle (sans les FOSA)
@@ -623,8 +611,6 @@ const MapView: React.FC = () => {
           fetchArrondissementsData()
           // Ne plus charger fetchHospitalsData() au démarrage
         ]);
-
-        console.log('✅ Chargement initial des données critiques terminé (FOSA seront chargées avec filtres)');
 
       } catch (err) {
         console.error('💥 Erreur de chargement:', err);
@@ -793,14 +779,11 @@ const MapView: React.FC = () => {
       return;
     }
 
-    console.log('🔄 Changement de sélection géographique:', currentSelection);
-
     if (selectedRegion !== 'all' || selectedDepartement !== 'all' || selectedArrondissement !== 'all' ||
       selectedDistrict !== 'all' || selectedAiresante !== 'all') {
       fetchFosasBySpatialFilter();
     } else {
       // Si on revient à "all", vider les FOSA (ne plus charger toutes les FOSA)
-      console.log('🌍 Retour à la vue globale - Aucune FOSA affichée');
       clearFosaData();
     }
 
@@ -842,7 +825,6 @@ const MapView: React.FC = () => {
       h.region.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    console.log(`🔍 Filtrage appliqué: ${filtered.length} FOSA affichées`);
     setFilteredHospitals(filtered);
   }, [selectedType, selectedTitreFoncier, selectedCloture, selectedCategory, searchTerm, hospitals]);
 

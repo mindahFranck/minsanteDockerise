@@ -28,19 +28,6 @@ const ThematicAnalysis: React.FC<ThematicAnalysisProps> = ({
 }) => {
   const [selectedTheme, setSelectedTheme] = useState<string>('');
 
-  console.log('🗂️ ThematicAnalysis rendu avec:');
-  console.log('  📁 fosasData:', fosasData.length, 'FOSA');
-  console.log('  🏛️ entitiesData:', entitiesData.length, entityType);
-  console.log('  🏥 airesantesData:', airesantesData.length, 'aires de santé');
-
-  // Afficher un échantillon des données pour déboguer
-  if (fosasData.length > 0) {
-    console.log('  📋 Échantillon FOSA:', fosasData[0]);
-  }
-  if (airesantesData.length > 0) {
-    console.log('  📋 Échantillon aire de santé:', airesantesData[0]);
-  }
-
   // Fonction pour obtenir le nom d'une entité
   const getEntityName = useCallback((entity: any, type: string): string => {
     switch (type) {
@@ -62,7 +49,6 @@ const ThematicAnalysis: React.FC<ThematicAnalysisProps> = ({
   // Fonction optimisée pour trouver les FOSA d'une entité
   const getFosasForEntity = useCallback((entity: any): any[] => {
     if (!fosasData || fosasData.length === 0) {
-      console.log('⚠️ Aucune FOSA dans fosasData');
       return [];
     }
 
@@ -126,14 +112,6 @@ const ThematicAnalysis: React.FC<ThematicAnalysisProps> = ({
 
           return false;
         });
-
-        const entityNameForLog = getEntityName(entity, entityType);
-        console.log(`📊 District "${entityNameForLog}" (ID: ${entity.id}): ${filteredFosas.length}/${fosasData.length} FOSA`);
-
-        // Log un exemple de FOSA pour ce district (première trouvée)
-        if (filteredFosas.length > 0) {
-          console.log(`  ✓ Exemple: "${filteredFosas[0].nom}" - district:`, filteredFosas[0].district);
-        }
         break;
 
       case 'arrondissement':
@@ -162,12 +140,7 @@ const ThematicAnalysis: React.FC<ThematicAnalysisProps> = ({
 
   // Calcul des statistiques pour les titres fonciers
   const titreFoncierStats = useMemo(() => {
-    console.log('🔄 Recalcul des statistiques titres fonciers...');
-    console.log(`📁 ${fosasData.length} FOSA totales`);
-    console.log(`🏛️ ${entitiesData.length} entités (${entityType})`);
-
     if (!fosasData.length || !entitiesData.length) {
-      console.log('⚠️ Pas de données pour calculer les statistiques');
       return {};
     }
 
@@ -193,18 +166,13 @@ const ThematicAnalysis: React.FC<ThematicAnalysisProps> = ({
         percentage,
         entityId: entity.id
       };
-
-      console.log(`  ✓ ${entityName}: ${withTitreFoncier}/${entityFosas.length} avec titre foncier (${percentage}%)`);
     });
 
-    console.log('✅ Statistiques titres fonciers calculées:', stats);
     return stats;
   }, [fosasData, entitiesData, entityType, getFosasForEntity, getEntityName]);
 
   // Calcul des statistiques pour les clôtures
   const clotureStats = useMemo(() => {
-    console.log('🔄 Recalcul des statistiques clôtures...');
-
     if (!fosasData.length || !entitiesData.length) {
       return {};
     }
@@ -231,11 +199,8 @@ const ThematicAnalysis: React.FC<ThematicAnalysisProps> = ({
         percentage,
         entityId: entity.id
       };
-
-      console.log(`  ✓ ${entityName}: ${withCloture}/${entityFosas.length} avec clôture (${percentage}%)`);
     });
 
-    console.log('✅ Statistiques clôtures calculées:', stats);
     return stats;
   }, [fosasData, entitiesData, entityType, getFosasForEntity, getEntityName]);
 
