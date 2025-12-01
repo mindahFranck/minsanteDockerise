@@ -838,11 +838,22 @@ const MapView: React.FC = () => {
   }, [loadingProgress]);
 
   // Listes pour les dropdowns (filtrées côté client)
-  const regions = Array.from(new Set(regionsData.map(r => r.nom))).filter(r => r).sort();
-  const departements = Array.from(new Set(departementsData.map(d => d.departement))).filter(d => d).sort();
-  const arrondissements = Array.from(new Set(arrondissementsData.map(a => a.nom))).filter(a => a).sort();
-  const districts = Array.from(new Set(districtsData.map(d => d.nom_ds || d.nom))).filter(d => d).sort();
-  const airesantes = Array.from(new Set(airesantesData.map(a => a.nom || a.nom_as))).filter(a => a).sort();
+  // Filtrer les valeurs invalides (null, undefined, chaînes vides, noms tronqués < 3 caractères)
+  const regions = Array.from(new Set(regionsData.map(r => r.nom)))
+    .filter(r => r && typeof r === 'string' && r.trim().length >= 3)
+    .sort();
+  const departements = Array.from(new Set(departementsData.map(d => d.departement)))
+    .filter(d => d && typeof d === 'string' && d.trim().length >= 3)
+    .sort();
+  const arrondissements = Array.from(new Set(arrondissementsData.map(a => a.nom)))
+    .filter(a => a && typeof a === 'string' && a.trim().length >= 3)
+    .sort();
+  const districts = Array.from(new Set(districtsData.map(d => d.nom_ds || d.nom)))
+    .filter(d => d && typeof d === 'string' && d.trim().length >= 3)
+    .sort();
+  const airesantes = Array.from(new Set(airesantesData.map(a => a.nom || a.nom_as)))
+    .filter(a => a && typeof a === 'string' && a.trim().length >= 3)
+    .sort();
 
   const toggleSection = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
