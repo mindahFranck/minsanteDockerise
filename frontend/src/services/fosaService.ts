@@ -1,149 +1,172 @@
-import api from "./api"
+import api from "./api";
 
 export interface Fosa {
-  id: number
-  nom: string
-  type: string
-  capaciteLits?: number | null
-  estFerme: boolean
-  situation: string
-  image?: string | null
-  airesanteId: number
-  arrondissementId: number
-
+  id: number;
+  nom: string;
+  type: string;
+  capaciteLits?: number | null;
+  estFerme: boolean;
+  situation: string;
+  image?: string | null;
+  airesanteId: number;
+  arrondissementId: number;
+  statutRec?: string;
+  categorieRec?: string;
   // Coordonnées
-  longitude?: number
-  latitude?: number
+  longitude?: number;
+  latitude?: number;
 
   // Questions OUI/NON
-  aCloture?: boolean
-  aTitreFoncier?: boolean
-  connecteeElectricite?: boolean
-  typeCourant?: string
+  aCloture?: boolean;
+  aTitreFoncier?: boolean;
+  connecteeElectricite?: boolean;
+  typeCourant?: string;
 
   // Relations
-  arrondissement?: any
-  airesante?: any
+  arrondissement?: any;
+  airesante?: any;
 
-  createdAt?: string
-  updatedAt?: string
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface FosaCreateData {
-  nom: string
-  type: string
-  capaciteLits?: number
-  estFerme?: boolean
-  situation?: string
-  airesanteId: number
-  arrondissementId: number
+  nom: string;
+  type: string;
+  capaciteLits?: number;
+  estFerme?: boolean;
+  situation?: string;
+  airesanteId: number;
+  arrondissementId: number;
 }
 
 export interface ApiResponse<T> {
-  success: boolean
-  data: T
-  message?: string
+  success: boolean;
+  data: T;
+  message?: string;
 }
 
 export interface PaginatedResponse<T> {
-  success: boolean
-  data: T[]
+  success: boolean;
+  data: T[];
   pagination: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 class FosaService {
   async getAll(params?: {
-    page?: number
-    limit?: number
-    search?: string
-    type?: string
+    page?: number;
+    limit?: number;
+    search?: string;
+    type?: string;
   }): Promise<PaginatedResponse<Fosa>> {
-    const response = await api.get<PaginatedResponse<Fosa>>("/fosas", { params })
-    return response.data
+    const response = await api.get<PaginatedResponse<Fosa>>("/fosas", {
+      params,
+    });
+    return response.data;
   }
 
   async getById(id: number): Promise<ApiResponse<Fosa>> {
-    const response = await api.get<ApiResponse<Fosa>>(`/fosas/${id}`)
-    return response.data
+    const response = await api.get<ApiResponse<Fosa>>(`/fosas/${id}`);
+    return response.data;
   }
 
   async create(data: FosaCreateData, image?: File): Promise<ApiResponse<Fosa>> {
-    const formData = new FormData()
+    const formData = new FormData();
 
     // Append all fosa data
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        formData.append(key, value.toString())
+        formData.append(key, value.toString());
       }
-    })
+    });
 
     // Append image if provided
     if (image) {
-      formData.append("image", image)
+      formData.append("image", image);
     }
 
     const response = await api.post<ApiResponse<Fosa>>("/fosas", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
-    })
-    return response.data
+    });
+    return response.data;
   }
 
-  async update(id: number, data: Partial<FosaCreateData>, image?: File): Promise<ApiResponse<Fosa>> {
-    const formData = new FormData()
+  async update(
+    id: number,
+    data: Partial<FosaCreateData>,
+    image?: File
+  ): Promise<ApiResponse<Fosa>> {
+    const formData = new FormData();
 
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        formData.append(key, value.toString())
+        formData.append(key, value.toString());
       }
-    })
+    });
 
     if (image) {
-      formData.append("image", image)
+      formData.append("image", image);
     }
 
-    const response = await api.put<ApiResponse<Fosa>>(`/fosas/${id}`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    })
-    return response.data
+    const response = await api.put<ApiResponse<Fosa>>(
+      `/fosas/${id}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
   }
 
   async delete(id: number): Promise<ApiResponse<void>> {
-    const response = await api.delete<ApiResponse<void>>(`/fosas/${id}`)
-    return response.data
+    const response = await api.delete<ApiResponse<void>>(`/fosas/${id}`);
+    return response.data;
   }
 
   // Spatial queries
   async getByRegionSpatial(regionId: number): Promise<Fosa[]> {
-    const response = await api.get<{ success: boolean; data: Fosa[]; count: number }>(`/fosas/spatial/region/${regionId}`)
-    return response.data.data
+    const response = await api.get<{
+      success: boolean;
+      data: Fosa[];
+      count: number;
+    }>(`/fosas/spatial/region/${regionId}`);
+    return response.data.data;
   }
 
   async getByDepartementSpatial(departementId: number): Promise<Fosa[]> {
-    const response = await api.get<{ success: boolean; data: Fosa[]; count: number }>(`/fosas/spatial/departement/${departementId}`)
-    return response.data.data
+    const response = await api.get<{
+      success: boolean;
+      data: Fosa[];
+      count: number;
+    }>(`/fosas/spatial/departement/${departementId}`);
+    return response.data.data;
   }
 
   async getByArrondissementSpatial(arrondissementId: number): Promise<Fosa[]> {
-    const response = await api.get<{ success: boolean; data: Fosa[]; count: number }>(`/fosas/spatial/arrondissement/${arrondissementId}`)
-    return response.data.data
+    const response = await api.get<{
+      success: boolean;
+      data: Fosa[];
+      count: number;
+    }>(`/fosas/spatial/arrondissement/${arrondissementId}`);
+    return response.data.data;
   }
 
   getImageUrl(imagePath?: string): string {
-    if (!imagePath) return "/placeholder-hospital.png"
-    return `${api.defaults.baseURL?.replace("/api", "")}${imagePath}`
+    if (!imagePath) return "/placeholder-hospital.png";
+    return `${api.defaults.baseURL?.replace("/api", "")}${imagePath}`;
   }
 }
 
-const fosaService = new FosaService()
+const fosaService = new FosaService();
 
-export { fosaService }
-export default fosaService
+export { fosaService };
+export default fosaService;

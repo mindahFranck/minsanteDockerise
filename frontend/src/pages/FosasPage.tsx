@@ -144,7 +144,7 @@ export default function FosasPage() {
     // On ne les applique plus côté client
 
     // Filtre Type
-    if (filterType && fosa.type !== filterType) return false
+    if (filterType && fosa.statutRec !== filterType) return false
 
     // Filtre Catégorie
     if (filterCategorie && (fosa as any).catRec !== filterCategorie) return false
@@ -405,11 +405,10 @@ export default function FosasPage() {
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
-              showFilters || hasActiveFilters
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${showFilters || hasActiveFilters
                 ? "bg-blue-50 border-blue-500 text-blue-700"
                 : "border-gray-300 text-gray-700 hover:bg-gray-50"
-            }`}
+              }`}
           >
             <Filter className="w-5 h-5" />
             Filtres
