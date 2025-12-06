@@ -143,8 +143,12 @@ export default function FosasPage() {
     // Les filtres géographiques (région, département, arrondissement) sont déjà appliqués par l'API spatiale
     // On ne les applique plus côté client
 
-    // Filtre Type
-    if (filterType && fosa.statutRec !== filterType) return false
+    // Filtre Type - CORRECTION: normaliser pour comparer correctement
+    if (filterType) {
+      const fosaType = (fosa.statutRec || '').toLowerCase().trim();
+      const selectedType = filterType.toLowerCase().trim();
+      if (fosaType !== selectedType) return false;
+    }
 
     // Filtre Catégorie
     if (filterCategorie && (fosa as any).catRec !== filterCategorie) return false
