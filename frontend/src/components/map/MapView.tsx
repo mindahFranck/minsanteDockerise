@@ -385,6 +385,9 @@ const MapView: React.FC = () => {
           const transformedHospitals = await transformFosasToHospitals(spatialData);
           setHospitals(transformedHospitals);
           setFosasData(spatialData);
+          // CORRECTION: Initialiser filteredHospitals pour permettre le filtrage local
+          // Les filtres locaux (type, catégorie, etc.) seront appliqués par le useEffect qui suit
+          setFilteredHospitals(transformedHospitals);
           setLoadingFosas(false);
           setShowFosaLoader(false);
           return;

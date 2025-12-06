@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Documentation Technique - Health Management System</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 2cm;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 21cm;
+        margin: 0 auto;
+        padding: 20px;
+        background: #fff;
+      }
+
+      h1 {
+        color: #2563eb;
+        border-bottom: 4px solid #2563eb;
+        padding-bottom: 10px;
+        margin-top: 40px;
+        page-break-before: always;
+      }
+
+      h1:first-of-type {
+        page-break-before: avoid;
+      }
+
+      h2 {
+        color: #1e40af;
+        border-bottom: 2px solid #dbeafe;
+        padding-bottom: 8px;
+        margin-top: 30px;
+      }
+
+      h3 {
+        color: #1e3a8a;
+        margin-top: 20px;
+      }
+
+      h4 {
+        color: #1e293b;
+        margin-top: 15px;
+      }
+
+      code {
+        background-color: #f1f5f9;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: "Courier New", Courier, monospace;
+        font-size: 0.9em;
+        color: #dc2626;
+      }
+
+      pre {
+        background-color: #1e293b;
+        color: #e2e8f0;
+        padding: 15px;
+        border-radius: 5px;
+        overflow-x: auto;
+        font-family: "Courier New", Courier, monospace;
+        font-size: 0.85em;
+        line-height: 1.5;
+        page-break-inside: avoid;
+      }
+
+      pre code {
+        background: none;
+        color: #e2e8f0;
+        padding: 0;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        page-break-inside: avoid;
+      }
+
+      table th {
+        background-color: #2563eb;
+        color: white;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+      }
+
+      table td {
+        padding: 10px;
+        border: 1px solid #e2e8f0;
+      }
+
+      table tr:nth-child(even) {
+        background-color: #f8fafc;
+      }
+
+      blockquote {
+        border-left: 4px solid #2563eb;
+        margin: 20px 0;
+        padding-left: 20px;
+        color: #64748b;
+        font-style: italic;
+      }
+
+      ul,
+      ol {
+        margin: 15px 0;
+        padding-left: 30px;
+      }
+
+      li {
+        margin: 8px 0;
+      }
+
+      .title-page {
+        text-align: center;
+        padding: 100px 20px;
+        page-break-after: always;
+      }
+
+      .title-page h1 {
+        font-size: 2.5em;
+        color: #1e40af;
+        border: none;
+        margin: 20px 0;
+        page-break-before: avoid;
+      }
+
+      .title-page h2 {
+        font-size: 1.8em;
+        color: #475569;
+        border: none;
+        margin: 15px 0;
+      }
+
+      .title-page .metadata {
+        margin-top: 50px;
+        font-size: 1.1em;
+        color: #64748b;
+      }
+
+      .toc {
+        page-break-after: always;
+      }
+
+      .toc h2 {
+        color: #1e40af;
+        border-bottom: 3px solid #2563eb;
+      }
+
+      .toc ul {
+        list-style: none;
+        padding-left: 0;
+      }
+
+      .toc li {
+        padding: 8px 0;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .toc a {
+        text-decoration: none;
+        color: #2563eb;
+      }
+
+      .toc a:hover {
+        text-decoration: underline;
+      }
+
+      .warning {
+        background-color: #fef3c7;
+        border-left: 4px solid #f59e0b;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
+
+      .info {
+        background-color: #dbeafe;
+        border-left: 4px solid #2563eb;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
+
+      .success {
+        background-color: #d1fae5;
+        border-left: 4px solid #10b981;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
+
+      .diagram {
+        background-color: #f8fafc;
+        border: 2px solid #cbd5e1;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 5px;
+        font-family: "Courier New", monospace;
+        white-space: pre;
+        overflow-x: auto;
+        page-break-inside: avoid;
+      }
+
+      @media print {
+        body {
+          padding: 0;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+          page-break-after: avoid;
+        }
+
+        table,
+        figure,
+        pre {
+          page-break-inside: avoid;
+        }
+
+        a {
+          color: #2563eb;
+          text-decoration: none;
+        }
+
+        .no-print {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- PAGE DE TITRE -->
+    <div class="title-page">
+      <h1>DOCUMENTATION TECHNIQUE</h1>
+      <h2>Plateforme de Gestion des Infrastructures Sanitaires du Cameroun</h2>
+      <div class="metadata">
+        <p><strong>Version :</strong> 1.0.0</p>
+        <p><strong>Date :</strong> 6 Décembre 2025</p>
+        <p><strong>Développeurs :</strong></p>
+        <p>Mindah Nkemeni Franck Julius</p>
+        <p>Serge Mezui</p>
+      </div>
+    </div>
+
+    <!-- TABLE DES MATIÈRES -->
+    <div class="toc">
+      <h2>TABLE DES MATIÈRES</h2>
+      <ul>
+        <li><a href="#vue-ensemble">1. Vue d'Ensemble du Projet</a></li>
+        <li><a href="#architecture-globale">2. Architecture Globale</a></li>
+        <li><a href="#architecture-frontend">3. Architecture Frontend</a></li>
+        <li><a href="#architecture-backend">4. Architecture Backend</a></li>
+        <li><a href="#base-donnees">5. Base de Données</a></li>
+        <li><a href="#outils-technologies">6. Outils et Technologies</a></li>
+        <li><a href="#securite">7. Sécurité et Authentification</a></li>
+        <li><a href="#deploiement">8. Déploiement et Infrastructure</a></li>
+        <li><a href="#developpement">9. Guides de Développement</a></li>
+        <li><a href="#annexes">10. Annexes</a></li>
+      </ul>
+    </div>
+
+    <!-- 1. VUE D'ENSEMBLE -->
+    <h1 id="vue-ensemble">1. VUE D'ENSEMBLE DU PROJET</h1>
+
+    <h2>1.1 Objectif du Projet</h2>
+    <p>
+      La
+      <strong
+        >Plateforme de Gestion des Infrastructures Sanitaires du
+        Cameroun</strong
+      >
+      est un système web complet développé pour le Ministère de la Santé
+      Publique du Cameroun. Cette plateforme permet de :
+    </p>
+    <ul>
+      <li>
+        <strong>Centraliser</strong> les données de toutes les formations
+        sanitaires (FOSA) du pays
+      </li>
+      <li>
+        <strong>Géolocaliser</strong> et visualiser les infrastructures de santé
+        sur une carte interactive
+      </li>
+      <li>
+        <strong>Suivre</strong> l'état des équipements médicaux et biomédicaux
+      </li>
+      <li>
+        <strong>Gérer</strong> le personnel de santé à travers les différentes
+        structures
+      </li>
+      <li>
+        <strong>Analyser</strong> les données avec des statistiques et rapports
+        détaillés
+      </li>
+      <li>
+        <strong>Contrôler</strong> l'accès avec un système de permissions et
+        rôles avancé
+      </li>
+    </ul>
+
+    <h2>1.2 Contexte et Enjeux</h2>
+    <p>Le système de santé camerounais comprend :</p>
+    <ul>
+      <li><strong>10 régions</strong> administratives</li>
+      <li><strong>58 départements</strong></li>
+      <li>Des centaines d'<strong>arrondissements</strong></li>
+      <li>Plus de <strong>180 districts de santé</strong></li>
+      <li>Plus de <strong>600 aires de santé</strong></li>
+      <li>Des milliers de <strong>formations sanitaires (FOSA)</strong></li>
+    </ul>
+
+    <h2>1.3 Fonctionnalités Principales</h2>
+
+    <h3>Gestion des Structures de Santé (FOSA)</h3>
+    <ul>
+      <li>CRUD complet (Create, Read, Update, Delete)</li>
+      <li>
+        Catégorisation : Hôpitaux, Centres de Santé Intégrés (CSI), Centres
+        Médicaux d'Arrondissement (CMA), etc.
+      </li>
+      <li>Types : Public, Parapublic, Privé laïc, Privé confessionnel</li>
+      <li>Géolocalisation GPS précise</li>
+      <li>
+        Informations détaillées : titre foncier, clôture, bâtiments, services
+        disponibles
+      </li>
+    </ul>
+
+    <h3>Cartographie Interactive</h3>
+    <ul>
+      <li>Visualisation géographique avec Leaflet</li>
+      <li>
+        Filtres par région, département, arrondissement, district, aire de santé
+      </li>
+      <li>Filtres par type de structure et catégorie</li>
+      <li>Filtres avancés : titre foncier, clôture, fonctionnalité</li>
+      <li>Analyse thématique avec statistiques en temps réel</li>
+      <li>Clustering intelligent pour grandes quantités de marqueurs</li>
+    </ul>
+
+    <h3>Gestion des Équipements</h3>
+    <ul>
+      <li>
+        <strong>Équipements médicaux</strong> : lits, tables d'opération, etc.
+      </li>
+      <li>
+        <strong>Équipements biomédicaux</strong> : échographes, radiographs,
+        scanners, IRM, etc.
+      </li>
+      <li>
+        <strong>Matériel roulant</strong> : ambulances, véhicules de service
+      </li>
+      <li>Suivi de l'état et des dégradations</li>
+      <li>Historique de maintenance</li>
+    </ul>
+
+    <!-- 2. ARCHITECTURE GLOBALE -->
+    <h1 id="architecture-globale">2. ARCHITECTURE GLOBALE</h1>
+
+    <h2>2.1 Schéma d'Architecture</h2>
+    <div class="diagram">
+      ┌─────────────────────────────────────────────────────────────────────┐ │
+      UTILISATEURS FINAUX │ │ (Administrateurs, Gestionnaires, Personnel Santé)
+      │ └────────────────────────────┬────────────────────────────────────────┘
+      │ │ HTTPS ▼
+      ┌─────────────────────────────────────────────────────────────────────┐ │
+      NGINX REVERSE PROXY │ │ (SSL/TLS - Let's Encrypt) │ │ │ │
+      ┌─────────────────────────────┬──────────────────────────────┐ │ │ │
+      minsante.it-grafik.com │ api-dev-minsante... │ │ │ │ (Frontend) │ (Backend
+      API) │ │ │ └─────────────┬───────────────┴────────────┬─────────────────┘
+      │ └────────────────┼──────────────────────────────┼─────────────────────┘
+      │ │ ▼ ▼ ┌────────────────────────────┐
+      ┌──────────────────────────────────┐ │ FRONTEND CONTAINER │ │ BACKEND
+      CONTAINER │ │ (Docker - Nginx) │ │ (Docker - Node.js) │ │ │ │ │ │
+      ┌──────────────────────┐ │ │ ┌────────────────────────────┐ │ │ │ React 18
+      │ │ │ │ Express.js │ │ │ │ + TypeScript │ │ │ │ + TypeScript │ │ │ │ +
+      Vite │ │ │ │ + Sequelize ORM │ │ │ │ + Tailwind CSS │ │ │ │ + JWT Auth │ │
+      │ │ + Leaflet Maps │ │ │ │ + Swagger Docs │ │ │ │ + Recharts │ │ │ │ +
+      Winston Logger │ │ │ └──────────────────────┘ │ │
+      └────────────┬───────────────┘ │ │ │ │ │ │ │ Static Files (SPA) │ │ │ │ │
+      Port: 80 (internal) │ │ │ Port: 3000 │ └────────────────────────────┘
+      └───────────────┼──────────────────┘ │ ▼
+      ┌──────────────────────────────────────┐ │ MySQL 8.0 DATABASE │ │ (Docker
+      Container) │ │ │ │ Tables: Region, Departement, FOSA │ │ User, Role,
+      Permission, Equipment │ │ Volume: /var/lib/mysql │
+      └──────────────────────────────────────┘
+    </div>
+
+    <h2>2.2 Technologies Stack</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Composant</th>
+          <th>Technologies</th>
+          <th>Version</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Frontend</strong></td>
+          <td>React + TypeScript + Vite</td>
+          <td>18.3.1 / 5.5.3 / 5.4.2</td>
+        </tr>
+        <tr>
+          <td><strong>Styling</strong></td>
+          <td>Tailwind CSS</td>
+          <td>3.4.1</td>
+        </tr>
+        <tr>
+          <td><strong>Cartographie</strong></td>
+          <td>Leaflet + React-Leaflet</td>
+          <td>1.9.4 / 4.2.1</td>
+        </tr>
+        <tr>
+          <td><strong>Backend</strong></td>
+          <td>Node.js + Express + TypeScript</td>
+          <td>20 LTS / latest / 5.x</td>
+        </tr>
+        <tr>
+          <td><strong>ORM</strong></td>
+          <td>Sequelize</td>
+          <td>latest</td>
+        </tr>
+        <tr>
+          <td><strong>Base de données</strong></td>
+          <td>MySQL</td>
+          <td>8.0</td>
+        </tr>
+        <tr>
+          <td><strong>Authentification</strong></td>
+          <td>JWT + Bcryptjs</td>
+          <td>latest</td>
+        </tr>
+        <tr>
+          <td><strong>Documentation</strong></td>
+          <td>Swagger/OpenAPI</td>
+          <td>latest</td>
+        </tr>
+        <tr>
+          <td><strong>Conteneurisation</strong></td>
+          <td>Docker + Docker Compose</td>
+          <td>latest</td>
+        </tr>
+        <tr>
+          <td><strong>Web Server</strong></td>
+          <td>Nginx</td>
+          <td>alpine</td>
+        </tr>
+        <tr>
+          <td><strong>CI/CD</strong></td>
+          <td>GitHub Actions</td>
+          <td>-</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 3. ARCHITECTURE FRONTEND -->
+    <h1 id="architecture-frontend">3. ARCHITECTURE FRONTEND</h1>
+
+    <h2>3.1 Stack Technique Frontend</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Technologie</th>
+          <th>Version</th>
+          <th>Rôle</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>React</td>
+          <td>18.3.1</td>
+          <td>Framework UI</td>
+        </tr>
+        <tr>
+          <td>TypeScript</td>
+          <td>5.5.3</td>
+          <td>Typage statique</td>
+        </tr>
+        <tr>
+          <td>Vite</td>
+          <td>5.4.2</td>
+          <td>Build tool & dev server</td>
+        </tr>
+        <tr>
+          <td>React Router</td>
+          <td>7.6.3</td>
+          <td>Routing SPA</td>
+        </tr>
+        <tr>
+          <td>Tailwind CSS</td>
+          <td>3.4.1</td>
+          <td>Framework CSS utility-first</td>
+        </tr>
+        <tr>
+          <td>Leaflet</td>
+          <td>1.9.4</td>
+          <td>Cartographie interactive</td>
+        </tr>
+        <tr>
+          <td>Recharts</td>
+          <td>3.1.0</td>
+          <td>Graphiques et visualisations</td>
+        </tr>
+        <tr>
+          <td>Axios</td>
+          <td>1.12.2</td>
+          <td>Client HTTP</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>3.2 Composants Principaux</h2>
+
+    <h3>MapView - Cartographie Principale</h3>
+    <p>
+      <strong>Fichier :</strong>
+      <code>src/components/map/MapView.tsx</code> (2100+ lignes)
+    </p>
+    <p><strong>Responsabilités :</strong></p>
+    <ul>
+      <li>Affichage de la carte interactive avec Leaflet</li>
+      <li>
+        Gestion des filtres géographiques (région, département, arrondissement,
+        district, aire de santé)
+      </li>
+      <li>Filtres typologiques (type de FOSA, catégorie, fonctionnalité)</li>
+      <li>Chargement lazy des FOSA (optimisation performances)</li>
+      <li>Clustering et tooltips personnalisés</li>
+    </ul>
+
+    <h3>Service API</h3>
+    <p><strong>Fichier :</strong> <code>src/services/apiService.ts</code></p>
+    <p><strong>Exemples d'endpoints :</strong></p>
+    <pre><code>// Authentification
+static async login(email: string, password: string)
+static async logout()
+
+// FOSA avec filtres spatiaux
+static async getFosasByRegion(regionId: string)
+static async getFosasByDepartement(departementId: string)
+
+// CRUD FOSA
+static async getFosas(params?)
+static async createFosa(data: any)
+static async updateFosa(id: number, data: any)</code></pre>
+
+    <!-- 4. ARCHITECTURE BACKEND -->
+    <h1 id="architecture-backend">4. ARCHITECTURE BACKEND</h1>
+
+    <h2>4.1 Stack Technique Backend</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Technologie</th>
+          <th>Version</th>
+          <th>Rôle</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Node.js</td>
+          <td>20 LTS</td>
+          <td>Runtime JavaScript</td>
+        </tr>
+        <tr>
+          <td>Express.js</td>
+          <td>latest</td>
+          <td>Framework web</td>
+        </tr>
+        <tr>
+          <td>TypeScript</td>
+          <td>5.x</td>
+          <td>Typage statique</td>
+        </tr>
+        <tr>
+          <td>Sequelize</td>
+          <td>latest</td>
+          <td>ORM</td>
+        </tr>
+        <tr>
+          <td>MySQL2</td>
+          <td>3.6.5</td>
+          <td>Driver MySQL</td>
+        </tr>
+        <tr>
+          <td>JWT</td>
+          <td>latest</td>
+          <td>Authentification</td>
+        </tr>
+        <tr>
+          <td>Winston</td>
+          <td>latest</td>
+          <td>Logging</td>
+        </tr>
+        <tr>
+          <td>Swagger</td>
+          <td>latest</td>
+          <td>Documentation API</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>4.2 Architecture en Couches</h2>
+    <div class="diagram">
+      ┌─────────────────────────────────────────────────┐ │ HTTP REQUEST │
+      └───────────────────┬─────────────────────────────┘ ↓
+      ┌─────────────────────────────────────────────────┐ │ MIDDLEWARE LAYER │ │
+      • Authentication (JWT) │ │ • Authorization (Permissions) │ │ • Validation
+      (express-validator) │ └───────────────────┬─────────────────────────────┘
+      ↓ ┌─────────────────────────────────────────────────┐ │ CONTROLLER LAYER │
+      │ • Parse request │ │ • Call service │ │ • Format response │
+      └───────────────────┬─────────────────────────────┘ ↓
+      ┌─────────────────────────────────────────────────┐ │ SERVICE LAYER │ │ •
+      Business logic │ │ • Validation métier │ │ • Orchestration │
+      └───────────────────┬─────────────────────────────┘ ↓
+      ┌─────────────────────────────────────────────────┐ │ MODEL/REPOSITORY
+      LAYER │ │ • Sequelize models │ │ • Database queries │
+      └───────────────────┬─────────────────────────────┘ ↓
+      ┌─────────────────────────────────────────────────┐ │ DATABASE (MySQL) │
+      └─────────────────────────────────────────────────┘
+    </div>
+
+    <h2>4.3 Système RBAC (Role-Based Access Control)</h2>
+
+    <h3>Rôles Prédéfinis</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Rôle</th>
+          <th>Description</th>
+          <th>Permissions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Super Admin</td>
+          <td>Accès total</td>
+          <td>Toutes les permissions (60+)</td>
+        </tr>
+        <tr>
+          <td>Admin</td>
+          <td>Administrateur</td>
+          <td>CRUD FOSA, équipements, personnel, lecture audit</td>
+        </tr>
+        <tr>
+          <td>Manager</td>
+          <td>Gestionnaire</td>
+          <td>CRUD FOSA, équipements, personnel</td>
+        </tr>
+        <tr>
+          <td>User</td>
+          <td>Utilisateur</td>
+          <td>Lecture seule</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 5. BASE DE DONNÉES -->
+    <h1 id="base-donnees">5. BASE DE DONNÉES</h1>
+
+    <h2>5.1 Configuration</h2>
+    <ul>
+      <li><strong>SGBD :</strong> MySQL 8.0</li>
+      <li><strong>Serveur :</strong> srv915.hstgr.io:3306</li>
+      <li><strong>Base de données :</strong> health_management</li>
+      <li><strong>Charset :</strong> utf8mb4 (support emoji)</li>
+    </ul>
+
+    <h2>5.2 Tables Principales</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Catégorie</th>
+          <th>Tables</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Authentification</td>
+          <td>users, roles, permissions, role_permissions, audit_logs</td>
+        </tr>
+        <tr>
+          <td>Hiérarchie Géographique</td>
+          <td>
+            regions (10), departements (58), arrondissements, districts (180+),
+            airesantes (400+)
+          </td>
+        </tr>
+        <tr>
+          <td>Structures Sanitaires</td>
+          <td>categories, fosas, batiments, services</td>
+        </tr>
+        <tr>
+          <td>Ressources Humaines</td>
+          <td>personnels</td>
+        </tr>
+        <tr>
+          <td>Équipements</td>
+          <td>equipements, equipebios, materielroulants, degradations</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>5.3 Schéma Hiérarchie Géographique</h2>
+    <div class="diagram">
+      Region (1) ──> (N) Departement ↓ (1) ↓ (N) Arrondissement ↓ (1) ↓ (N)
+      District ↓ (1) ↓ (N) Airesante ↓ (1) ↓ (N) Fosa
+    </div>
+
+    <!-- 6. OUTILS ET TECHNOLOGIES -->
+    <h1 id="outils-technologies">6. OUTILS ET TECHNOLOGIES</h1>
+
+    <h2>6.1 Environnement de Développement</h2>
+    <ul>
+      <li><strong>IDE :</strong> Visual Studio Code</li>
+      <li>
+        <strong>Extensions VSCode :</strong> ESLint, Prettier, TypeScript,
+        Tailwind CSS IntelliSense, Docker
+      </li>
+      <li><strong>Contrôle de version :</strong> Git + GitHub</li>
+      <li><strong>Package Manager :</strong> npm</li>
+    </ul>
+
+    <h2>6.2 Scripts npm Principaux</h2>
+
+    <h3>Frontend</h3>
+    <pre><code>{
+  "scripts": {
+    "dev": "vite",                  // Dev server (port 5173)
+    "build": "vite build",          // Build production
+    "preview": "vite preview",      // Preview build
+    "lint": "eslint ."              // Linting
+  }
+}</code></pre>
+
+    <h3>Backend</h3>
+    <pre><code>{
+  "scripts": {
+    "dev": "tsx src/server.ts",        // Dev avec hot reload
+    "build": "tsc --build --force",    // Compilation TypeScript
+    "start": "node dist/server.js",    // Production
+    "db:init": "tsx src/scripts/init-db.ts",    // Init DB
+    "test": "jest --coverage"          // Tests
+  }
+}</code></pre>
+
+    <!-- 7. SÉCURITÉ -->
+    <h1 id="securite">7. SÉCURITÉ ET AUTHENTIFICATION</h1>
+
+    <h2>7.1 Mesures de Sécurité Implémentées</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Mesure</th>
+          <th>Technologie</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Authentification</td>
+          <td>JWT</td>
+          <td>Tokens avec expiration 7 jours</td>
+        </tr>
+        <tr>
+          <td>Autorisation</td>
+          <td>RBAC</td>
+          <td>60+ permissions granulaires</td>
+        </tr>
+        <tr>
+          <td>Mots de passe</td>
+          <td>Bcrypt</td>
+          <td>Hashage avec 10 rounds</td>
+        </tr>
+        <tr>
+          <td>Headers HTTP</td>
+          <td>Helmet</td>
+          <td>CSP, XSS Protection, etc.</td>
+        </tr>
+        <tr>
+          <td>CORS</td>
+          <td>cors middleware</td>
+          <td>Origins whitelistés</td>
+        </tr>
+        <tr>
+          <td>Rate Limiting</td>
+          <td>express-rate-limit</td>
+          <td>100 requêtes/15min par IP</td>
+        </tr>
+        <tr>
+          <td>Validation</td>
+          <td>express-validator</td>
+          <td>Validation et sanitization</td>
+        </tr>
+        <tr>
+          <td>HTTPS/TLS</td>
+          <td>Let's Encrypt</td>
+          <td>Certificats SSL auto-renouvelés</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="warning">
+      <strong>⚠️ IMPORTANT :</strong> Changez les mots de passe par défaut en
+      production !
+      <ul>
+        <li>superadmin@minsante.cm : Admin@2024</li>
+        <li>admin@minsante.cm : Admin@2024</li>
+        <li>manager@minsante.cm : Admin@2024</li>
+        <li>user@minsante.cm : Admin@2024</li>
+      </ul>
+    </div>
+
+    <h2>7.2 Audit et Traçabilité</h2>
+    <p>
+      Toutes les actions sensibles sont enregistrées dans la table
+      <code>audit_logs</code> :
+    </p>
+    <ul>
+      <li>Utilisateur (userId)</li>
+      <li>Action (CREATE, UPDATE, DELETE)</li>
+      <li>Ressource (FOSA, User, Equipement, etc.)</li>
+      <li>Détails (données avant/après)</li>
+      <li>IP et User-Agent</li>
+      <li>Timestamp</li>
+    </ul>
+
+    <!-- 8. DÉPLOIEMENT -->
+    <h1 id="deploiement">8. DÉPLOIEMENT ET INFRASTRUCTURE</h1>
+
+    <h2>8.1 URLs de Production</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>URL</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Frontend</td>
+          <td>https://minsante.it-grafik.com</td>
+        </tr>
+        <tr>
+          <td>Backend API</td>
+          <td>https://api-dev-minsante.it-grafik.com</td>
+        </tr>
+        <tr>
+          <td>Documentation API</td>
+          <td>https://api-dev-minsante.it-grafik.com/api-docs</td>
+        </tr>
+        <tr>
+          <td>PHPMyAdmin</td>
+          <td>https://phpmyadmin.it-grafik.com</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>8.2 CI/CD avec GitHub Actions</h2>
+    <p><strong>Déclenchement automatique :</strong></p>
+    <ul>
+      <li>Push sur la branche <code>main</code></li>
+      <li>Déclenchement manuel via GitHub UI</li>
+    </ul>
+
+    <p><strong>Étapes du déploiement :</strong></p>
+    <ol>
+      <li>Build Backend : Construction de l'image Docker backend</li>
+      <li>Build Frontend : Construction de l'image Docker frontend</li>
+      <li>Push to Docker Hub : Upload des images</li>
+      <li>Deploy Backend : Déploiement via SSH sur le serveur</li>
+      <li>Deploy Frontend : Déploiement via SSH</li>
+      <li>Health Checks : Vérification automatique</li>
+    </ol>
+
+    <h2>8.3 Commandes Docker Essentielles</h2>
+
+    <h3>Backend</h3>
+    <pre><code># Voir logs
+docker logs -f health-backend
+
+# Redémarrer
+docker restart health-backend
+
+# Accéder au container
+docker exec -it health-backend sh
+
+# Health check
+curl https://api-dev-minsante.it-grafik.com/api/v1/health</code></pre>
+
+    <h3>Frontend</h3>
+    <pre><code># Voir logs Nginx
+docker logs -f health-frontend
+
+# Redémarrer
+docker restart health-frontend</code></pre>
+
+    <h3>MySQL</h3>
+    <pre><code># Backup
+docker exec mysql_db mysqldump -u root -p health_management > backup.sql
+
+# Restore
+docker exec -i mysql_db mysql -u root -p health_management < backup.sql</code></pre>
+
+    <!-- 9. DÉVELOPPEMENT -->
+    <h1 id="developpement">9. GUIDES DE DÉVELOPPEMENT</h1>
+
+    <h2>9.1 Installation Environnement Local</h2>
+
+    <h3>Backend</h3>
+    <pre><code>cd backend
+npm install
+cp .env.example .env
+# Modifier .env avec vos paramètres
+npm run build
+npm run db:init
+npm run dev</code></pre>
+
+    <h3>Frontend</h3>
+    <pre><code>cd frontend
+npm install
+cp .env.example .env
+# VITE_API_URL=http://localhost:3000/api/v1
+npm run dev</code></pre>
+
+    <h2>9.2 Conventions de Code</h2>
+    <ul>
+      <li><strong>TypeScript :</strong> Typage strict activé</li>
+      <li><strong>ESLint :</strong> Règles de linting standardisées</li>
+      <li><strong>Prettier :</strong> Formatage automatique</li>
+      <li>
+        <strong>Commits :</strong> Convention Conventional Commits (feat:, fix:,
+        docs:, etc.)
+      </li>
+    </ul>
+
+    <h2>9.3 Tests</h2>
+    <pre><code># Backend tests
+cd backend
+npm test
+npm run test:coverage
+
+# Frontend tests
+cd frontend
+npm test</code></pre>
+
+    <!-- 10. ANNEXES -->
+    <h1 id="annexes">10. ANNEXES</h1>
+
+    <h2>10.1 Glossaire</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Terme</th>
+          <th>Définition</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>FOSA</td>
+          <td>Formation Sanitaire (structure de santé)</td>
+        </tr>
+        <tr>
+          <td>CSI</td>
+          <td>Centre de Santé Intégré</td>
+        </tr>
+        <tr>
+          <td>CMA</td>
+          <td>Centre Médical d'Arrondissement</td>
+        </tr>
+        <tr>
+          <td>RBAC</td>
+          <td>Role-Based Access Control</td>
+        </tr>
+        <tr>
+          <td>JWT</td>
+          <td>JSON Web Token</td>
+        </tr>
+        <tr>
+          <td>ORM</td>
+          <td>Object-Relational Mapping</td>
+        </tr>
+        <tr>
+          <td>API</td>
+          <td>Application Programming Interface</td>
+        </tr>
+        <tr>
+          <td>REST</td>
+          <td>Representational State Transfer</td>
+        </tr>
+        <tr>
+          <td>CRUD</td>
+          <td>Create, Read, Update, Delete</td>
+        </tr>
+        <tr>
+          <td>SPA</td>
+          <td>Single Page Application</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>10.2 Contact et Support</h2>
+    <div class="info">
+      <p><strong>Développeurs :</strong></p>
+      <ul>
+        <li>Mindah Nkemeni Franck Julius - mindahnkemeni@gmail.com</li>
+        <li>Serge Mezui</li>
+      </ul>
+      <p><strong>Organisation :</strong> IT-Grafik</p>
+      <p><strong>Ministère de la Santé Publique du Cameroun</strong></p>
+    </div>
+
+    <h2>10.3 Dépannage (Troubleshooting)</h2>
+
+    <div class="warning">
+      <h4>Problème : Backend ne démarre pas</h4>
+      <pre><code># Vérifier logs
+docker logs health-backend
+
+# Vérifier connexion DB
+docker exec health-backend node -e "require('./dist/config/database').default.authenticate()"
+
+# Redémarrer
+docker restart health-backend</code></pre>
+    </div>
+
+    <div class="warning">
+      <h4>Problème : Erreurs CORS</h4>
+      <pre><code># Vérifier CORS_ORIGIN dans backend .env
+CORS_ORIGIN=https://minsante.it-grafik.com
+
+# Redémarrer backend
+docker restart health-backend</code></pre>
+    </div>
+
+    <hr style="margin: 40px 0; border: 2px solid #2563eb" />
+
+    <div style="text-align: center; margin: 40px 0; color: #64748b">
+      <p><strong>FIN DE LA DOCUMENTATION TECHNIQUE</strong></p>
+      <p>Document généré le 6 Décembre 2025</p>
+      <p>Version 1.0.0</p>
+      <p style="margin-top: 20px; font-size: 1.1em">
+        Développé avec ❤️ pour la santé au Cameroun
+      </p>
+    </div>
+  </body>
+</html>
