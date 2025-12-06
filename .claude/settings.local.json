@@ -47,7 +47,8 @@
       "Bash(docker build:*)",
       "Bash(taskkill:*)",
       "Bash(git push)",
-      "Bash(where:*)"
+      "Bash(where:*)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []
