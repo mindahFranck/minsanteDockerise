@@ -268,10 +268,15 @@ const MapView: React.FC = () => {
         name: fosa.nom,
         _district: district?.nom_ds || district?.nom || null,
         _airesante: airesante?.nom_as || airesante?.nom || null,
-        type: fosa.statutRec === 'Public' ? 'public' :
-          fosa.statutRec === 'Parapublic' ? 'parapublic' :
-            fosa.statutRec === 'Privé laïc' ? 'prive_laic' :
-              fosa.statutRec === 'Privé confessionnel' ? 'prive_confessionnel' : 'public',
+        // CORRECTION: Normaliser statutRec pour gérer les variations de casse et d'accents
+        type: (() => {
+          const statut = (fosa.statutRec || '').toLowerCase().trim();
+          if (statut === 'public') return 'public';
+          if (statut === 'parapublic') return 'parapublic';
+          if (statut === 'privé laïc' || statut === 'prive laic') return 'prive_laic';
+          if (statut === 'privé confessionnel' || statut === 'prive confessionnel') return 'prive_confessionnel';
+          return 'public'; // Par défaut
+        })(),
         category: fosa.catRec || fosa.statutRec || 'FOSA',
         status: fosa.estFerme ? 'closed' :
           fosa.situation?.toLowerCase().includes('maintenance') ? 'maintenance' :
