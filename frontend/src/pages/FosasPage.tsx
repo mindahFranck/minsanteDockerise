@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { Plus, Search, ImageIcon, Filter, X as XIcon } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
@@ -14,7 +14,55 @@ import { regionService } from "../services/regionService"
 import { departementService } from "../services/departementService"
 import type { Arrondissement, Airesante, Region, Departement } from "../types"
 
-type Fosa = FosaServiceType
+// Interface FOSA étendue
+interface Fosa extends FosaServiceType {
+  statutRec?: string
+  catRec?: string
+  categorieRec?: string
+  fonction?: boolean
+  nomDirect?: string
+  orgUnit?: string
+}
+
+// Fonction utilitaire pour normaliser les données FOSA
+const normalizeFosaData = (fosaData: any): Fosa => {
+  return {
+    id: fosaData.id,
+    nom: fosaData.nom || '',
+    type: fosaData.type || fosaData.statutRec || '', // Fusionner type et statutRec
+    capaciteLits: fosaData.capaciteLits || 0,
+    estFerme: Boolean(fosaData.estFerme),
+    situation: fosaData.situation || '',
+    image: fosaData.image || null,
+    airesanteId: fosaData.airesanteId || 0,
+    arrondissementId: fosaData.arrondissementId || 0,
+
+    // Normaliser les champs pour le filtrage
+    statutRec: fosaData.statutRec || fosaData.type || '',
+    catRec: fosaData.catRec || fosaData.categorieRec || '',
+    categorieRec: fosaData.categorieRec || fosaData.catRec || '',
+    fonction: Boolean(fosaData.fonction !== undefined ? fosaData.fonction : true),
+    nomDirect: fosaData.nomDirect || '',
+    orgUnit: fosaData.orgUnit || '',
+
+    // Coordonnées
+    longitude: fosaData.longitude || 0,
+    latitude: fosaData.latitude || 0,
+
+    // Sécurité
+    aCloture: Boolean(fosaData.aCloture),
+    aTitreFoncier: Boolean(fosaData.aTitreFoncier),
+    connecteeElectricite: Boolean(fosaData.connecteeElectricite),
+    typeCourant: fosaData.typeCourant || '',
+
+    // Relations
+    arrondissement: fosaData.arrondissement || null,
+    airesante: fosaData.airesante || null,
+
+    createdAt: fosaData.createdAt,
+    updatedAt: fosaData.updatedAt,
+  }
+}
 
 export default function FosasPage() {
   const [fosas, setFosas] = useState<Fosa[]>([])
@@ -71,11 +119,7 @@ export default function FosasPage() {
     nomDirect: "",
   })
 
-  useEffect(() => {
-    loadData()
-  }, [page, search, filterRegion, filterDepartement, filterArrondissement])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true)
 
@@ -99,24 +143,28 @@ export default function FosasPage() {
         // Get FOSA by arrondissement (spatial)
         const arrondissement = arrResponse.data.find((a: Arrondissement) => a.nom === filterArrondissement)
         if (arrondissement) {
-          fosasData = await fosaService.getByArrondissementSpatial(arrondissement.id)
+          const rawData = await fosaService.getByArrondissementSpatial(arrondissement.id)
+          fosasData = rawData.map(normalizeFosaData)
         }
       } else if (filterDepartement) {
         // Get FOSA by departement (spatial)
         const departement = deptResponse.data.find((d: Departement) => d.departement === filterDepartement)
         if (departement) {
-          fosasData = await fosaService.getByDepartementSpatial(departement.id)
+          const rawData = await fosaService.getByDepartementSpatial(departement.id)
+          fosasData = rawData.map(normalizeFosaData)
         }
       } else if (filterRegion) {
         // Get FOSA by region (spatial)
         const region = regionResponse.data.find((r: Region) => r.nom === filterRegion)
         if (region) {
-          fosasData = await fosaService.getByRegionSpatial(region.id)
+          const rawData = await fosaService.getByRegionSpatial(region.id)
+          fosasData = rawData.map(normalizeFosaData)
         }
       } else {
         // No geographic filter - use standard pagination endpoint
         const fosaResponse = await fosaService.getAll({ page, limit: 10, search })
-        fosasData = fosaResponse.data
+        // Normaliser les données de pagination aussi
+        fosasData = fosaResponse.data.map(normalizeFosaData)
         setPagination(fosaResponse.pagination)
       }
 
@@ -136,22 +184,25 @@ export default function FosasPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [page, search, filterRegion, filterDepartement, filterArrondissement])
 
-  // Appliquer les filtres côté client
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  // Appliquer les filtres côté client sur des données normalisées
   const filteredFosas = fosas.filter((fosa) => {
     // Les filtres géographiques (région, département, arrondissement) sont déjà appliqués par l'API spatiale
-    // On ne les applique plus côté client
 
-    // Filtre Type - CORRECTION: normaliser pour comparer correctement
+    // Filtre Type - maintenant cohérent grâce à la normalisation
     if (filterType) {
-      const fosaType = (fosa.statutRec || '').toLowerCase().trim();
-      const selectedType = filterType.toLowerCase().trim();
-      if (fosaType !== selectedType) return false;
+      const fosaType = fosa.type.toLowerCase().trim()
+      const selectedType = filterType.toLowerCase().trim()
+      if (fosaType !== selectedType) return false
     }
 
-    // Filtre Catégorie
-    if (filterCategorie && (fosa as any).catRec !== filterCategorie) return false
+    // Filtre Catégorie - maintenant cohérent
+    if (filterCategorie && fosa.catRec !== filterCategorie) return false
 
     // Filtre Statut (Ouvert/Fermé)
     if (filterStatut !== "all") {
@@ -161,9 +212,8 @@ export default function FosasPage() {
 
     // Filtre Fonctionnel
     if (filterFonctionnel !== "all") {
-      const isFonctionnel = (fosa as any).fonction
-      if (filterFonctionnel === "oui" && !isFonctionnel) return false
-      if (filterFonctionnel === "non" && isFonctionnel) return false
+      if (filterFonctionnel === "oui" && !fosa.fonction) return false
+      if (filterFonctionnel === "non" && fosa.fonction) return false
     }
 
     // Filtre Sécurité
@@ -267,11 +317,11 @@ export default function FosasPage() {
       aTitreFoncier: item.aTitreFoncier || false,
       connecteeElectricite: item.connecteeElectricite || false,
       typeCourant: item.typeCourant || "",
-      orgUnit: (item as any).orgUnit || "",
-      fonction: (item as any).fonction !== undefined ? (item as any).fonction : true,
-      statutRec: (item as any).statutRec || "",
-      catRec: (item as any).catRec || "",
-      nomDirect: (item as any).nomDirect || "",
+      orgUnit: item.orgUnit || "",
+      fonction: item.fonction !== undefined ? item.fonction : true,
+      statutRec: item.statutRec || "",
+      catRec: item.catRec || "",
+      nomDirect: item.nomDirect || "",
     })
     if (item.image) {
       setImagePreview(`${(import.meta as any).env?.VITE_API_URL || "http://localhost:5000"}${item.image}`)
@@ -333,25 +383,25 @@ export default function FosasPage() {
     { key: "situation", label: "Situation" },
     {
       key: "statutRec",
-      label: "Statut",
-      render: (f: Fosa) => (f as any).statutRec || "-"
+      label: "Statut Rec",
+      render: (f: Fosa) => f.statutRec || "-"
     },
     {
       key: "catRec",
       label: "Catégorie",
-      render: (f: Fosa) => (f as any).catRec || "-"
+      render: (f: Fosa) => f.catRec || "-"
     },
     {
       key: "nomDirect",
       label: "Directeur",
-      render: (f: Fosa) => (f as any).nomDirect || "-"
+      render: (f: Fosa) => f.nomDirect || "-"
     },
     {
       key: "fonction",
       label: "Fonctionnel",
       render: (f: Fosa) => (
-        <span className={`px-2 py-1 rounded text-xs ${(f as any).fonction ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}>
-          {(f as any).fonction ? "Oui" : "Non"}
+        <span className={`px-2 py-1 rounded text-xs ${f.fonction ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}>
+          {f.fonction ? "Oui" : "Non"}
         </span>
       ),
     },
