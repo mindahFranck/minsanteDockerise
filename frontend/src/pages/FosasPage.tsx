@@ -153,8 +153,10 @@ export default function FosasPage() {
     }
 
     // Filtre Catégorie
-    if (filterCategorie && (fosa as any).catRec !== filterCategorie) return false
-
+    if (filterCategorie) {
+      const fosaCategorie = (fosa as any).categorieRec || (fosa as any).catRec || '';
+      if (fosaCategorie.toLowerCase() !== filterCategorie.toLowerCase()) return false;
+    }
     // Filtre Statut (Ouvert/Fermé)
     if (filterStatut !== "all") {
       if (filterStatut === "ouvert" && fosa.estFerme) return false
