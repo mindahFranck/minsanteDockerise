@@ -145,9 +145,11 @@ export default function FosasPage() {
 
     // Filtre Type - CORRECTION: normaliser pour comparer correctement
     if (filterType) {
-      const fosaType = (fosa.statutRec || '').toLowerCase().trim();
+      const fosaType = fosa.type || (fosa as any).statutRec || '';
+      const normalizedFosaType = fosaType.toLowerCase().trim();
       const selectedType = filterType.toLowerCase().trim();
-      if (fosaType !== selectedType) return false;
+
+      if (normalizedFosaType !== selectedType) return false;
     }
 
     // Filtre Catégorie
@@ -410,8 +412,8 @@ export default function FosasPage() {
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${showFilters || hasActiveFilters
-                ? "bg-blue-50 border-blue-500 text-blue-700"
-                : "border-gray-300 text-gray-700 hover:bg-gray-50"
+              ? "bg-blue-50 border-blue-500 text-blue-700"
+              : "border-gray-300 text-gray-700 hover:bg-gray-50"
               }`}
           >
             <Filter className="w-5 h-5" />
