@@ -145,18 +145,14 @@ export default function FosasPage() {
 
     // Filtre Type - CORRECTION: normaliser pour comparer correctement
     if (filterType) {
-      const fosaType = fosa.type || (fosa as any).statutRec || '';
-      const normalizedFosaType = fosaType.toLowerCase().trim();
+      const fosaType = (fosa.statutRec || '').toLowerCase().trim();
       const selectedType = filterType.toLowerCase().trim();
-
-      if (normalizedFosaType !== selectedType) return false;
+      if (fosaType !== selectedType) return false;
     }
 
     // Filtre Catégorie
-    if (filterCategorie) {
-      const fosaCategorie = (fosa as any).categorieRec || (fosa as any).catRec || '';
-      if (fosaCategorie.toLowerCase() !== filterCategorie.toLowerCase()) return false;
-    }
+    if (filterCategorie && (fosa as any).catRec !== filterCategorie) return false
+
     // Filtre Statut (Ouvert/Fermé)
     if (filterStatut !== "all") {
       if (filterStatut === "ouvert" && fosa.estFerme) return false

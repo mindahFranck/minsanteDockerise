@@ -37,7 +37,7 @@ export default function Login({ onLogin }: LoginProps) {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
       <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Système de Santé</h1>
+          <h1 className="text-3xl font-bold text-gray-900">IMMOSANTECam - G1</h1>
           <p className="text-gray-600 mt-2">Ministère de la Santé Publique du Cameroun</p>
         </div>
 
