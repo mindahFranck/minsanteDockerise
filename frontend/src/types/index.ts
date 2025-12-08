@@ -1,9 +1,11 @@
+export type UserRole = "super_admin" | "admin" | "manager" | "user";
+
 export interface User {
   id: number;
   email: string;
   firstName: string;
   lastName: string;
-  role: "super_admin" | "admin" | "manager" | "user";
+  role: UserRole;
   isActive: boolean;
   lastLogin?: string;
   scopeType?: "national" | "regional" | "departemental" | "arrondissement";

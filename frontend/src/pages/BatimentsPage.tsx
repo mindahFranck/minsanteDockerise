@@ -6,11 +6,16 @@ import { Plus, Search } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
 import ConfirmDialog from "../components/ConfirmDialog"
+import ExportButtons from "../components/ExportButtons"
 import { batimentService } from "../services/batimentService"
 import { fosaService } from "../services/fosaService"
 import type { Batiment, Fosa } from "../types"
+import { usePermissions } from "../hooks/usePermissions"
+import { exportBatimentsToPDF, exportBatimentsToExcel } from "../utils/pageExports"
 
 export default function BatimentsPage() {
+  const permissions = usePermissions()
+
   const [batiments, setBatiments] = useState<Batiment[]>([])
   const [fosas, setFosas] = useState<Fosa[]>([])
   const [loading, setLoading] = useState(true)
@@ -151,34 +156,52 @@ export default function BatimentsPage() {
     { key: "anneConstruction", label: "Année" },
   ]
 
+  // Fonctions d'export
+  const handleExportPDF = () => {
+    exportBatimentsToPDF(batiments)
+  }
+
+  const handleExportExcel = () => {
+    exportBatimentsToExcel(batiments)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Bâtiments</h1>
-        <button
-          onClick={() => {
-            if (!filterFosaId) {
-              alert("Veuillez d'abord sélectionner une FOSA dans le filtre pour ajouter un bâtiment")
-              return
-            }
-            setEditingBatiment(null)
-            setFormData({
-              nom: "",
-              fosaId: filterFosaId,
-              superficie: 0,
-              etat: "Bon",
-              anneConstruction: new Date().getFullYear(),
-              description: "",
-            })
-            setIsModalOpen(true)
-          }}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={!filterFosaId}
-          title={!filterFosaId ? "Sélectionnez d'abord une FOSA dans le filtre" : ""}
-        >
-          <Plus className="w-5 h-5" />
-          Ajouter
-        </button>
+        <div className="flex gap-3">
+          <ExportButtons
+            onExportPDF={handleExportPDF}
+            onExportExcel={handleExportExcel}
+            disabled={batiments.length === 0}
+          />
+          {permissions.canCreate && permissions.canManageBuildings && (
+            <button
+              onClick={() => {
+                if (!filterFosaId) {
+                  alert("Veuillez d'abord sélectionner une FOSA dans le filtre pour ajouter un bâtiment")
+                  return
+                }
+                setEditingBatiment(null)
+                setFormData({
+                  nom: "",
+                  fosaId: filterFosaId,
+                  superficie: 0,
+                  etat: "Bon",
+                  anneConstruction: new Date().getFullYear(),
+                  description: "",
+                })
+                setIsModalOpen(true)
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!filterFosaId}
+              title={!filterFosaId ? "Sélectionnez d'abord une FOSA dans le filtre" : ""}
+            >
+              <Plus className="w-5 h-5" />
+              Ajouter
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex gap-4">
@@ -220,8 +243,8 @@ export default function BatimentsPage() {
       <DataTable
         data={batiments}
         columns={columns}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
+        onEdit={permissions.canEdit && permissions.canManageBuildings ? handleEdit : undefined}
+        onDelete={permissions.canDelete && permissions.canManageBuildings ? handleDelete : undefined}
         loading={loading}
         pagination={pagination}
         onPageChange={setPage}

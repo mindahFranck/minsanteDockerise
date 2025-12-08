@@ -7,12 +7,15 @@ import { Plus, Search, ImageIcon, Filter, X as XIcon } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
 import ConfirmDialog from "../components/ConfirmDialog"
+import ExportButtons from "../components/ExportButtons"
 import { fosaService, type Fosa as FosaServiceType } from "../services/fosaService"
 import { arrondissementService } from "../services/arrondissementService"
 import { airesanteService } from "../services/airesanteService"
 import { regionService } from "../services/regionService"
 import { departementService } from "../services/departementService"
 import type { Arrondissement, Airesante, Region, Departement } from "../types"
+import { usePermissions } from "../hooks/usePermissions"
+import { exportFosasToPDF, exportFosasToExcel } from "../utils/exportUtils"
 
 // Interface FOSA étendue
 interface Fosa extends FosaServiceType {
@@ -65,6 +68,9 @@ const normalizeFosaData = (fosaData: any): Fosa => {
 }
 
 export default function FosasPage() {
+  // Permissions
+  const permissions = usePermissions()
+
   const [fosas, setFosas] = useState<Fosa[]>([])
   const [regions, setRegions] = useState<Region[]>([])
   const [departements, setDepartements] = useState<Departement[]>([])
@@ -428,21 +434,39 @@ export default function FosasPage() {
     },
   ]
 
+  // Fonctions d'export
+  const handleExportPDF = () => {
+    exportFosasToPDF(filteredFosas)
+  }
+
+  const handleExportExcel = () => {
+    exportFosasToExcel(filteredFosas)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Formations Sanitaires (FOSA)</h1>
-        <button
-          onClick={() => {
-            setEditingItem(null)
-            resetForm()
-            setIsModalOpen(true)
-          }}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          <Plus className="w-5 h-5" />
-          Ajouter
-        </button>
+        <div className="flex gap-3">
+          <ExportButtons
+            onExportPDF={handleExportPDF}
+            onExportExcel={handleExportExcel}
+            disabled={filteredFosas.length === 0}
+          />
+          {permissions.canCreate && permissions.canManageFosas && (
+            <button
+              onClick={() => {
+                setEditingItem(null)
+                resetForm()
+                setIsModalOpen(true)
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <Plus className="w-5 h-5" />
+              Ajouter
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -653,8 +677,8 @@ export default function FosasPage() {
         <DataTable
           data={filteredFosas}
           columns={columns}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          onEdit={permissions.canEdit && permissions.canManageFosas ? handleEdit : undefined}
+          onDelete={permissions.canDelete && permissions.canManageFosas ? handleDelete : undefined}
           pagination={pagination}
           onPageChange={setPage}
         />

@@ -7,6 +7,7 @@ import {
   ChevronDown, ChevronRight, FileSpreadsheet
 } from "lucide-react"
 import { useState } from "react"
+import { usePermissions } from "../hooks/usePermissions"
 
 interface LayoutProps {
   onLogout: () => void
@@ -16,6 +17,7 @@ interface NavItem {
   name: string
   href: string
   icon: any
+  requiresPermission?: keyof ReturnType<typeof usePermissions>
 }
 
 interface NavSection {
@@ -27,8 +29,12 @@ interface NavSection {
 export default function Layout({ onLogout }: LayoutProps) {
   const location = useLocation()
   const navigate = useNavigate()
+  const permissions = usePermissions()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [expandedSections, setExpandedSections] = useState<string[]>(['Principal', 'Géographie', 'Infrastructures'])
+
+  // DEBUG: Afficher les permissions dans la console
+  console.log('📋 Layout - Permissions:', permissions)
 
   const handleLogout = () => {
     localStorage.removeItem("token")
@@ -50,57 +56,70 @@ export default function Layout({ onLogout }: LayoutProps) {
       title: "Principal",
       collapsible: false,
       items: [
-        { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
+        { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard, requiresPermission: "canView" },
       ]
     },
     {
       title: "Géographie",
       collapsible: true,
       items: [
-        { name: "Régions", href: "/dashboard/regions", icon: MapPin },
-        { name: "Départements", href: "/dashboard/departements", icon: MapPin },
-        { name: "Arrondissements", href: "/dashboard/arrondissements", icon: MapPin },
-        { name: "Districts", href: "/dashboard/districts", icon: MapPin },
-        { name: "Aires de Santé", href: "/dashboard/airesantes", icon: MapPin },
+        { name: "Régions", href: "/dashboard/regions", icon: MapPin, requiresPermission: "canViewAllRegions" },
+        { name: "Départements", href: "/dashboard/departements", icon: MapPin, requiresPermission: "canViewAllRegions" },
+        { name: "Arrondissements", href: "/dashboard/arrondissements", icon: MapPin, requiresPermission: "canViewAllRegions" },
+        { name: "Districts", href: "/dashboard/districts", icon: MapPin, requiresPermission: "canViewAllRegions" },
+        { name: "Aires de Santé", href: "/dashboard/airesantes", icon: MapPin, requiresPermission: "canViewAllRegions" },
       ]
     },
     {
       title: "Infrastructures",
       collapsible: true,
       items: [
-        { name: "FOSA", href: "/dashboard/fosas", icon: Building2 },
-        { name: "Bâtiments", href: "/dashboard/batiments", icon: Building },
-        { name: "Services", href: "/dashboard/services", icon: Activity },
+        { name: "FOSA", href: "/dashboard/fosas", icon: Building2, requiresPermission: "canView" },
+        { name: "Bâtiments", href: "/dashboard/batiments", icon: Building, requiresPermission: "canView" },
+        { name: "Services", href: "/dashboard/services", icon: Activity, requiresPermission: "canView" },
       ]
     },
     {
       title: "Personnel",
       collapsible: true,
       items: [
-        { name: "Personnel", href: "/dashboard/personnels", icon: Users },
-        { name: "Catégories", href: "/dashboard/categories", icon: Tag },
+        { name: "Personnel", href: "/dashboard/personnels", icon: Users, requiresPermission: "canView" },
+        { name: "Catégories", href: "/dashboard/categories", icon: Tag, requiresPermission: "canView" },
       ]
     },
     {
       title: "Équipements",
       collapsible: true,
       items: [
-        { name: "Équipements", href: "/dashboard/equipements", icon: Package },
-        { name: "Équipements Bio", href: "/dashboard/equipebios", icon: Stethoscope },
-        { name: "Matériel Roulant", href: "/dashboard/materielroulants", icon: Truck },
+        { name: "Équipements", href: "/dashboard/equipements", icon: Package, requiresPermission: "canView" },
+        { name: "Équipements Bio", href: "/dashboard/equipebios", icon: Stethoscope, requiresPermission: "canView" },
+        { name: "Matériel Roulant", href: "/dashboard/materielroulants", icon: Truck, requiresPermission: "canView" },
       ]
     },
     {
       title: "Administration",
       collapsible: true,
       items: [
-        { name: "Utilisateurs", href: "/dashboard/users", icon: UserCircle },
-        { name: "Import Excel", href: "/dashboard/import", icon: FileSpreadsheet },
-        { name: "Paramètres", href: "/dashboard/parametres", icon: Settings },
-        { name: "Dégradations", href: "/dashboard/degradations", icon: AlertTriangle },
+        { name: "Utilisateurs", href: "/dashboard/users", icon: UserCircle, requiresPermission: "canManageUsers" },
+        { name: "Import Excel", href: "/dashboard/import", icon: FileSpreadsheet, requiresPermission: "canImportData" },
+        { name: "Paramètres", href: "/dashboard/parametres", icon: Settings, requiresPermission: "canManageSettings" },
+        { name: "Dégradations", href: "/dashboard/degradations", icon: AlertTriangle, requiresPermission: "canManageDegradations" },
       ]
     },
   ]
+
+  // Filtrer les sections et items selon les permissions
+  const filteredNavigationSections = navigationSections
+    .map(section => ({
+      ...section,
+      items: section.items.filter(item => {
+        // Si pas de permission requise, afficher l'item
+        if (!item.requiresPermission) return true
+        // Sinon, vérifier si l'utilisateur a la permission
+        return permissions[item.requiresPermission] === true
+      })
+    }))
+    .filter(section => section.items.length > 0) // Supprimer les sections vides
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -121,7 +140,7 @@ export default function Layout({ onLogout }: LayoutProps) {
           </button>
         </div>
         <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          {navigationSections.map((section) => {
+          {filteredNavigationSections.map((section) => {
             const isExpanded = expandedSections.includes(section.title)
             const hasActiveItem = section.items.some(item => location.pathname === item.href)
 

@@ -6,11 +6,17 @@ import { Plus, Search, Shield, Users, Key, UserCog } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
 import ConfirmDialog from "../components/ConfirmDialog"
+import ExportButtons from "../components/ExportButtons"
 import { userService } from "../services/userService"
 import type { User, Region, Departement, Arrondissement } from "../types"
 import api from "../services/api"
+import { usePermissions } from "../hooks/usePermissions"
+import { exportUsersToPDF, exportUsersToExcel } from "../utils/exportUtils"
 
 export default function UsersPage() {
+  // Permissions
+  const permissions = usePermissions()
+
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -272,6 +278,15 @@ export default function UsersPage() {
     },
   ]
 
+  // Fonctions d'export
+  const handleExportPDF = () => {
+    exportUsersToPDF(users)
+  }
+
+  const handleExportExcel = () => {
+    exportUsersToExcel(users)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -282,17 +297,26 @@ export default function UsersPage() {
             <p className="text-sm text-gray-500 mt-1">{pagination.total} utilisateur{pagination.total > 1 ? 's' : ''} au total</p>
           </div>
         </div>
-        <button
-          onClick={() => {
-            setEditingUser(null)
-            resetForm()
-            setIsModalOpen(true)
-          }}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          <Plus className="w-5 h-5" />
-          Nouvel utilisateur
-        </button>
+        <div className="flex gap-3">
+          <ExportButtons
+            onExportPDF={handleExportPDF}
+            onExportExcel={handleExportExcel}
+            disabled={users.length === 0}
+          />
+          {permissions.canManageUsers && (
+            <button
+              onClick={() => {
+                setEditingUser(null)
+                resetForm()
+                setIsModalOpen(true)
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <Plus className="w-5 h-5" />
+              Nouvel utilisateur
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
@@ -344,8 +368,8 @@ export default function UsersPage() {
       <DataTable
         data={users}
         columns={columns}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
+        onEdit={permissions.canManageUsers ? handleEdit : undefined}
+        onDelete={permissions.canManageUsers ? handleDelete : undefined}
         loading={loading}
         pagination={pagination}
         onPageChange={setPage}

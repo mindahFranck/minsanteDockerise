@@ -6,11 +6,16 @@ import { Plus, Search } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
 import ConfirmDialog from "../components/ConfirmDialog"
+import ExportButtons from "../components/ExportButtons"
 import { equipebioService } from "../services/equipebioService"
 import api from "../services/api"
 import type { Equipebio, Service } from "../types"
+import { usePermissions } from "../hooks/usePermissions"
+import { exportGenericToPDF, exportGenericToExcel } from "../utils/exportUtils"
 
 export default function EquipebiosPage() {
+  const permissions = usePermissions()
+
   const [equipebios, setEquipebios] = useState<Equipebio[]>([])
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
@@ -152,21 +157,64 @@ export default function EquipebiosPage() {
     },
   ]
 
+  const handleExportPDF = () => {
+    exportGenericToPDF(
+      equipebios,
+      [
+        { header: 'ID', dataKey: 'id' },
+        { header: 'Nom', dataKey: 'nom' },
+        { header: 'Type', dataKey: 'type' },
+        { header: 'État', dataKey: 'etat' },
+        { header: 'Service', dataKey: 'serviceName' },
+      ],
+      'Liste des Équipements Biomédicaux',
+      `equipements_bio_${new Date().toISOString().split('T')[0]}`
+    )
+  }
+
+  const handleExportExcel = () => {
+    exportGenericToExcel(
+      equipebios.map(e => ({
+        ...e,
+        serviceName: e.service?.nom || '-'
+      })),
+      [
+        { header: 'ID', key: 'id' },
+        { header: 'Nom', key: 'nom' },
+        { header: 'Type', key: 'type' },
+        { header: 'État', key: 'etat' },
+        { header: 'Service', key: 'serviceName' },
+        { header: 'Date Acquisition', key: 'dateAcquisition' },
+      ],
+      `equipements_bio_${new Date().toISOString().split('T')[0]}`,
+      'Équipements Bio'
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Équipements Biomédicaux</h1>
-        <button
-          onClick={() => {
-            setEditingEquipebio(null)
-            resetForm()
-            setIsModalOpen(true)
-          }}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          <Plus className="w-5 h-5" />
-          Ajouter
-        </button>
+        <div className="flex gap-3">
+          <ExportButtons
+            onExportPDF={handleExportPDF}
+            onExportExcel={handleExportExcel}
+            disabled={equipebios.length === 0}
+          />
+          {permissions.canCreate && permissions.canManageEquipments && (
+            <button
+              onClick={() => {
+                setEditingEquipebio(null)
+                resetForm()
+                setIsModalOpen(true)
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <Plus className="w-5 h-5" />
+              Ajouter
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex gap-4">
@@ -208,8 +256,8 @@ export default function EquipebiosPage() {
       <DataTable
         data={equipebios}
         columns={columns}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
+        onEdit={permissions.canEdit && permissions.canManageEquipments ? handleEdit : undefined}
+        onDelete={permissions.canDelete && permissions.canManageEquipments ? handleDelete : undefined}
         loading={loading}
         pagination={pagination}
         onPageChange={setPage}

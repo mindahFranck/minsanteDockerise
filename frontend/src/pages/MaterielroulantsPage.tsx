@@ -7,11 +7,16 @@ import { Plus, Search } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
 import ConfirmDialog from "../components/ConfirmDialog"
+import ExportButtons from "../components/ExportButtons"
 import { materielroulantService } from "../services/materielroulantService"
 import { fosaService } from "../services/fosaService"
 import type { Materielroulant, Fosa } from "../types"
+import { usePermissions } from "../hooks/usePermissions"
+import { exportMaterielroulantsToPDF, exportMaterielroulantsToExcel } from "../utils/pageExports"
 
 export default function MaterielroulantsPage() {
+  const permissions = usePermissions()
+
   const [materielroulants, setMaterielroulants] = useState<Materielroulant[]>([])
   const [fosas, setFosas] = useState<Fosa[]>([])
   const [loading, setLoading] = useState(true)
@@ -174,24 +179,34 @@ export default function MaterielroulantsPage() {
     { key: "fosa", label: "FOSA", render: (m: Materielroulant) => m.fosa?.nom || "-" },
   ]
 
+  const handleExportPDF = () => exportMaterielroulantsToPDF(materielroulants)
+  const handleExportExcel = () => exportMaterielroulantsToExcel(materielroulants)
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Matériel Roulant</h1>
-        <button
-          onClick={() => {
-            setEditingItem(null)
-            setFormData({
-              numeroChassis: "",
-              annee: new Date().getFullYear(),
-              marque: "",
-              modele: "",
-              type: "",
-              dateMiseEnCirculation: "",
-              etat: "",
-              quantite: 1,
-              fosaId: 0,
-            })
+        <div className="flex gap-3">
+          <ExportButtons
+            onExportPDF={handleExportPDF}
+            onExportExcel={handleExportExcel}
+            disabled={materielroulants.length === 0}
+          />
+          {permissions.canCreate && permissions.canManageEquipments && (
+            <button
+              onClick={() => {
+                setEditingItem(null)
+                setFormData({
+                  numeroChassis: "",
+                  annee: new Date().getFullYear(),
+                  marque: "",
+                  modele: "",
+                  type: "",
+                  dateMiseEnCirculation: "",
+                  etat: "",
+                  quantite: 1,
+                  fosaId: 0,
+                })
             setIsModalOpen(true)
           }}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -199,6 +214,8 @@ export default function MaterielroulantsPage() {
           <Plus className="w-5 h-5" />
           Ajouter
         </button>
+          )}
+        </div>
       </div>
 
       <div className="flex gap-4">
@@ -220,8 +237,8 @@ export default function MaterielroulantsPage() {
         <DataTable
           data={materielroulants}
           columns={columns}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          onEdit={permissions.canEdit && permissions.canManageEquipments ? handleEdit : undefined}
+          onDelete={permissions.canDelete && permissions.canManageEquipments ? handleDelete : undefined}
           pagination={pagination}
           onPageChange={setPage}
         />

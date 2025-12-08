@@ -4,6 +4,7 @@ import type React from "react"
 
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { useState, useEffect } from "react"
+import { AuthProvider } from "./contexts/AuthContext"
 import Login from "./pages/Login"
 import Dashboard from "./pages/Dashboard"
 import Layout from "./components/Layout"
@@ -39,7 +40,8 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<MapView />} />
@@ -85,7 +87,8 @@ function App() {
           {/* Visualisation */}
         </Route>
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }
 

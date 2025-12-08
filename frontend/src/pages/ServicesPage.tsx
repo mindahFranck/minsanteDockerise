@@ -6,12 +6,17 @@ import { Plus, Search } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
 import ConfirmDialog from "../components/ConfirmDialog"
+import ExportButtons from "../components/ExportButtons"
 import { serviceService } from "../services/serviceService"
 import { fosaService } from "../services/fosaService"
 import { batimentService } from "../services/batimentService"
 import type { Service, Fosa, Batiment } from "../types"
+import { usePermissions } from "../hooks/usePermissions"
+import { exportGenericToPDF, exportGenericToExcel } from "../utils/exportUtils"
 
 export default function ServicesPage() {
+  const permissions = usePermissions()
+
   const [services, setServices] = useState<Service[]>([])
   const [fosas, setFosas] = useState<Fosa[]>([])
   const [batiments, setBatiments] = useState<Batiment[]>([])
@@ -152,24 +157,66 @@ export default function ServicesPage() {
     { key: "capacite", label: "Capacité", render: (s: Service) => s.capacite || "N/A" },
   ]
 
+  const handleExportPDF = () => {
+    exportGenericToPDF(
+      services,
+      [
+        { header: 'ID', dataKey: 'id' },
+        { header: 'Nom', dataKey: 'nom' },
+        { header: 'Capacité', dataKey: 'capacite' },
+        { header: 'FOSA', dataKey: 'fosaName' },
+        { header: 'Bâtiment', dataKey: 'batimentName' },
+      ],
+      'Liste des Services',
+      `services_${new Date().toISOString().split('T')[0]}`
+    )
+  }
+
+  const handleExportExcel = () => {
+    exportGenericToExcel(
+      services.map(s => ({
+        ...s,
+        fosaName: s.fosa?.nom || '-',
+        batimentName: s.batiment?.nom || '-'
+      })),
+      [
+        { header: 'ID', key: 'id' },
+        { header: 'Nom', key: 'nom' },
+        { header: 'Capacité', key: 'capacite' },
+        { header: 'FOSA', key: 'fosaName' },
+        { header: 'Bâtiment', key: 'batimentName' },
+        { header: 'Description', key: 'description' },
+      ],
+      `services_${new Date().toISOString().split('T')[0]}`,
+      'Services'
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Services</h1>
-        <button
-          onClick={() => {
-            if (!filterFosaId) {
-              alert("Veuillez d'abord sélectionner une FOSA dans le filtre pour ajouter un service")
-              return
-            }
-            setEditingService(null)
-            setFormData({
-              nom: "",
-              fosaId: filterFosaId,
-              batimentId: null,
-              capacite: 0,
-              description: "",
-            })
+        <div className="flex gap-3">
+          <ExportButtons
+            onExportPDF={handleExportPDF}
+            onExportExcel={handleExportExcel}
+            disabled={services.length === 0}
+          />
+          {permissions.canCreate && (
+            <button
+              onClick={() => {
+                if (!filterFosaId) {
+                  alert("Veuillez d'abord sélectionner une FOSA dans le filtre pour ajouter un service")
+                  return
+                }
+                setEditingService(null)
+                setFormData({
+                  nom: "",
+                  fosaId: filterFosaId,
+                  batimentId: null,
+                  capacite: 0,
+                  description: "",
+                })
             setIsModalOpen(true)
           }}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -179,6 +226,8 @@ export default function ServicesPage() {
           <Plus className="w-5 h-5" />
           Ajouter
         </button>
+          )}
+        </div>
       </div>
 
       <div className="flex gap-4">
@@ -209,8 +258,8 @@ export default function ServicesPage() {
       <DataTable
         data={services}
         columns={columns}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
+        onEdit={permissions.canEdit ? handleEdit : undefined}
+        onDelete={permissions.canDelete ? handleDelete : undefined}
         loading={loading}
         pagination={pagination}
         onPageChange={setPage}

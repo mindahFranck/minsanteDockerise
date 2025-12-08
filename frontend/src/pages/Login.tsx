@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { authService } from "../services/authService"
+import { useAuth } from "../contexts/AuthContext"
 
 interface LoginProps {
   onLogin: () => void
@@ -16,6 +16,7 @@ export default function Login({ onLogin }: LoginProps) {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const { login } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,9 +24,13 @@ export default function Login({ onLogin }: LoginProps) {
     setLoading(true)
 
     try {
-      await authService.login({ email: email.trim(), password: password.trim() })
-      onLogin()
-      navigate("/dashboard")
+      const success = await login(email.trim(), password.trim())
+      if (success) {
+        onLogin()
+        navigate("/dashboard")
+      } else {
+        setError("Email ou mot de passe incorrect")
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || "Erreur de connexion")
     } finally {

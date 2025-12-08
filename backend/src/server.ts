@@ -32,7 +32,7 @@ app.use(compression());
 app.use(helmet());
 app.use(
   cors({
-    origin: "*",
+    origin: process.env.CORS_ORIGIN?.split(",") || "*",
     credentials: true,
   })
 );

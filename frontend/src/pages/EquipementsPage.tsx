@@ -7,11 +7,16 @@ import { Plus, Search } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
 import ConfirmDialog from "../components/ConfirmDialog"
+import ExportButtons from "../components/ExportButtons"
 import { equipementService } from "../services/equipementService"
 import type { Equipement, Service } from "../types"
 import api from "../services/api"
+import { usePermissions } from "../hooks/usePermissions"
+import { exportEquipementsToPDF, exportEquipementsToExcel } from "../utils/pageExports"
 
 export default function EquipementsPage() {
+  const permissions = usePermissions()
+
   const [equipements, setEquipements] = useState<Equipement[]>([])
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
@@ -116,21 +121,39 @@ export default function EquipementsPage() {
     { key: "service", label: "Service", render: (e: Equipement) => e.service?.nom || "-" },
   ]
 
+  // Fonctions d'export
+  const handleExportPDF = () => {
+    exportEquipementsToPDF(equipements)
+  }
+
+  const handleExportExcel = () => {
+    exportEquipementsToExcel(equipements)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Équipements</h1>
-        <button
-          onClick={() => {
-            setEditingItem(null)
-            setFormData({ nom: "", type: "", dateAcquisition: "", serviceId: 0 })
-            setIsModalOpen(true)
-          }}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          <Plus className="w-5 h-5" />
-          Ajouter
-        </button>
+        <div className="flex gap-3">
+          <ExportButtons
+            onExportPDF={handleExportPDF}
+            onExportExcel={handleExportExcel}
+            disabled={equipements.length === 0}
+          />
+          {permissions.canCreate && permissions.canManageEquipments && (
+            <button
+              onClick={() => {
+                setEditingItem(null)
+                setFormData({ nom: "", type: "", dateAcquisition: "", serviceId: 0 })
+                setIsModalOpen(true)
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <Plus className="w-5 h-5" />
+              Ajouter
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex gap-4">
@@ -152,8 +175,8 @@ export default function EquipementsPage() {
         <DataTable
           data={equipements}
           columns={columns}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          onEdit={permissions.canEdit && permissions.canManageEquipments ? handleEdit : undefined}
+          onDelete={permissions.canDelete && permissions.canManageEquipments ? handleDelete : undefined}
           pagination={pagination}
           onPageChange={setPage}
         />
