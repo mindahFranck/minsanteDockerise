@@ -37,9 +37,9 @@ export default function DataTable<T extends { id: number }>({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              {columns.map((column) => (
+              {columns.map((column, index) => (
                 <th
-                  key={String(column.key)}
+                  key={index}
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
                   {column.label}
@@ -53,10 +53,10 @@ export default function DataTable<T extends { id: number }>({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {data.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50">
-                {columns.map((column) => (
-                  <td key={String(column.key)} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            {data.map((item, index) => (
+              <tr key={index} className="hover:bg-gray-50">
+                {columns.map((column, index) => (
+                  <td key={String(column.key) + index} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {column.render ? column.render(item) : String(item[column.key as keyof T] || "-")}
                   </td>
                 ))}

@@ -16,7 +16,7 @@ import type { Arrondissement, Airesante, Region, Departement } from "../types"
 
 // Interface FOSA étendue
 interface Fosa extends FosaServiceType {
-  statutRec?: string
+  statutRec: string
   catRec?: string
   categorieRec?: string
   fonction?: boolean
@@ -29,7 +29,7 @@ const normalizeFosaData = (fosaData: any): Fosa => {
   return {
     id: fosaData.id,
     nom: fosaData.nom || '',
-    type: fosaData.type || fosaData.statutRec || '', // Fusionner type et statutRec
+    type: fosaData.type, // Fusionner type et statutRec
     capaciteLits: fosaData.capaciteLits || 0,
     estFerme: Boolean(fosaData.estFerme),
     situation: fosaData.situation || '',
@@ -38,7 +38,7 @@ const normalizeFosaData = (fosaData: any): Fosa => {
     arrondissementId: fosaData.arrondissementId || 0,
 
     // Normaliser les champs pour le filtrage
-    statutRec: fosaData.statutRec || fosaData.type || '',
+    statutRec: fosaData.statutRec,
     catRec: fosaData.catRec || fosaData.categorieRec || '',
     categorieRec: fosaData.categorieRec || fosaData.catRec || '',
     fonction: Boolean(fosaData.fonction !== undefined ? fosaData.fonction : true),
@@ -196,7 +196,7 @@ export default function FosasPage() {
 
     // Filtre Type - maintenant cohérent grâce à la normalisation
     if (filterType) {
-      const fosaType = fosa.type.toLowerCase().trim()
+      const fosaType = fosa.statutRec.toLowerCase().trim()
       const selectedType = filterType.toLowerCase().trim()
       if (fosaType !== selectedType) return false
     }
