@@ -34,7 +34,25 @@ L.Icon.Default.mergeOptions({
 });
 
 const CAMEROON_CENTER = [5.6919, 12.7289] as [number, number];
-const CAMEROON_BOUNDS = L.latLngBounds([1.6546, 8.4948], [13.0783, 16.1921]);
+// Définir les bounds comme coordonnées brutes, pas comme objet Leaflet
+const CAMEROON_BOUNDS_COORDS: [[number, number], [number, number]] = [[1.6546, 8.4948], [13.0783, 16.1921]];
+
+// Fonction helper pour créer des bounds sûrs
+const createSafeBounds = (coords: [[number, number], [number, number]]) => {
+  try {
+    const bounds = L.latLngBounds(coords[0], coords[1]);
+    if (bounds.isValid()) {
+      return bounds;
+    }
+  } catch (e) {
+    console.warn('⚠️ Erreur création bounds:', e);
+  }
+  // Fallback: créer des bounds manuellement
+  return L.latLngBounds(
+    L.latLng(1.6546, 8.4948),
+    L.latLng(13.0783, 16.1921)
+  );
+};
 
 interface Hospital {
   image: any;
@@ -128,28 +146,77 @@ const MapController: React.FC<{
       }
 
       try {
-        if (selectedAiresante !== 'all' && airesantesPolygons[selectedAiresante] && isValidPolygon(airesantesPolygons[selectedAiresante])) {
+        let boundsSet = false;
+
+        if (selectedAiresante !== 'all' && airesantesPolygons[selectedAiresante]) {
           const polygon = airesantesPolygons[selectedAiresante];
-          const bounds = L.latLngBounds(polygon);
-          map.fitBounds(bounds, { padding: [50, 50] });
-        } else if (selectedDistrict !== 'all' && districtsPolygons[selectedDistrict] && isValidPolygon(districtsPolygons[selectedDistrict])) {
+          if (isValidPolygon(polygon)) {
+            try {
+              const bounds = L.latLngBounds(polygon);
+              if (bounds.isValid()) {
+                map.fitBounds(bounds, { padding: [50, 50] });
+                boundsSet = true;
+              }
+            } catch (e) {
+              console.warn('⚠️ Bounds invalides pour aire de santé:', selectedAiresante);
+            }
+          }
+        } else if (selectedDistrict !== 'all' && districtsPolygons[selectedDistrict]) {
           const polygon = districtsPolygons[selectedDistrict];
-          const bounds = L.latLngBounds(polygon);
-          map.fitBounds(bounds, { padding: [40, 40] });
-        } else if (selectedDepartement !== 'all' && departementsPolygons[selectedDepartement] && isValidPolygon(departementsPolygons[selectedDepartement])) {
+          if (isValidPolygon(polygon)) {
+            try {
+              const bounds = L.latLngBounds(polygon);
+              if (bounds.isValid()) {
+                map.fitBounds(bounds, { padding: [40, 40] });
+                boundsSet = true;
+              }
+            } catch (e) {
+              console.warn('⚠️ Bounds invalides pour district:', selectedDistrict);
+            }
+          }
+        } else if (selectedDepartement !== 'all' && departementsPolygons[selectedDepartement]) {
           const polygon = departementsPolygons[selectedDepartement];
-          const bounds = L.latLngBounds(polygon);
-          map.fitBounds(bounds, { padding: [35, 35] });
-        } else if (selectedRegion !== 'all' && regionsPolygons[selectedRegion] && isValidPolygon(regionsPolygons[selectedRegion])) {
+          if (isValidPolygon(polygon)) {
+            try {
+              const bounds = L.latLngBounds(polygon);
+              if (bounds.isValid()) {
+                map.fitBounds(bounds, { padding: [35, 35] });
+                boundsSet = true;
+              }
+            } catch (e) {
+              console.warn('⚠️ Bounds invalides pour département:', selectedDepartement);
+            }
+          }
+        } else if (selectedRegion !== 'all' && regionsPolygons[selectedRegion]) {
           const polygon = regionsPolygons[selectedRegion];
-          const bounds = L.latLngBounds(polygon);
-          map.fitBounds(bounds, { padding: [30, 30] });
-        } else {
-          map.fitBounds(CAMEROON_BOUNDS, { padding: [20, 20] });
+          if (isValidPolygon(polygon)) {
+            try {
+              const bounds = L.latLngBounds(polygon);
+              if (bounds.isValid()) {
+                map.fitBounds(bounds, { padding: [30, 30] });
+                boundsSet = true;
+              }
+            } catch (e) {
+              console.warn('⚠️ Bounds invalides pour région:', selectedRegion);
+            }
+          }
+        }
+
+        // Si aucun bounds n'a été défini, revenir à la vue Cameroun
+        if (!boundsSet) {
+          const cameroonBounds = createSafeBounds(CAMEROON_BOUNDS_COORDS);
+          map.fitBounds(cameroonBounds, { padding: [20, 20] });
         }
       } catch (error) {
         console.error('💥 Erreur lors du zoom:', error);
-        map.fitBounds(CAMEROON_BOUNDS, { padding: [20, 20] });
+        try {
+          const cameroonBounds = createSafeBounds(CAMEROON_BOUNDS_COORDS);
+          map.fitBounds(cameroonBounds, { padding: [20, 20] });
+        } catch (e) {
+          console.error('💥 Impossible de revenir à la vue Cameroun:', e);
+          // Dernier recours: setView sur le centre du Cameroun
+          map.setView(CAMEROON_CENTER, 6);
+        }
       }
 
       previousSelectionRef.current = currentSelection;
@@ -1334,7 +1401,7 @@ const MapView: React.FC = () => {
             )}
 
             <div className="flex-1 relative">
-              <MapContainer center={CAMEROON_CENTER} zoom={6} minZoom={6} maxBounds={CAMEROON_BOUNDS} style={{ height: "100%", width: "100%" }} className="rounded-2xl">
+              <MapContainer center={CAMEROON_CENTER} zoom={6} minZoom={6} maxBounds={createSafeBounds(CAMEROON_BOUNDS_COORDS)} style={{ height: "100%", width: "100%" }} className="rounded-2xl">
                 <MapController
                   selectedRegion={selectedRegion}
                   selectedDepartement={selectedDepartement}
@@ -1353,9 +1420,9 @@ const MapView: React.FC = () => {
                   <Polygon positions={cameroonPolygon} pathOptions={{ fillColor: '#10b981', fillOpacity: 0.05, color: '#10b981', weight: 2, opacity: 0.6 }} />
                 )}
 
-                {layersVisibility.regions && Object.entries(regionsPolygons).map(([regionName, polygon]) => (
+                {layersVisibility.regions && Object.entries(regionsPolygons).map(([regionName, polygon], index) => (
                   <Polygon
-                    key={`region-${regionName}`}
+                    key={index}
                     positions={polygon}
                     pathOptions={{
                       fillColor: selectedRegion === regionName ? '#14b8a6' : '#10b981',
@@ -1367,9 +1434,9 @@ const MapView: React.FC = () => {
                   />
                 ))}
 
-                {layersVisibility.departements && Object.entries(departementsPolygons).map(([deptName, polygon]) => (
+                {layersVisibility.departements && Object.entries(departementsPolygons).map(([deptName, polygon], index) => (
                   <Polygon
-                    key={`dept-${deptName}`}
+                    key={index}
                     positions={polygon}
                     pathOptions={{
                       fillColor: selectedDepartement === deptName ? '#0891b2' : '#06b6d4',
@@ -1381,9 +1448,9 @@ const MapView: React.FC = () => {
                   />
                 ))}
 
-                {layersVisibility.arrondissements && Object.entries(arrondissementsPolygons).map(([arrondName, polygon]) => (
+                {layersVisibility.arrondissements && Object.entries(arrondissementsPolygons).map(([arrondName, polygon], index) => (
                   <Polygon
-                    key={`arrond-${arrondName}`}
+                    key={index}
                     positions={polygon}
                     pathOptions={{
                       fillColor: selectedArrondissement === arrondName ? '#3b82f6' : '#60a5fa',
@@ -1395,12 +1462,12 @@ const MapView: React.FC = () => {
                   />
                 ))}
 
-                {layersVisibility.districts && Object.entries(districtsPolygons).map(([districtName, polygon]) => {
+                {layersVisibility.districts && Object.entries(districtsPolygons).map(([districtName, polygon], index) => {
                   const fillColor = activeTheme ? activeTheme.getColor(districtName) : '#8b5cf6';
                   const fillOpacity = activeTheme ? 0.6 : 0.1;
                   return (
                     <Polygon
-                      key={`district-${districtName}`}
+                      key={index}
                       positions={polygon}
                       pathOptions={{
                         fillColor,
@@ -1413,9 +1480,9 @@ const MapView: React.FC = () => {
                   );
                 })}
 
-                {layersVisibility.airesantes && Object.entries(airesantesPolygons).map(([airesanteName, polygon]) => (
+                {layersVisibility.airesantes && Object.entries(airesantesPolygons).map(([airesanteName, polygon], index) => (
                   <Polygon
-                    key={`airesante-${airesanteName}`}
+                    key={index}
                     positions={polygon}
                     pathOptions={{
                       fillColor: '#ec4899',
@@ -1427,8 +1494,8 @@ const MapView: React.FC = () => {
                   />
                 ))}
 
-                {layersVisibility.hospitals && filteredHospitals.map(h => (
-                  <Marker key={h.id} position={h.coordinates} icon={getHospitalIcon(h)} eventHandlers={{ click: () => setSelectedHospital(h) }}>
+                {layersVisibility.hospitals && filteredHospitals.map((h, index) => (
+                  <Marker key={index} position={h.coordinates} icon={getHospitalIcon(h)} eventHandlers={{ click: () => setSelectedHospital(h) }}>
                     {selectedHospital?.id === h.id && (
                       <Tooltip permanent direction="top" offset={[0, -20]} className="permanent-tooltip">
                         <div className="font-semibold text-sm">{h.name}</div>

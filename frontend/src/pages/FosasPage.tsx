@@ -91,8 +91,8 @@ export default function FosasPage() {
   const [filterRegion, setFilterRegion] = useState("")
   const [filterDepartement, setFilterDepartement] = useState("")
   const [filterArrondissement, setFilterArrondissement] = useState("")
-  const [filterType, setFilterType] = useState("")
-  const [filterCategorie, setFilterCategorie] = useState("")
+  const [filterStatutJuridique, setFilterStatutJuridique] = useState("") // Privé laïc, Public, etc.
+  const [filterCategorie, setFilterCategorie] = useState("") // HD, CSI, CMA, Centre de santé, etc.
   const [filterStatut, setFilterStatut] = useState("all") // all, ouvert, fermé
   const [filterFonctionnel, setFilterFonctionnel] = useState("all") // all, oui, non
   const [filterSecurite, setFilterSecurite] = useState("all") // all, titre_foncier, cloture, both, none
@@ -200,15 +200,19 @@ export default function FosasPage() {
   const filteredFosas = fosas.filter((fosa) => {
     // Les filtres géographiques (région, département, arrondissement) sont déjà appliqués par l'API spatiale
 
-    // Filtre Type - maintenant cohérent grâce à la normalisation
-    if (filterType) {
-      const fosaType = fosa.statutRec.toLowerCase().trim()
-      const selectedType = filterType.toLowerCase().trim()
-      if (fosaType !== selectedType) return false
+    // Filtre Statut Juridique
+    if (filterStatutJuridique) {
+      const fosaStatut = fosa.statutRec?.toLowerCase().trim() || ''
+      const selectedStatut = filterStatutJuridique.toLowerCase().trim()
+      if (fosaStatut !== selectedStatut) return false
     }
 
-    // Filtre Catégorie - maintenant cohérent
-    if (filterCategorie && fosa.catRec !== filterCategorie) return false
+    // Filtre Catégorie
+    if (filterCategorie) {
+      const fosaCategorie = fosa.catRec?.toLowerCase().trim() || ''
+      const selectedCategorie = filterCategorie.toLowerCase().trim()
+      if (fosaCategorie !== selectedCategorie) return false
+    }
 
     // Filtre Statut (Ouvert/Fermé)
     if (filterStatut !== "all") {
@@ -240,7 +244,7 @@ export default function FosasPage() {
     setFilterRegion("")
     setFilterDepartement("")
     setFilterArrondissement("")
-    setFilterType("")
+    setFilterStatutJuridique("")
     setFilterCategorie("")
     setFilterStatut("all")
     setFilterFonctionnel("all")
@@ -248,7 +252,7 @@ export default function FosasPage() {
   }
 
   // Vérifier si des filtres sont actifs
-  const hasActiveFilters = filterRegion || filterDepartement || filterArrondissement || filterType || filterCategorie || filterStatut !== "all" || filterFonctionnel !== "all" || filterSecurite !== "all"
+  const hasActiveFilters = filterRegion || filterDepartement || filterArrondissement || filterStatutJuridique || filterCategorie || filterStatut !== "all" || filterFonctionnel !== "all" || filterSecurite !== "all"
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -388,14 +392,14 @@ export default function FosasPage() {
     },
     { key: "situation", label: "Situation" },
     {
-      key: "statutRec",
-      label: "Statut Rec",
-      render: (f: Fosa) => f.statutRec || "-"
-    },
-    {
       key: "catRec",
       label: "Catégorie",
       render: (f: Fosa) => f.catRec || "-"
+    },
+    {
+      key: "statutRec",
+      label: "Statut juridique",
+      render: (f: Fosa) => f.statutRec || "-"
     },
     {
       key: "nomDirect",
@@ -587,26 +591,7 @@ export default function FosasPage() {
                 </select>
               </div>
 
-              {/* Filtre Type */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-                <select
-                  value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Tous</option>
-                  <option value="Public">Public</option>
-                  <option value="Parapublic">Parapublic</option>
-                  <option value="Privé laïc">Privé laïc</option>
-                  <option value="Privé confessionnel">Privé confessionnel</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-4 gap-4">
-
-              {/* Filtre Catégorie */}
+              {/* Filtre Catégorie (HD, CSI, CMA, etc.) */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
                 <select
@@ -614,12 +599,33 @@ export default function FosasPage() {
                   onChange={(e) => setFilterCategorie(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="">Toutes</option>
+                  <option value="">Toutes les catégories</option>
+                  <option value="HD">HD</option>
+                  <option value="CSI">CSI</option>
+                  <option value="CMA">CMA</option>
+                  <option value="Centre de santé">Centre de santé</option>
                   <option value="CHU">CHU</option>
                   <option value="CHR">CHR</option>
                   <option value="CHD">CHD</option>
-                  <option value="CMA">CMA</option>
-                  <option value="CSI">CSI</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-4 gap-4">
+
+              {/* Filtre Statut Juridique (Public, Privé laïc, etc.) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Statut juridique</label>
+                <select
+                  value={filterStatutJuridique}
+                  onChange={(e) => setFilterStatutJuridique(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Tous les statuts</option>
+                  <option value="Public">Public</option>
+                  <option value="Parapublic">Parapublic</option>
+                  <option value="Privé laïc">Privé laïc</option>
+                  <option value="Privé confessionnel">Privé confessionnel</option>
                 </select>
               </div>
 
