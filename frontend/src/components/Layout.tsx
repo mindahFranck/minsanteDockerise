@@ -33,9 +33,6 @@ export default function Layout({ onLogout }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [expandedSections, setExpandedSections] = useState<string[]>(['Principal', 'Géographie', 'Infrastructures'])
 
-  // DEBUG: Afficher les permissions dans la console
-  console.log('📋 Layout - Permissions:', permissions)
-
   const handleLogout = () => {
     localStorage.removeItem("token")
     localStorage.removeItem("user")

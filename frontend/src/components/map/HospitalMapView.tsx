@@ -39,7 +39,7 @@ const HospitalMapView: React.FC = () => {
     }
 
     if (searchTerm) {
-      filtered = filtered.filter(hospital => 
+      filtered = filtered.filter(hospital =>
         hospital.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         hospital.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
         hospital.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -66,7 +66,7 @@ const HospitalMapView: React.FC = () => {
       CSI: '⚕️',
       dispensaire: '💊'
     };
-    
+
     return new L.DivIcon({
       html: `<div style="background-color: ${statusColors[hospital.status]}; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 16px;">
         ${categoryIcons[hospital.category] || '🏥'}
@@ -154,7 +154,7 @@ const HospitalMapView: React.FC = () => {
               />
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Filter className="w-4 h-4 text-gray-400" />
             <select
@@ -171,7 +171,7 @@ const HospitalMapView: React.FC = () => {
               <option value="dispensaire">Dispensaire</option>
             </select>
           </div>
-          
+
           <div>
             <select
               value={selectedType}
@@ -185,7 +185,7 @@ const HospitalMapView: React.FC = () => {
               <option value="military">Militaire</option>
             </select>
           </div>
-          
+
           <div>
             <select
               value={selectedStatus}
@@ -207,8 +207,8 @@ const HospitalMapView: React.FC = () => {
               onChange={(e) => setMapStyle(e.target.value)}
               className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              {mapStyles.map(style => (
-                <option key={style.id} value={style.id}>{style.name}</option>
+              {mapStyles.map((style, index) => (
+                <option key={index} value={style.id}>{style.name}</option>
               ))}
             </select>
           </div>
@@ -231,9 +231,9 @@ const HospitalMapView: React.FC = () => {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url={mapStyles.find(style => style.id === mapStyle)?.url || mapStyles[0].url}
             />
-            {filteredHospitals.map((hospital) => (
+            {filteredHospitals.map((hospital, index) => (
               <Marker
-                key={hospital.id}
+                key={index}
                 position={hospital.coordinates}
                 icon={getHospitalIcon(hospital)}
               >
@@ -241,22 +241,21 @@ const HospitalMapView: React.FC = () => {
                   <div className="p-4 min-w-[450px]">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-xl font-bold text-gray-900">{hospital.name}</h3>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        hospital.status === 'operational' ? 'bg-green-100 text-green-800' :
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${hospital.status === 'operational' ? 'bg-green-100 text-green-800' :
                         hospital.status === 'maintenance' ? 'bg-yellow-100 text-yellow-800' :
-                        hospital.status === 'construction' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
+                          hospital.status === 'construction' ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100 text-gray-800'
+                        }`}>
                         {getStatusText(hospital.status)}
                       </span>
                     </div>
-                    
+
                     <div className="space-y-4 text-sm">
                       <div>
                         <p className="text-gray-600 mb-2">{hospital.address}</p>
                         <p className="text-gray-500">{hospital.city}, {hospital.region}</p>
                       </div>
-                      
+
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <span className="font-medium text-gray-700">Type:</span>
@@ -298,8 +297,8 @@ const HospitalMapView: React.FC = () => {
                             <span className="font-bold">{hospital.performance.occupancyRate}%</span>
                           </div>
                           <div className="w-full bg-blue-200 rounded-full h-2">
-                            <div 
-                              className="bg-blue-600 h-2 rounded-full" 
+                            <div
+                              className="bg-blue-600 h-2 rounded-full"
                               style={{ width: `${hospital.performance.occupancyRate}%` }}
                             ></div>
                           </div>
@@ -391,7 +390,7 @@ const HospitalMapView: React.FC = () => {
                           <span className="font-bold text-green-600">{formatCurrency(hospital.budget.annual)}</span>
                         </div>
                         <div className="mt-1 text-xs text-gray-500">
-                          Personnel: {formatCurrency(hospital.budget.personnel)} | 
+                          Personnel: {formatCurrency(hospital.budget.personnel)} |
                           Équipements: {formatCurrency(hospital.budget.equipment)}
                         </div>
                       </div>
@@ -410,15 +409,14 @@ const HospitalMapView: React.FC = () => {
                           </ul>
                           <div className="mt-2 text-xs">
                             <span className="text-gray-600">Priorité: </span>
-                            <span className={`font-medium ${
-                              hospital.maintenance.priority === 'urgent' ? 'text-red-600' :
+                            <span className={`font-medium ${hospital.maintenance.priority === 'urgent' ? 'text-red-600' :
                               hospital.maintenance.priority === 'high' ? 'text-orange-600' :
-                              hospital.maintenance.priority === 'medium' ? 'text-yellow-600' :
-                              'text-green-600'
-                            }`}>
+                                hospital.maintenance.priority === 'medium' ? 'text-yellow-600' :
+                                  'text-green-600'
+                              }`}>
                               {hospital.maintenance.priority === 'urgent' ? 'Urgente' :
-                               hospital.maintenance.priority === 'high' ? 'Haute' :
-                               hospital.maintenance.priority === 'medium' ? 'Moyenne' : 'Basse'}
+                                hospital.maintenance.priority === 'high' ? 'Haute' :
+                                  hospital.maintenance.priority === 'medium' ? 'Moyenne' : 'Basse'}
                             </span>
                           </div>
                         </div>
@@ -441,11 +439,11 @@ const HospitalMapView: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     {hospital.photos && hospital.photos.length > 0 && (
                       <div className="mt-4">
-                        <img 
-                          src={hospital.photos[0]} 
+                        <img
+                          src={hospital.photos[0]}
                           alt={hospital.name}
                           className="w-full h-32 object-cover rounded-md"
                         />
