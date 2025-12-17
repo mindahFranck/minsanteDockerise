@@ -25,6 +25,16 @@ interface Fosa extends FosaServiceType {
   fonction?: boolean
   nomDirect?: string
   orgUnit?: string
+  // Champs de maintenance
+  lastInspection?: string
+  nextInspection?: string
+  maintenancePriority?: 'low' | 'medium' | 'high' | 'urgent'
+  maintenanceIssues?: string
+  // Champs de contacts
+  telephone?: string
+  email?: string
+  responsableNom?: string
+  responsableTelephone?: string
 }
 
 // Fonction utilitaire pour normaliser les données FOSA
@@ -123,6 +133,16 @@ export default function FosasPage() {
     statutRec: "",
     catRec: "",
     nomDirect: "",
+    // Champs de maintenance
+    lastInspection: "",
+    nextInspection: "",
+    maintenancePriority: "low" as "low" | "medium" | "high" | "urgent",
+    maintenanceIssues: "",
+    // Champs de contacts
+    telephone: "",
+    email: "",
+    responsableNom: "",
+    responsableTelephone: "",
   })
 
   const loadData = useCallback(async () => {
@@ -286,6 +306,16 @@ export default function FosasPage() {
       statutRec: "",
       catRec: "",
       nomDirect: "",
+      // Champs de maintenance
+      lastInspection: "",
+      nextInspection: "",
+      maintenancePriority: "low" as "low" | "medium" | "high" | "urgent",
+      maintenanceIssues: "",
+      // Champs de contacts
+      telephone: "",
+      email: "",
+      responsableNom: "",
+      responsableTelephone: "",
     })
     setImageFile(null)
     setImagePreview("")
@@ -332,6 +362,16 @@ export default function FosasPage() {
       statutRec: item.statutRec || "",
       catRec: item.catRec || "",
       nomDirect: item.nomDirect || "",
+      // Champs de maintenance
+      lastInspection: item.lastInspection || "",
+      nextInspection: item.nextInspection || "",
+      maintenancePriority: (item.maintenancePriority || "low") as "low" | "medium" | "high" | "urgent",
+      maintenanceIssues: item.maintenanceIssues || "",
+      // Champs de contacts
+      telephone: item.telephone || "",
+      email: item.email || "",
+      responsableNom: item.responsableNom || "",
+      responsableTelephone: item.responsableTelephone || "",
     })
     if (item.image) {
       setImagePreview(`${(import.meta as any).env?.VITE_API_URL || "http://localhost:5000"}${item.image}`)
@@ -950,6 +990,111 @@ export default function FosasPage() {
                   <label htmlFor="fonction" className="ml-2 text-sm text-gray-700">
                     Fonctionnel
                   </label>
+                </div>
+              </div>
+
+              {/* Champs de contacts */}
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t mt-4">
+                <h3 className="col-span-2 font-semibold text-gray-800 mb-2">Informations de contact</h3>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Téléphone principal
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.telephone}
+                    onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Ex: +237 6XX XXX XXX"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Ex: fosa@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nom du responsable
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.responsableNom}
+                    onChange={(e) => setFormData({ ...formData, responsableNom: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Téléphone du responsable
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.responsableTelephone}
+                    onChange={(e) => setFormData({ ...formData, responsableTelephone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Champs de maintenance */}
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t mt-4">
+                <h3 className="col-span-2 font-semibold text-gray-800 mb-2">Maintenance et inspection</h3>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Dernière inspection
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.lastInspection}
+                    onChange={(e) => setFormData({ ...formData, lastInspection: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Prochaine inspection
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.nextInspection}
+                    onChange={(e) => setFormData({ ...formData, nextInspection: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Priorité de maintenance
+                  </label>
+                  <select
+                    value={formData.maintenancePriority}
+                    onChange={(e) => setFormData({ ...formData, maintenancePriority: e.target.value as "low" | "medium" | "high" | "urgent" })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="low">Basse</option>
+                    <option value="medium">Moyenne</option>
+                    <option value="high">Haute</option>
+                    <option value="urgent">Urgente</option>
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Problèmes identifiés
+                  </label>
+                  <textarea
+                    value={formData.maintenanceIssues}
+                    onChange={(e) => setFormData({ ...formData, maintenanceIssues: e.target.value })}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Décrivez les problèmes de maintenance identifiés..."
+                  />
                 </div>
               </div>
             </div>

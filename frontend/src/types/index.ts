@@ -331,6 +331,18 @@ export interface Fosa {
   connecteeElectricite?: boolean;
   typeCourant?: string;
 
+  // Champs de maintenance
+  lastInspection?: string;
+  nextInspection?: string;
+  maintenancePriority?: 'low' | 'medium' | 'high' | 'urgent';
+  maintenanceIssues?: string;
+
+  // Champs de contacts
+  telephone?: string;
+  email?: string;
+  responsableNom?: string;
+  responsableTelephone?: string;
+
   // Relations
   arrondissement?: Arrondissement;
   airesante?: Airesante;

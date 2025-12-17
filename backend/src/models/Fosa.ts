@@ -19,6 +19,18 @@ export class Fosa extends Model {
   public catRec?: string; // Catégorie de la FOSA
   public nomDirect?: string; // Nom du directeur
 
+  // Champs de maintenance
+  public lastInspection?: Date; // Date de la dernière inspection
+  public nextInspection?: Date; // Date de la prochaine inspection
+  public maintenancePriority?: 'low' | 'medium' | 'high' | 'urgent'; // Priorité de maintenance
+  public maintenanceIssues?: string; // Problèmes de maintenance (JSON)
+
+  // Champs de contacts
+  public telephone?: string; // Téléphone principal
+  public email?: string; // Email de contact
+  public responsableNom?: string; // Nom du responsable
+  public responsableTelephone?: string; // Téléphone du responsable
+
   // Coordonnées
   public longitude?: number;
   public latitude?: number;
@@ -148,6 +160,47 @@ Fosa.init(
       type: DataTypes.STRING(20),
       allowNull: true,
       field: "type_courant",
+    },
+    // Champs de maintenance
+    lastInspection: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: "last_inspection",
+    },
+    nextInspection: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: "next_inspection",
+    },
+    maintenancePriority: {
+      type: DataTypes.ENUM("low", "medium", "high", "urgent"),
+      allowNull: true,
+      defaultValue: "low",
+      field: "maintenance_priority",
+    },
+    maintenanceIssues: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: "maintenance_issues",
+    },
+    // Champs de contacts
+    telephone: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+    },
+    email: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    responsableNom: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+      field: "responsable_nom",
+    },
+    responsableTelephone: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      field: "responsable_telephone",
     },
   },
   {
