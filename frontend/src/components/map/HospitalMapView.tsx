@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { Hospital } from '../../types';
+import { MapContainer, TileLayer, Marker, Popup, GeoJSON } from 'react-leaflet';
+import { Hospital, Region, Departement, Arrondissement } from '../../types';
 import { mockHospitals } from '../../data/mockData';
+import { regionService } from '../../services/regionService';
+import { departementService } from '../../services/departementService';
+import { arrondissementService } from '../../services/arrondissementService';
 import { Filter, Layers, Search, MapPin, Users, Bed, AlertTriangle } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -22,6 +25,68 @@ const HospitalMapView: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [mapStyle, setMapStyle] = useState('osm');
+
+  // Geographic zone state
+  const [regions, setRegions] = useState<Region[]>([]);
+  const [departements, setDepartements] = useState<Departement[]>([]);
+  const [arrondissements, setArrondissements] = useState<Arrondissement[]>([]);
+  const [selectedRegionId, setSelectedRegionId] = useState<number | null>(null);
+  const [selectedDepartementId, setSelectedDepartementId] = useState<number | null>(null);
+  const [selectedArrondissementId, setSelectedArrondissementId] = useState<number | null>(null);
+  const [showRegions, setShowRegions] = useState(true);
+  const [showDepartements, setShowDepartements] = useState(false);
+  const [showArrondissements, setShowArrondissements] = useState(false);
+
+  // Load geographic data on mount
+  useEffect(() => {
+    const loadGeographicData = async () => {
+      try {
+        // Load regions with geographic data
+        const regionsData = await regionService.getAllForMap();
+        setRegions(regionsData);
+      } catch (error) {
+        console.error('Error loading geographic data:', error);
+      }
+    };
+
+    loadGeographicData();
+  }, []);
+
+  // Load departements when region is selected
+  useEffect(() => {
+    if (selectedRegionId) {
+      const loadDepartements = async () => {
+        try {
+          const response = await departementService.getAll({ regionId: selectedRegionId, limit: 1000 });
+          setDepartements(response.data);
+        } catch (error) {
+          console.error('Error loading departements:', error);
+        }
+      };
+      loadDepartements();
+    } else {
+      setDepartements([]);
+      setSelectedDepartementId(null);
+    }
+  }, [selectedRegionId]);
+
+  // Load arrondissements when departement is selected
+  useEffect(() => {
+    if (selectedDepartementId) {
+      const loadArrondissements = async () => {
+        try {
+          const response = await arrondissementService.getAll({ departementId: selectedDepartementId, limit: 1000 });
+          setArrondissements(response.data);
+        } catch (error) {
+          console.error('Error loading arrondissements:', error);
+        }
+      };
+      loadArrondissements();
+    } else {
+      setArrondissements([]);
+      setSelectedArrondissementId(null);
+    }
+  }, [selectedDepartementId]);
 
   useEffect(() => {
     let filtered = mockHospitals;
@@ -135,6 +200,131 @@ const HospitalMapView: React.FC = () => {
     { id: 'terrain', name: 'Terrain', url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png' }
   ];
 
+  // GeoJSON styling functions
+  const getRegionStyle = (feature: any) => {
+    const isSelected = selectedRegionId === feature.properties?.id;
+    return {
+      fillColor: isSelected ? '#FBBF24' : '#93C5FD',  // Jaune pour sélection
+      weight: isSelected ? 3 : 2,
+      opacity: 1,
+      color: isSelected ? '#D97706' : '#60A5FA',  // Bordure orange foncé pour sélection
+      fillOpacity: isSelected ? 0.65 : 0.2
+    };
+  };
+
+  const getDepartementStyle = (feature: any) => {
+    const isSelected = selectedDepartementId === feature.properties?.id;
+    return {
+      fillColor: isSelected ? '#EF4444' : '#6EE7B7',  // Rouge pour sélection
+      weight: isSelected ? 3 : 2,
+      opacity: 1,
+      color: isSelected ? '#991B1B' : '#34D399',  // Bordure rouge foncé pour sélection
+      fillOpacity: isSelected ? 0.65 : 0.2
+    };
+  };
+
+  const getArrondissementStyle = (feature: any) => {
+    const isSelected = selectedArrondissementId === feature.properties?.id;
+    return {
+      fillColor: isSelected ? '#F97316' : '#FCD34D',  // Orange pour sélection
+      weight: isSelected ? 3 : 2,
+      opacity: 1,
+      color: isSelected ? '#9A3412' : '#FBBF24',  // Bordure orange foncé pour sélection
+      fillOpacity: isSelected ? 0.65 : 0.2
+    };
+  };
+
+  // GeoJSON event handlers
+  const onRegionClick = (feature: any, layer: any) => {
+    if (feature.properties?.id) {
+      setSelectedRegionId(feature.properties.id);
+      setShowDepartements(true);
+      setShowArrondissements(false);
+    }
+  };
+
+  const onDepartementClick = (feature: any, layer: any) => {
+    if (feature.properties?.id) {
+      setSelectedDepartementId(feature.properties.id);
+      setShowArrondissements(true);
+    }
+  };
+
+  const onArrondissementClick = (feature: any, layer: any) => {
+    if (feature.properties?.id) {
+      setSelectedArrondissementId(feature.properties.id);
+    }
+  };
+
+  const onEachRegion = (feature: any, layer: any) => {
+    layer.on({
+      click: () => onRegionClick(feature, layer),
+      mouseover: (e: any) => {
+        e.target.setStyle({
+          weight: 3,
+          fillOpacity: 0.4
+        });
+      },
+      mouseout: (e: any) => {
+        e.target.setStyle(getRegionStyle(feature));
+      }
+    });
+
+    if (feature.properties?.nom) {
+      layer.bindTooltip(feature.properties.nom, {
+        permanent: false,
+        direction: 'center',
+        className: 'bg-white px-2 py-1 rounded shadow-lg text-sm font-medium'
+      });
+    }
+  };
+
+  const onEachDepartement = (feature: any, layer: any) => {
+    layer.on({
+      click: () => onDepartementClick(feature, layer),
+      mouseover: (e: any) => {
+        e.target.setStyle({
+          weight: 3,
+          fillOpacity: 0.4
+        });
+      },
+      mouseout: (e: any) => {
+        e.target.setStyle(getDepartementStyle(feature));
+      }
+    });
+
+    if (feature.properties?.departement || feature.properties?.nom) {
+      layer.bindTooltip(feature.properties.departement || feature.properties.nom, {
+        permanent: false,
+        direction: 'center',
+        className: 'bg-white px-2 py-1 rounded shadow-lg text-sm font-medium'
+      });
+    }
+  };
+
+  const onEachArrondissement = (feature: any, layer: any) => {
+    layer.on({
+      click: () => onArrondissementClick(feature, layer),
+      mouseover: (e: any) => {
+        e.target.setStyle({
+          weight: 3,
+          fillOpacity: 0.4
+        });
+      },
+      mouseout: (e: any) => {
+        e.target.setStyle(getArrondissementStyle(feature));
+      }
+    });
+
+    if (feature.properties?.nom) {
+      layer.bindTooltip(feature.properties.nom, {
+        permanent: false,
+        direction: 'center',
+        className: 'bg-white px-2 py-1 rounded shadow-lg text-sm font-medium'
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
 
@@ -218,6 +408,99 @@ const HospitalMapView: React.FC = () => {
             <span>{filteredHospitals.length} hôpital(s)</span>
           </div>
         </div>
+
+        {/* Geographic zone controls */}
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex items-center space-x-2">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showRegions}
+                  onChange={(e) => {
+                    setShowRegions(e.target.checked);
+                    if (!e.target.checked) {
+                      setSelectedRegionId(null);
+                      setShowDepartements(false);
+                      setShowArrondissements(false);
+                    }
+                  }}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                />
+                <span className="text-sm font-medium text-gray-700">Régions</span>
+                <div className="flex items-center gap-1">
+                  <div className="w-4 h-4 bg-blue-300 border-2 border-blue-600 rounded" title="Non sélectionné"></div>
+                  <span className="text-xs text-gray-500">/</span>
+                  <div className="w-4 h-4 bg-yellow-400 border-2 border-yellow-700 rounded" title="Sélectionné"></div>
+                </div>
+              </label>
+            </div>
+
+            {selectedRegionId && (
+              <div className="flex items-center space-x-2">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showDepartements}
+                    onChange={(e) => {
+                      setShowDepartements(e.target.checked);
+                      if (!e.target.checked) {
+                        setSelectedDepartementId(null);
+                        setShowArrondissements(false);
+                      }
+                    }}
+                    className="w-4 h-4 text-green-600 rounded focus:ring-2 focus:ring-green-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Départements</span>
+                  <div className="flex items-center gap-1">
+                    <div className="w-4 h-4 bg-green-300 border-2 border-green-600 rounded" title="Non sélectionné"></div>
+                    <span className="text-xs text-gray-500">/</span>
+                    <div className="w-4 h-4 bg-red-500 border-2 border-red-900 rounded" title="Sélectionné"></div>
+                  </div>
+                </label>
+              </div>
+            )}
+
+            {selectedDepartementId && (
+              <div className="flex items-center space-x-2">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showArrondissements}
+                    onChange={(e) => {
+                      setShowArrondissements(e.target.checked);
+                      if (!e.target.checked) {
+                        setSelectedArrondissementId(null);
+                      }
+                    }}
+                    className="w-4 h-4 text-yellow-600 rounded focus:ring-2 focus:ring-yellow-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Arrondissements</span>
+                  <div className="flex items-center gap-1">
+                    <div className="w-4 h-4 bg-yellow-300 border-2 border-yellow-600 rounded" title="Non sélectionné"></div>
+                    <span className="text-xs text-gray-500">/</span>
+                    <div className="w-4 h-4 bg-orange-500 border-2 border-orange-900 rounded" title="Sélectionné"></div>
+                  </div>
+                </label>
+              </div>
+            )}
+
+            {selectedRegionId && (
+              <button
+                onClick={() => {
+                  setSelectedRegionId(null);
+                  setSelectedDepartementId(null);
+                  setSelectedArrondissementId(null);
+                  setShowDepartements(false);
+                  setShowArrondissements(false);
+                }}
+                className="ml-auto text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Réinitialiser la sélection
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -231,6 +514,58 @@ const HospitalMapView: React.FC = () => {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url={mapStyles.find(style => style.id === mapStyle)?.url || mapStyles[0].url}
             />
+
+            {/* GeoJSON layers for geographic zones */}
+            {showRegions && regions.map((region) => (
+              region.geom && (
+                <GeoJSON
+                  key={`region-${region.id}`}
+                  data={region.geom}
+                  style={getRegionStyle}
+                  onEachFeature={(feature, layer) => {
+                    // Add region id to feature properties for styling
+                    if (!feature.properties) feature.properties = {};
+                    feature.properties.id = region.id;
+                    feature.properties.nom = region.nom;
+                    onEachRegion(feature, layer);
+                  }}
+                />
+              )
+            ))}
+
+            {showDepartements && departements.map((dept) => (
+              dept.geom && (
+                <GeoJSON
+                  key={`dept-${dept.id}`}
+                  data={dept.geom}
+                  style={getDepartementStyle}
+                  onEachFeature={(feature, layer) => {
+                    if (!feature.properties) feature.properties = {};
+                    feature.properties.id = dept.id;
+                    feature.properties.departement = dept.departement;
+                    feature.properties.nom = dept.nom || dept.departement;
+                    onEachDepartement(feature, layer);
+                  }}
+                />
+              )
+            ))}
+
+            {showArrondissements && arrondissements.map((arr) => (
+              arr.geom && (
+                <GeoJSON
+                  key={`arr-${arr.id}`}
+                  data={arr.geom}
+                  style={getArrondissementStyle}
+                  onEachFeature={(feature, layer) => {
+                    if (!feature.properties) feature.properties = {};
+                    feature.properties.id = arr.id;
+                    feature.properties.nom = arr.nom;
+                    onEachArrondissement(feature, layer);
+                  }}
+                />
+              )
+            ))}
+
             {filteredHospitals.map((hospital, index) => (
               <Marker
                 key={index}

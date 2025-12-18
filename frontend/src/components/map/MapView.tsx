@@ -731,10 +731,12 @@ const MapView: React.FC = () => {
 
   // Charger les districts quand une région est sélectionnée
   useEffect(() => {
+    // Toujours effacer d'abord les anciens districts
+    setDistrictsPolygons({});
+    setDistrictsData([]);
+    setAllDistrictsData([]);
+
     if (selectedRegion === 'all') {
-      setDistrictsPolygons({});
-      setDistrictsData([]);
-      setAllDistrictsData([]);
       return;
     }
 
@@ -743,7 +745,10 @@ const MapView: React.FC = () => {
         updateLoadingProgress('districtsData', true);
         setProgressMessage(`Chargement des districts de ${selectedRegion}...`);
         const region = allRegionsData.find(r => r.nom === selectedRegion);
-        if (!region) return;
+        if (!region) {
+          updateLoadingProgress('districtsData', false);
+          return;
+        }
 
         const response = await districtService.getByRegionForMap(region.id);
         const districts = response.data;
@@ -789,10 +794,12 @@ const MapView: React.FC = () => {
 
   // Charger les aires de santé quand un district est sélectionné
   useEffect(() => {
+    // Toujours effacer d'abord les anciennes aires de santé
+    setAiresantesPolygons({});
+    setAiresantesData([]);
+    setAllAiresantesData([]);
+
     if (selectedDistrict === 'all') {
-      setAiresantesPolygons({});
-      setAiresantesData([]);
-      setAllAiresantesData([]);
       return;
     }
 
@@ -801,7 +808,10 @@ const MapView: React.FC = () => {
         updateLoadingProgress('airesantesData', true);
         setProgressMessage(`Chargement des aires de santé de ${selectedDistrict}...`);
         const district = allDistrictsData.find(d => (d.nom_ds || d.nom) === selectedDistrict);
-        if (!district) return;
+        if (!district) {
+          updateLoadingProgress('airesantesData', false);
+          return;
+        }
 
         const response = await airesanteService.getByDistrictForMap(district.id);
         const airesantes = response.data;
@@ -1420,47 +1430,44 @@ const MapView: React.FC = () => {
                   <Polygon positions={cameroonPolygon} pathOptions={{ fillColor: '#10b981', fillOpacity: 0.05, color: '#10b981', weight: 2, opacity: 0.6 }} />
                 )}
 
-                {layersVisibility.regions && Object.entries(regionsPolygons).map(([regionName, polygon], index) => (
+                {layersVisibility.regions && selectedRegion && regionsPolygons[selectedRegion] && (
                   <Polygon
-                    key={index}
-                    positions={polygon}
+                    positions={regionsPolygons[selectedRegion]}
                     pathOptions={{
-                      fillColor: selectedRegion === regionName ? '#14b8a6' : '#10b981',
-                      fillOpacity: selectedRegion === regionName ? 0.15 : 0.05,
-                      color: selectedRegion === regionName ? '#14b8a6' : '#10b981',
-                      weight: selectedRegion === regionName ? 3 : 1.5,
-                      opacity: selectedRegion === regionName ? 0.8 : 0.4
+                      fillColor: '#FBBF24',  // Jaune pour sélection
+                      fillOpacity: 0.65,
+                      color: '#D97706',  // Bordure orange foncé
+                      weight: 3,
+                      opacity: 1
                     }}
                   />
-                ))}
+                )}
 
-                {layersVisibility.departements && Object.entries(departementsPolygons).map(([deptName, polygon], index) => (
+                {layersVisibility.departements && selectedDepartement && departementsPolygons[selectedDepartement] && (
                   <Polygon
-                    key={index}
-                    positions={polygon}
+                    positions={departementsPolygons[selectedDepartement]}
                     pathOptions={{
-                      fillColor: selectedDepartement === deptName ? '#0891b2' : '#06b6d4',
-                      fillOpacity: selectedDepartement === deptName ? 0.2 : 0.05,
-                      color: selectedDepartement === deptName ? '#0891b2' : '#06b6d4',
-                      weight: selectedDepartement === deptName ? 3 : 1,
-                      opacity: selectedDepartement === deptName ? 0.9 : 0.3
+                      fillColor: '#EF4444',  // Rouge pour sélection
+                      fillOpacity: 0.65,
+                      color: '#991B1B',  // Bordure rouge foncé
+                      weight: 3,
+                      opacity: 1
                     }}
                   />
-                ))}
+                )}
 
-                {layersVisibility.arrondissements && Object.entries(arrondissementsPolygons).map(([arrondName, polygon], index) => (
+                {layersVisibility.arrondissements && selectedArrondissement && arrondissementsPolygons[selectedArrondissement] && (
                   <Polygon
-                    key={index}
-                    positions={polygon}
+                    positions={arrondissementsPolygons[selectedArrondissement]}
                     pathOptions={{
-                      fillColor: selectedArrondissement === arrondName ? '#3b82f6' : '#60a5fa',
-                      fillOpacity: selectedArrondissement === arrondName ? 0.25 : 0.08,
-                      color: selectedArrondissement === arrondName ? '#3b82f6' : '#60a5fa',
-                      weight: selectedArrondissement === arrondName ? 3 : 1.2,
-                      opacity: selectedArrondissement === arrondName ? 0.9 : 0.35
+                      fillColor: '#F97316',  // Orange pour sélection
+                      fillOpacity: 0.65,
+                      color: '#9A3412',  // Bordure orange foncé
+                      weight: 3,
+                      opacity: 1
                     }}
                   />
-                ))}
+                )}
 
                 {layersVisibility.districts && Object.entries(districtsPolygons).map(([districtName, polygon], index) => {
                   const fillColor = activeTheme ? activeTheme.getColor(districtName) : '#8b5cf6';

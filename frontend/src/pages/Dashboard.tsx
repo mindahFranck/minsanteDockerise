@@ -256,29 +256,34 @@ export default function Dashboard() {
 
         <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
           <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-green-600" />
-            État des FOSA
+            <Building2 className="w-5 h-5 text-indigo-600" />
+            Top 5 FOSA par Nombre de Bâtiments
           </h2>
           <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={[
-                  { name: 'Opérationnelles', value: additionalStats?.fosasOperational || 0 },
-                  { name: 'Fermées', value: additionalStats?.fosasClosed || 0 }
-                ]}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label={(entry) => `${entry.name}: ${entry.value}`}
-              >
-                <Cell fill="#10B981" />
-                <Cell fill="#EF4444" />
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
+            <BarChart
+              data={(comparativeStats?.buildingsByFosa || []).slice(0, 5)}
+              layout="horizontal"
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="fosaName"
+                angle={-30}
+                textAnchor="end"
+                height={80}
+                tick={{ fontSize: 11 }}
+              />
+              <YAxis />
+              <Tooltip
+                formatter={(value: number) => [`${value} bâtiment${value > 1 ? 's' : ''}`, 'Nombre']}
+                labelFormatter={(label) => `FOSA: ${label}`}
+              />
+              <Bar
+                dataKey="buildingCount"
+                fill="#6366F1"
+                name="Nombre de bâtiments"
+                radius={[8, 8, 0, 0]}
+              />
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>

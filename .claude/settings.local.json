@@ -48,7 +48,11 @@
       "Bash(taskkill:*)",
       "Bash(git push)",
       "Bash(where:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(npm run migrate:*)",
+      "Bash(npm run:*)",
+      "Bash(npx tsx:*)",
+      "Bash(exit 0)"
     ],
     "deny": [],
     "ask": []

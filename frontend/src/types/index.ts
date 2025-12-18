@@ -264,7 +264,7 @@ export interface Departement {
   fit2: number;
   fit3: number;
   fit4: number;
-  geom?: any;
+  geom?: any; // GeoJSON geometry for map display
   createdAt?: string;
   updatedAt?: string;
   // Legacy fields for compatibility
@@ -282,6 +282,7 @@ export interface Arrondissement {
   population?: number;
   superficie?: number;
   chefLieu?: string;
+  geom?: any; // GeoJSON geometry for map display
   createdAt?: string;
   updatedAt?: string;
 }
