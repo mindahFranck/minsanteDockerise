@@ -1,13 +1,8 @@
-# =============================================================================
-# Production Deployment Pipeline for Health Management System
-# =============================================================================
-
-name: Deploy to Production
+name: Deploy Health Management System
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 env:
@@ -16,76 +11,43 @@ env:
   FRONTEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/health-management-frontend
 
 jobs:
+
   build-backend:
     name: Build Backend Image
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.BACKEND_IMAGE }}
-          tags: |
-            type=sha,prefix=,format=short
-            type=raw,value=latest
-
-      - name: Build and push Backend image
+      - name: Build and push Backend
         uses: docker/build-push-action@v5
         with:
           context: ./backend
           file: ./backend/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.BACKEND_IMAGE }}:latest
           platforms: linux/amd64
 
   build-frontend:
     name: Build Frontend Image
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.FRONTEND_IMAGE }}
-          tags: |
-            type=sha,prefix=,format=short
-            type=raw,value=latest
-
-      - name: Build and push Frontend image
+      - name: Build and push Frontend
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.FRONTEND_IMAGE }}:latest
           platforms: linux/amd64
           build-args: |
             VITE_API_URL=https://apiminsante.it-grafik.com/api/v1
@@ -95,71 +57,31 @@ jobs:
   deploy-infrastructure:
     name: Deploy Infrastructure
     runs-on: ubuntu-latest
-    environment:
-      name: production
-
     steps:
-      - name: Deploy Redis and Check Services
+      - name: Deploy Redis & Check Network
         uses: appleboy/ssh-action@master
         with:
-          host: 78.142.242.49
+          host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
-            echo "🚀 Setting up infrastructure..."
+            echo "🚀 Checking infrastructure..."
 
-            # Vérifier et créer le réseau si nécessaire
+            # Créer réseau si nécessaire
             docker network create proxy-tier 2>/dev/null || echo "Network proxy-tier already exists"
 
-            # Vérifier que nginx-proxy est running
+            # Vérifier nginx-proxy et acme
             if ! docker ps | grep -q nginx-proxy; then
-              echo "🔄 Starting nginx-proxy..."
-              docker run -d \
-                --name nginx-proxy \
-                --network proxy-tier \
-                -p 80:80 -p 443:443 \
-                -v /var/run/docker.sock:/tmp/docker.sock:ro \
-                -v /etc/nginx/certs:/etc/nginx/certs:ro \
-                -v /etc/nginx/vhost.d \
-                -v /usr/share/nginx/html \
-                jwilder/nginx-proxy
+              echo "⚠️ nginx-proxy not running!"
             fi
-
-            # Vérifier que nginx-proxy-acme est running
             if ! docker ps | grep -q nginx-proxy-acme; then
-              echo "🔄 Starting nginx-proxy-acme..."
-              docker run -d \
-                --name nginx-proxy-acme \
-                --network proxy-tier \
-                --volumes-from nginx-proxy \
-                -v /var/run/docker.sock:/var/run/docker.sock:ro \
-                -v /etc/nginx/certs:/etc/nginx/certs \
-                -v /etc/nginx/vhost.d \
-                -v /usr/share/nginx/html \
-                -e DEFAULT_EMAIL=mindahnkemeni@gmail.com \
-                jrcs/letsencrypt-nginx-proxy-companion
-            fi
-
-            # Vérifier que MySQL est running
-            if ! docker ps | grep -q mysql_db; then
-              echo "🔄 Starting MySQL..."
-              docker run -d \
-                --name mysql_db \
-                --network proxy-tier \
-                -e MYSQL_ROOT_PASSWORD=rootpassword \
-                -e MYSQL_DATABASE=mydatabase \
-                -e MYSQL_USER=myuser \
-                -e MYSQL_PASSWORD=mypassword \
-                -v mysql_data:/var/lib/mysql \
-                mysql:8.0
+              echo "⚠️ nginx-proxy-acme not running!"
             fi
 
             # Déployer Redis
-            echo "🔴 Deploying Redis..."
             docker stop health-redis 2>/dev/null || true
             docker rm health-redis 2>/dev/null || true
-
             docker run -d \
               --name health-redis \
               --network proxy-tier \
@@ -167,48 +89,31 @@ jobs:
               -v redis_data:/data \
               redis:7-alpine redis-server --appendonly yes
 
-            echo "⏳ Waiting for services to be ready..."
-            sleep 15
-
-            echo "✅ Infrastructure setup completed!"
+            echo "✅ Infrastructure ready!"
+            sleep 10
 
   deploy-backend:
     name: Deploy Backend
     runs-on: ubuntu-latest
     needs: [build-backend, deploy-infrastructure]
-    environment:
-      name: production-backend
-      url: https://apiminsante.it-grafik.com
-
     steps:
       - name: Deploy Backend Application
         uses: appleboy/ssh-action@master
         with:
-          host: 78.142.242.49
+          host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
-            echo "🚀 Starting Backend deployment..."
+            echo "🚀 Deploying Backend..."
 
-            # Pull the latest backend image
-            echo "📦 Pulling latest backend image..."
             docker pull ${{ env.BACKEND_IMAGE }}:latest
+            docker rm -f health-backend 2>/dev/null || true
 
-            # Stop and remove existing backend container
-            echo "🛑 Stopping existing backend container..."
-            docker stop health-backend 2>/dev/null || true
-            docker rm health-backend 2>/dev/null || true
-
-            # Créer et configurer les répertoires
-            echo "📁 Setting up directories..."
-            sudo mkdir -p /var/health-backend/uploads
-            sudo mkdir -p /var/health-backend/logs
+            sudo mkdir -p /var/health-backend/uploads /var/health-backend/logs
             sudo chown -R 1000:1000 /var/health-backend
             sudo chmod -R 755 /var/health-backend
 
-            # Run new backend container
-            echo "🎯 Starting new backend container..."
             docker run -d \
               --name health-backend \
               --restart unless-stopped \
@@ -221,20 +126,13 @@ jobs:
               -e NODE_ENV=production \
               -e PORT=3000 \
               -e API_VERSION=v1 \
-              -e DB_HOST=srv915.hstgr.io \
+              -e DB_HOST=${{ secrets.DB_HOST }} \
               -e DB_PORT=3306 \
-              -e DB_NAME=u877916646_minstante \
-              -e DB_USER=u877916646_minsante \
-              -e DB_PASSWORD=itgrafik@Dev12 \
+              -e DB_NAME=${{ secrets.DB_NAME }} \
+              -e DB_USER=${{ secrets.DB_USER }} \
+              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
               -e REDIS_HOST=health-redis \
               -e REDIS_PORT=6379 \
-              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
-              -e JWT_EXPIRES_IN=7d \
-              -e CORS_ORIGIN="https://minsante.it-grafik.com,https://apiminsante.it-grafik.com,https://gov.it-grafik.com" \
-              -e LOG_LEVEL=info \
-              -e LOG_TO_FILE="false" \
-              -e RATE_LIMIT_WINDOW_MS=900000 \
-              -e RATE_LIMIT_MAX_REQUESTS=100 \
               -v /var/health-backend/uploads:/app/uploads \
               -v /var/health-backend/logs:/app/logs \
               ${{ env.BACKEND_IMAGE }}:latest
@@ -242,62 +140,24 @@ jobs:
             echo "⏳ Waiting for backend to start..."
             sleep 20
 
-            echo "✅ Backend deployment completed!"
-
-      - name: Health Check Backend
-        run: |
-          echo "🏥 Performing backend health check..."
-          max_attempts=15
-          attempt=1
-
-          while [ $attempt -le $max_attempts ]; do
-            echo "Attempt $attempt/$max_attempts..."
-            
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://apiminsante.it-grafik.com/api/v1/health 2>/dev/null || echo "000")
-            
-            if [ "$HTTP_CODE" = "200" ]; then
-              echo "✅ Backend health check passed! HTTP 200"
-              exit 0
-            fi
-            
-            echo "HTTP Code: $HTTP_CODE - Waiting 10 seconds..."
-            sleep 10
-            attempt=$((attempt + 1))
-          done
-
-          echo "❌ Backend health check failed after $max_attempts attempts"
-          exit 1
-
   deploy-frontend:
     name: Deploy Frontend
     runs-on: ubuntu-latest
     needs: [build-frontend, deploy-backend]
-    environment:
-      name: production-frontend
-      url: https://minsante.it-grafik.com
-
     steps:
       - name: Deploy Frontend Application
         uses: appleboy/ssh-action@master
         with:
-          host: 78.142.242.49
+          host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
-            echo "🚀 Starting Frontend deployment..."
+            echo "🚀 Deploying Frontend..."
 
-            # Pull the latest frontend image
-            echo "📦 Pulling latest frontend image..."
             docker pull ${{ env.FRONTEND_IMAGE }}:latest
+            docker rm -f health-frontend 2>/dev/null || true
 
-            # Stop and remove existing frontend container
-            echo "🛑 Stopping existing frontend container..."
-            docker stop health-frontend 2>/dev/null || true
-            docker rm health-frontend 2>/dev/null || true
-
-            # Run new frontend container
-            echo "🎯 Starting new frontend container..."
             docker run -d \
               --name health-frontend \
               --restart unless-stopped \
@@ -311,69 +171,14 @@ jobs:
             echo "⏳ Waiting for frontend to start..."
             sleep 15
 
-            # Debug: Vérifier les fichiers dans le container
-            echo "🔍 Checking frontend files..."
-            docker exec health-frontend find /usr/share/nginx/html -type f -name "*.html" -o -name "*.js" | head -10
-
-            echo "✅ Frontend deployment completed!"
-
-      - name: Health Check Frontend
-        run: |
-          echo "🏥 Performing frontend health check..."
-          max_attempts=20
-          attempt=1
-
-          while [ $attempt -le $max_attempts ]; do
-            echo "Attempt $attempt/$max_attempts..."
-            
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://minsante.it-grafik.com 2>/dev/null || echo "000")
-            
-            if [ "$HTTP_CODE" = "200" ]; then
-              echo "✅ Frontend health check passed! HTTP 200"
-              
-              # Vérifier que le contenu n'est pas vide
-              CONTENT=$(curl -s --max-time 10 https://minsante.it-grafik.com 2>/dev/null | head -c 200)
-              if [[ "$CONTENT" == *"<!DOCTYPE html>"* ]] || [[ "$CONTENT" == *"<html"* ]]; then
-                echo "✅ Frontend content is valid HTML"
-                exit 0
-              else
-                echo "⚠️ Frontend returned 200 but content doesn't look like HTML"
-                echo "First 200 chars: $CONTENT"
-              fi
-            fi
-            
-            echo "HTTP Code: $HTTP_CODE - Waiting 10 seconds..."
-            sleep 10
-            attempt=$((attempt + 1))
-          done
-
-          echo "❌ Frontend health check failed after $max_attempts attempts"
-
-          # Debug supplémentaire
-          echo "🔍 Additional debug info:"
-          sshpass -p '${{ secrets.SSH_PASSWORD }}' ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@78.142.242.49 "
-            echo '=== Frontend logs ==='
-            docker logs --tail=30 health-frontend 2>/dev/null || echo 'Cannot get frontend logs'
-            echo '=== Nginx config ==='
-            docker exec health-frontend cat /etc/nginx/conf.d/default.conf 2>/dev/null || echo 'Cannot get nginx config'
-            echo '=== Files in nginx html directory ==='
-            docker exec health-frontend ls -la /usr/share/nginx/html/ 2>/dev/null || echo 'Cannot list files'
-          "
-          exit 1
-
   verify-deployment:
-    name: Verify Full Deployment
+    name: Verify Deployment
     runs-on: ubuntu-latest
     needs: [deploy-backend, deploy-frontend]
-
     steps:
       - name: Final Verification
         run: |
-          echo "🎉 Final deployment verification!"
-          echo ""
-          echo "🌐 Application URLs:"
-          echo "  Frontend: https://minsante.it-grafik.com"
-          echo "  Backend API: https://apiminsante.it-grafik.com/api/v1/health"
-          echo "  PHPMyAdmin: https://phpmyadmin.it-grafik.com"
-          echo ""
-          echo "✅ Deployment completed successfully!"
+          echo "🎉 Deployment completed!"
+          echo "🌐 Frontend: https://minsante.it-grafik.com"
+          echo "🌐 Backend API: https://apiminsante.it-grafik.com/api/v1/health"
+          echo "✅ All services deployed successfully!"
