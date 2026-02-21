@@ -16,8 +16,8 @@ console.log({
 const sequelize = new Sequelize({
   host: process.env.DB_HOST || "srv915.hstgr.io",
   port: Number.parseInt(process.env.DB_PORT || "3306"),
-  database: process.env.DB_NAME || "health_management",
-  username: process.env.DB_USER || "root",
+  database: process.env.DB_NAME || "u877916646_minstante",
+  username: process.env.DB_USER || "u877916646_minsante",
   password: process.env.DB_PASSWORD || "itgrafik@Dev12",
   dialect: "mysql",
   logging: process.env.NODE_ENV === "development" ? console.log : false,
