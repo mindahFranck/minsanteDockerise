@@ -133,6 +133,8 @@ jobs:
               -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
               -e REDIS_HOST=health-redis \
               -e REDIS_PORT=6379 \
+              -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
+              -e JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }} \
               -v /var/health-backend/uploads:/app/uploads \
               -v /var/health-backend/logs:/app/logs \
               ${{ env.BACKEND_IMAGE }}:latest
