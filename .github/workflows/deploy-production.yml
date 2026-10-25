@@ -1,4 +1,4 @@
-name: Deploy Health Management System
+name: Deploy Health Management System (Laravel)
 
 on:
   push:
@@ -6,14 +6,22 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKER_REGISTRY: docker.io
-  BACKEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/health-management-backend
+  BACKEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/health-management-laravel
   FRONTEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/health-management-frontend
+  BACKEND_DOMAIN: apiminsante.it-grafik.com
+  FRONTEND_DOMAIN: minsante.it-grafik.com
+  LETSENCRYPT_EMAIL: mindahnkemeni@gmail.com
+  DB_NAME: u877916646_minstante
+  DB_USER: minsante
+
+concurrency:
+  group: deploy-minsante
+  cancel-in-progress: false
 
 jobs:
 
   build-backend:
-    name: Build Backend Image
+    name: Build Laravel Image
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,14 +30,16 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Build and push Backend
-        uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v5
         with:
-          context: ./backend
-          file: ./backend/Dockerfile
+          context: ./laravel-backend
           push: true
-          tags: ${{ env.BACKEND_IMAGE }}:latest
+          tags: |
+            ${{ env.BACKEND_IMAGE }}:latest
+            ${{ env.BACKEND_IMAGE }}:${{ github.sha }}
           platforms: linux/amd64
+          cache-from: type=registry,ref=${{ env.BACKEND_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.BACKEND_IMAGE }}:buildcache,mode=max
 
   build-frontend:
     name: Build Frontend Image
@@ -41,144 +51,206 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Build and push Frontend
-        uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v5
         with:
           context: ./frontend
-          file: ./frontend/Dockerfile
           push: true
-          tags: ${{ env.FRONTEND_IMAGE }}:latest
+          tags: |
+            ${{ env.FRONTEND_IMAGE }}:latest
+            ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
           platforms: linux/amd64
           build-args: |
-            VITE_API_URL=https://apiminsante.it-grafik.com/api/v1
+            VITE_API_URL=https://${{ env.BACKEND_DOMAIN }}/api/v1
             VITE_APP_NAME=Health Management System
-            VITE_APP_VERSION=1.0.0
+            VITE_APP_VERSION=${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.FRONTEND_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.FRONTEND_IMAGE }}:buildcache,mode=max
 
   deploy-infrastructure:
-    name: Deploy Infrastructure
+    name: Ensure shared MariaDB + database
     runs-on: ubuntu-latest
+    needs: [build-backend, build-frontend]
     steps:
-      - name: Deploy Redis & Check Network
-        uses: appleboy/ssh-action@master
+      - uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
-            echo "🚀 Checking infrastructure..."
+            set -e
+            docker network create proxy-tier 2>/dev/null || true
+            docker network create db-tier 2>/dev/null || true
+            docker ps | grep -q nginx-proxy || echo "⚠️ nginx-proxy not running!"
 
-            # Créer réseau si nécessaire
-            docker network create proxy-tier 2>/dev/null || echo "Network proxy-tier already exists"
-
-            # Vérifier nginx-proxy et acme
-            if ! docker ps | grep -q nginx-proxy; then
-              echo "⚠️ nginx-proxy not running!"
+            # MariaDB partagée (PATNUC, Minsanté, CRCE) — les dumps sont en MariaDB 11.8
+            if ! docker ps --format '{{.Names}}' | grep -qx itg-mariadb; then
+              docker rm -f itg-mariadb 2>/dev/null || true
+              docker run -d \
+                --name itg-mariadb \
+                --network db-tier \
+                --restart unless-stopped \
+                -e MARIADB_ROOT_PASSWORD="${{ secrets.MARIADB_ROOT_PASSWORD }}" \
+                -v itg_mariadb_data:/var/lib/mysql \
+                mariadb:11.8 \
+                --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
             fi
-            if ! docker ps | grep -q nginx-proxy-acme; then
-              echo "⚠️ nginx-proxy-acme not running!"
-            fi
+            for i in $(seq 1 30); do
+              docker exec itg-mariadb healthcheck.sh --connect --innodb_initialized >/dev/null 2>&1 && break
+              sleep 2
+            done
 
-            # Déployer Redis
-            docker stop health-redis 2>/dev/null || true
-            docker rm health-redis 2>/dev/null || true
-            docker run -d \
-              --name health-redis \
-              --network proxy-tier \
-              --restart unless-stopped \
-              -v redis_data:/data \
-              redis:7-alpine redis-server --appendonly yes
+            # Base + utilisateur dédiés (idempotent, aucune table touchée — pas de migration)
+            docker exec -i -e MYSQL_PWD="${{ secrets.MARIADB_ROOT_PASSWORD }}" itg-mariadb mariadb -uroot <<'SQL'
+            CREATE DATABASE IF NOT EXISTS ${{ env.DB_NAME }} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+            CREATE USER IF NOT EXISTS '${{ env.DB_USER }}'@'%' IDENTIFIED BY '${{ secrets.DB_PASSWORD }}';
+            ALTER USER '${{ env.DB_USER }}'@'%' IDENTIFIED BY '${{ secrets.DB_PASSWORD }}';
+            GRANT ALL PRIVILEGES ON ${{ env.DB_NAME }}.* TO '${{ env.DB_USER }}'@'%';
+            FLUSH PRIVILEGES;
+            SQL
 
-            echo "✅ Infrastructure ready!"
-            sleep 10
+            TABLES=$(docker exec -e MYSQL_PWD="${{ secrets.MARIADB_ROOT_PASSWORD }}" itg-mariadb mariadb -uroot -N -e \
+              "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${{ env.DB_NAME }}'")
+            echo "✅ ${{ env.DB_NAME }} prête ($TABLES tables)"
+            [ "$TABLES" != "0" ] || echo "⚠️ Base vide : importer le dump avec deploy-vps/import-dump.sh"
+
+            # L'ancien backend Node n'a plus d'utilité
+            docker rm -f health-redis 2>/dev/null || true
 
   deploy-backend:
-    name: Deploy Backend
+    name: Deploy Laravel Backend (with rollback)
     runs-on: ubuntu-latest
-    needs: [build-backend, deploy-infrastructure]
+    needs: [deploy-infrastructure]
     steps:
-      - name: Deploy Backend Application
-        uses: appleboy/ssh-action@master
+      - uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
-            echo "🚀 Deploying Backend..."
-
+            set -e
             docker pull ${{ env.BACKEND_IMAGE }}:latest
-            docker rm -f health-backend 2>/dev/null || true
+            docker rename health-backend health-backend-old 2>/dev/null || true
+            docker stop health-backend-old 2>/dev/null || true
 
-            sudo mkdir -p /var/health-backend/uploads /var/health-backend/logs
-            sudo chown -R 1000:1000 /var/health-backend
-            sudo chmod -R 755 /var/health-backend
+            # Fichiers téléversés (images FOSA) et logs Laravel persistants
+            sudo mkdir -p /var/health-laravel/public /var/health-laravel/logs
+            sudo chown -R 33:33 /var/health-laravel
+
+            rollback() {
+              echo "❌ Rolling back backend"
+              docker logs --tail 200 health-backend 2>/dev/null || true
+              docker rm -f health-backend 2>/dev/null || true
+              docker rename health-backend-old health-backend 2>/dev/null || true
+              docker start health-backend 2>/dev/null || true
+              exit 1
+            }
 
             docker run -d \
               --name health-backend \
               --restart unless-stopped \
-              --network proxy-tier \
-              --user 1000:1000 \
-              -e VIRTUAL_HOST=apiminsante.it-grafik.com \
-              -e VIRTUAL_PORT=3000 \
-              -e LETSENCRYPT_HOST=apiminsante.it-grafik.com \
-              -e LETSENCRYPT_EMAIL=mindahnkemeni@gmail.com \
-              -e NODE_ENV=production \
-              -e PORT=3000 \
-              -e API_VERSION=v1 \
-              -e DB_HOST=${{ secrets.DB_HOST }} \
+              --network db-tier \
+              -e VIRTUAL_HOST=${{ env.BACKEND_DOMAIN }} \
+              -e VIRTUAL_PORT=80 \
+              -e LETSENCRYPT_HOST=${{ env.BACKEND_DOMAIN }} \
+              -e LETSENCRYPT_EMAIL=${{ env.LETSENCRYPT_EMAIL }} \
+              -e APP_NAME="API Health FOSA" \
+              -e APP_ENV=production \
+              -e APP_KEY="${{ secrets.APP_KEY }}" \
+              -e APP_DEBUG=false \
+              -e APP_URL=https://${{ env.BACKEND_DOMAIN }} \
+              -e LOG_CHANNEL=daily \
+              -e LOG_LEVEL=info \
+              -e DB_CONNECTION=mysql \
+              -e DB_HOST=itg-mariadb \
               -e DB_PORT=3306 \
-              -e DB_NAME=${{ secrets.DB_NAME }} \
-              -e DB_USER=${{ secrets.DB_USER }} \
-              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              -e REDIS_HOST=health-redis \
-              -e REDIS_PORT=6379 \
-              -v /var/health-backend/uploads:/app/uploads \
-              -v /var/health-backend/logs:/app/logs \
-              ${{ env.BACKEND_IMAGE }}:latest
+              -e DB_DATABASE=${{ env.DB_NAME }} \
+              -e DB_USERNAME=${{ env.DB_USER }} \
+              -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+              -e CACHE_STORE=file \
+              -e SESSION_DRIVER=file \
+              -e QUEUE_CONNECTION=sync \
+              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+              -e JWT_TTL=10080 \
+              -e JWT_REFRESH_TTL=43200 \
+              -e CORS_ALLOWED_ORIGINS=https://${{ env.FRONTEND_DOMAIN }} \
+              -e L5_SWAGGER_GENERATE_ALWAYS=false \
+              -e L5_SWAGGER_CONST_HOST=https://${{ env.BACKEND_DOMAIN }}/api/v1 \
+              -v /var/health-laravel/public:/var/www/html/storage/app/public \
+              -v /var/health-laravel/logs:/var/www/html/storage/logs \
+              ${{ env.BACKEND_IMAGE }}:latest || rollback
+            docker network connect proxy-tier health-backend
 
-            echo "⏳ Waiting for backend to start..."
-            sleep 20
+            HEALTHY=0
+            for i in $(seq 1 18); do
+              if docker exec health-backend curl -fsS http://localhost/api/health/ready -o /dev/null 2>&1; then
+                HEALTHY=1; break
+              fi
+              echo "  attempt $i: /api/health/ready not OK yet"; sleep 5
+            done
+            [ "$HEALTHY" = "1" ] || rollback
+            docker rm -f health-backend-old 2>/dev/null || true
+            echo "✅ Laravel backend OK"
 
   deploy-frontend:
-    name: Deploy Frontend
+    name: Deploy Frontend (with rollback)
     runs-on: ubuntu-latest
-    needs: [build-frontend, deploy-backend]
+    needs: [deploy-backend]
     steps:
-      - name: Deploy Frontend Application
-        uses: appleboy/ssh-action@master
+      - uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
-            echo "🚀 Deploying Frontend..."
-
+            set -e
             docker pull ${{ env.FRONTEND_IMAGE }}:latest
-            docker rm -f health-frontend 2>/dev/null || true
+            docker rename health-frontend health-frontend-old 2>/dev/null || true
+            docker stop health-frontend-old 2>/dev/null || true
+
+            rollback() {
+              echo "❌ Rolling back frontend"
+              docker logs --tail 100 health-frontend 2>/dev/null || true
+              docker rm -f health-frontend 2>/dev/null || true
+              docker rename health-frontend-old health-frontend 2>/dev/null || true
+              docker start health-frontend 2>/dev/null || true
+              exit 1
+            }
 
             docker run -d \
               --name health-frontend \
               --restart unless-stopped \
               --network proxy-tier \
-              -e VIRTUAL_HOST=minsante.it-grafik.com \
+              -e VIRTUAL_HOST=${{ env.FRONTEND_DOMAIN }} \
               -e VIRTUAL_PORT=80 \
-              -e LETSENCRYPT_HOST=minsante.it-grafik.com \
-              -e LETSENCRYPT_EMAIL=mindahnkemeni@gmail.com \
-              ${{ env.FRONTEND_IMAGE }}:latest
+              -e LETSENCRYPT_HOST=${{ env.FRONTEND_DOMAIN }} \
+              -e LETSENCRYPT_EMAIL=${{ env.LETSENCRYPT_EMAIL }} \
+              ${{ env.FRONTEND_IMAGE }}:latest || rollback
 
-            echo "⏳ Waiting for frontend to start..."
-            sleep 15
+            HEALTHY=0
+            for i in $(seq 1 12); do
+              if docker exec health-frontend curl -fsS http://localhost/health -o /dev/null 2>&1; then
+                HEALTHY=1; break
+              fi
+              echo "  attempt $i: not ready yet"; sleep 5
+            done
+            [ "$HEALTHY" = "1" ] || rollback
+            docker rm -f health-frontend-old 2>/dev/null || true
+            echo "✅ Frontend OK"
 
   verify-deployment:
     name: Verify Deployment
     runs-on: ubuntu-latest
-    needs: [deploy-backend, deploy-frontend]
+    needs: [deploy-frontend]
     steps:
-      - name: Final Verification
+      - name: Probe public endpoints
         run: |
-          echo "🎉 Deployment completed!"
-          echo "🌐 Frontend: https://minsante.it-grafik.com"
-          echo "🌐 Backend API: https://apiminsante.it-grafik.com/api/v1/health"
-          echo "✅ All services deployed successfully!"
+          for i in $(seq 1 12); do
+            code=$(curl -sk -o /dev/null -w "%{http_code}" https://${{ env.BACKEND_DOMAIN }}/api/health || echo 000)
+            [ "$code" = "200" ] && { echo "✅ https://${{ env.BACKEND_DOMAIN }}/api/health → 200"; break; }
+            echo "  attempt $i: got $code, retrying in 10s…"; sleep 10
+          done
+          echo "🌐 Frontend: https://${{ env.FRONTEND_DOMAIN }}"
+          echo "🌐 API:      https://${{ env.BACKEND_DOMAIN }}/api/v1"

@@ -1,0 +1,26 @@
+vendor
+node_modules
+.env
+.env.*
+!.env.example
+app.zip
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+tests
+# Scripts de diagnostic / d'installation pour l'hébergement mutualisé :
+# jamais exposés en production (install.php lance notamment des migrations)
+public/check.php
+public/debug.php
+public/generate-docs.php
+public/install.php
+public/post-install.php
+public/maj-colonnes.php
+public/maj-fosa-fk.php
+public/maj-import.php
+public/test-cols.php
+public/storage.php
+index.php
+.htaccess
+bootstrap/cache/*.php
