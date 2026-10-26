@@ -84,8 +84,8 @@ jobs:
             docker ps | grep -q nginx-proxy || echo "⚠️ nginx-proxy not running!"
 
             # MariaDB partagée (PATNUC, Minsanté, CRCE) — les dumps sont en MariaDB 11.8
-            if ! docker ps --format '{{.Names}}' | grep -qx itg-mariadb; then
-              docker rm -f itg-mariadb 2>/dev/null || true
+            # Créé une seule fois ; plusieurs pipelines peuvent passer ici en même temps
+            if ! docker ps -a --format '{{.Names}}' | grep -qx itg-mariadb; then
               docker run -d \
                 --name itg-mariadb \
                 --network db-tier \
@@ -93,8 +93,10 @@ jobs:
                 -e MARIADB_ROOT_PASSWORD="${{ secrets.MARIADB_ROOT_PASSWORD }}" \
                 -v itg_mariadb_data:/var/lib/mysql \
                 mariadb:11.8 \
-                --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+                --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci \
+                || echo "itg-mariadb créé en parallèle par un autre pipeline"
             fi
+            docker start itg-mariadb >/dev/null
             for i in $(seq 1 30); do
               docker exec itg-mariadb healthcheck.sh --connect --innodb_initialized >/dev/null 2>&1 && break
               sleep 2
