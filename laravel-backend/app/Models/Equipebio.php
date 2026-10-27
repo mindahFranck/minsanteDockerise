@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Equipebio extends Model
 {
 
-    protected $fillable = ['nom', 'type', 'quantite', 'etat', 'date_acquisition', 'service_id', 'description'];
+    // `fonction` porte l'état de fonctionnement (la table n'a pas de colonne `etat`, voir EquipebioController).
+    protected $fillable = ['nom', 'type', 'quantite', 'fonction', 'date_acquisition', 'service_id', 'description'];
 
     protected function casts(): array
     {
