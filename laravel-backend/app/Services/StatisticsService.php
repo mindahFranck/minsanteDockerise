@@ -168,11 +168,11 @@ class StatisticsService
 
     /**
      * Indicateurs du tableau de bord, calculés en une passe par table.
-     * Lecture seule ; mis en cache 5 minutes (les données changent par import).
+     * Lecture seule ; mis en cache 30 minutes (la jointure spatiale coûte quelques secondes).
      */
     public function getDashboard(): array
     {
-        return Cache::remember('statistics.dashboard', 300, function () {
+        return Cache::remember('statistics.dashboard.v2', 1800, function () {
             $f = DB::selectOne("SELECT
                 COUNT(*) AS total,
                 SUM(CASE WHEN est_ferme = 0 THEN 1 ELSE 0 END) AS ouvertes,
@@ -189,18 +189,27 @@ class StatisticsService
                 SUM(CASE WHEN next_inspection IS NOT NULL AND next_inspection < CURDATE() THEN 1 ELSE 0 END) AS inspections_en_retard
                 FROM tmpfosa");
 
-            $parRegion = DB::select("SELECT
-                COALESCE(r.nom, 'Non rattachée') AS region,
-                COUNT(f.id) AS total,
-                SUM(CASE WHEN f.est_ferme = 0 THEN 1 ELSE 0 END) AS ouvertes,
-                SUM(CASE WHEN f.connectee_electricite = 1 THEN 1 ELSE 0 END) AS electrifiees,
-                SUM(CASE WHEN f.a_titre_foncier = 1 AND f.a_cloture = 1 THEN 1 ELSE 0 END) AS securisees,
-                COALESCE(SUM(f.capacite_lits), 0) AS lits
-                FROM tmpfosa f
-                LEFT JOIN arrondissements a ON f.arrondissement_id = a.id
-                LEFT JOIN departements d ON a.departement_id = d.id
-                LEFT JOIN regions r ON d.region_id = r.id
-                GROUP BY r.nom ORDER BY total DESC");
+            // Région : par la géométrie (comme la carte), sinon par l'arrondissement.
+            // Le rattachement administratif est vide pour la quasi-totalité des FOSA.
+            $parRegion = DB::select("SELECT region,
+                COUNT(*) AS total,
+                SUM(CASE WHEN est_ferme = 0 THEN 1 ELSE 0 END) AS ouvertes,
+                SUM(CASE WHEN connectee_electricite = 1 THEN 1 ELSE 0 END) AS electrifiees,
+                SUM(CASE WHEN a_titre_foncier = 1 AND a_cloture = 1 THEN 1 ELSE 0 END) AS securisees,
+                COALESCE(SUM(capacite_lits), 0) AS lits
+                FROM (
+                    SELECT f.est_ferme, f.connectee_electricite, f.a_titre_foncier, f.a_cloture, f.capacite_lits,
+                        COALESCE(
+                            (SELECT rs.nom FROM regions rs WHERE f.geom IS NOT NULL AND ST_Within(f.geom, rs.geom) LIMIT 1),
+                            ra.nom,
+                            'Non rattachée'
+                        ) AS region
+                    FROM tmpfosa f
+                    LEFT JOIN arrondissements a ON f.arrondissement_id = a.id
+                    LEFT JOIN departements d ON a.departement_id = d.id
+                    LEFT JOIN regions ra ON d.region_id = ra.id
+                ) x
+                GROUP BY region ORDER BY total DESC");
 
             $parCategorie = DB::select("SELECT COALESCE(NULLIF(cat_rec, ''), 'Non spécifiée') AS label, COUNT(*) AS total,
                 SUM(CASE WHEN est_ferme = 0 THEN 1 ELSE 0 END) AS ouvertes

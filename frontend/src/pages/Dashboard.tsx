@@ -58,10 +58,10 @@ interface DashboardData {
 type Dimension = "categorie" | "statut" | "type" | "region"
 
 const DIMENSIONS: { value: Dimension; label: string }[] = [
-  { value: "categorie", label: "Catégorie" },
-  { value: "statut", label: "Statut" },
   { value: "type", label: "Type" },
   { value: "region", label: "Région" },
+  { value: "statut", label: "Statut" },
+  { value: "categorie", label: "Catégorie" },
 ]
 
 /** Couleurs des séries, dans l'ordre de la palette BAOBAB. */
@@ -149,7 +149,7 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [dimension, setDimension] = useState<Dimension>("categorie")
+  const [dimension, setDimension] = useState<Dimension>("type")
   const [query, setQuery] = useState("")
   const [showAll, setShowAll] = useState(false)
 
@@ -260,7 +260,7 @@ export default function Dashboard() {
         <StatCard
           label="FOSA électrifiées"
           value={formatPercent(percent(f.electrifiees, f.total))}
-          hint={`${formatNumber(f.electrifiees)} raccordées au réseau`}
+          hint={`${formatNumber(f.electrifiees)} déclarées raccordées au réseau`}
         />
         <StatCard
           label="Sécurisation foncière"
@@ -269,8 +269,8 @@ export default function Dashboard() {
         />
         <StatCard
           label="Capacité litière"
-          value={formatNumber(f.lits)}
-          hint={`${litsParFosa.toLocaleString("fr-FR")} lits / FOSA ouverte`}
+          value={f.lits > 0 ? formatNumber(f.lits) : "—"}
+          hint={f.lits > 0 ? `${litsParFosa.toLocaleString("fr-FR")} lits / FOSA ouverte` : "non renseignée dans la base"}
         />
         <StatCard
           label="Géolocalisation"
