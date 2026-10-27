@@ -114,7 +114,8 @@ jobs:
             TABLES=$(docker exec -e MYSQL_PWD="${{ secrets.MARIADB_ROOT_PASSWORD }}" itg-mariadb mariadb -uroot -N -e \
               "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${{ env.DB_NAME }}'")
             echo "✅ ${{ env.DB_NAME }} prête ($TABLES tables)"
-            [ "$TABLES" != "0" ] || echo "⚠️ Base vide : importer le dump avec deploy-vps/import-dump.sh"
+            # Laravel ne lance aucune migration : sans le dump, toutes les routes renverraient 500
+            [ "$TABLES" != "0" ] || { echo "❌ Base vide : importer le dump (deploy-vps/import-dump.sh) avant de déployer"; exit 1; }
 
             # L'ancien backend Node n'a plus d'utilité
             docker rm -f health-redis 2>/dev/null || true
