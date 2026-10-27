@@ -104,7 +104,9 @@ export default function Layout({ onLogout }: LayoutProps) {
   const { user } = useAuth()
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const navRef = useRef<HTMLElement>(null)
+  const userMenuRef = useRef<HTMLDivElement>(null)
 
   const stored = user ?? JSON.parse(localStorage.getItem("user") || "null")
   const displayName =
@@ -127,14 +129,19 @@ export default function Layout({ onLogout }: LayoutProps) {
   useEffect(() => {
     setOpenMenu(null)
     setMobileOpen(false)
+    setUserMenuOpen(false)
   }, [location.pathname])
 
   useEffect(() => {
     const onClick = (event: MouseEvent) => {
       if (navRef.current && !navRef.current.contains(event.target as Node)) setOpenMenu(null)
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) setUserMenuOpen(false)
     }
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpenMenu(null)
+      if (event.key === "Escape") {
+        setOpenMenu(null)
+        setUserMenuOpen(false)
+      }
     }
     document.addEventListener("mousedown", onClick)
     document.addEventListener("keydown", onKey)
@@ -235,22 +242,55 @@ export default function Layout({ onLogout }: LayoutProps) {
               Carte
             </Link>
 
-            <div className="hidden text-right leading-tight sm:block">
-              <p className="text-sm font-bold">{displayName}</p>
-              {roleLabel && <p className="text-xs text-white/60">{roleLabel}</p>}
+            {/* Profil : la déconnexion est dans le menu de l'avatar */}
+            <div ref={userMenuRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setUserMenuOpen((open) => !open)}
+                aria-haspopup="menu"
+                aria-expanded={userMenuOpen}
+                className="flex items-center gap-3 rounded-xl py-1 pl-1 pr-2 transition-colors hover:bg-white/10"
+              >
+                <span className="flex size-10 items-center justify-center rounded-full bg-white/15 text-sm font-bold">
+                  {initialsOf(displayName)}
+                </span>
+                <span className="hidden text-left leading-tight sm:block">
+                  <span className="block text-sm font-bold">{displayName}</span>
+                  {roleLabel && <span className="block text-xs text-white/60">{roleLabel}</span>}
+                </span>
+                <ChevronDown className={cn("size-4 text-white/70 transition-transform", userMenuOpen && "rotate-180")} />
+              </button>
+
+              {userMenuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-full z-50 mt-2 w-64 rounded-2xl border border-gray-200 bg-white p-2 text-gray-900 shadow-lg"
+                >
+                  <div className="border-b border-gray-100 px-3 pb-3 pt-2">
+                    <p className="truncate text-sm font-semibold">{displayName}</p>
+                    {stored?.email && <p className="truncate text-xs text-gray-500">{stored.email}</p>}
+                    {roleLabel && <p className="kicker mt-2">{roleLabel}</p>}
+                  </div>
+                  <Link
+                    to="/"
+                    role="menuitem"
+                    className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-gray-50 md:hidden"
+                  >
+                    <Map className="size-4 text-gray-500" />
+                    Carte publique
+                  </Link>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleLogout}
+                    className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-danger hover:bg-danger-soft"
+                  >
+                    <LogOut className="size-4" />
+                    Déconnexion
+                  </button>
+                </div>
+              )}
             </div>
-            <span className="flex size-10 items-center justify-center rounded-full bg-white/15 text-sm font-bold">
-              {initialsOf(displayName)}
-            </span>
-            <button
-              type="button"
-              onClick={handleLogout}
-              aria-label="Déconnexion"
-              title="Déconnexion"
-              className="flex size-10 items-center justify-center rounded-full border-2 border-danger text-danger transition-colors hover:bg-danger hover:text-white"
-            >
-              <LogOut className="size-4" />
-            </button>
           </div>
         </div>
       </header>

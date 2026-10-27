@@ -1195,8 +1195,12 @@ const MapView: React.FC = () => {
                 <p className="text-xs text-white/60">Cartographie des établissements de santé</p>
               </div>
             </div>
-            <Link to={"/login"} className="inline-flex h-9 shrink-0 items-center rounded-lg bg-white px-4 text-sm font-semibold text-brand-900 transition-colors hover:bg-white/90">
-              Connexion
+            {/* Connecté : on renvoie vers le tableau de bord plutôt que vers la connexion */}
+            <Link
+              to={localStorage.getItem("token") ? "/dashboard" : "/login"}
+              className="inline-flex h-9 shrink-0 items-center rounded-lg bg-white px-4 text-sm font-semibold text-brand-900 transition-colors hover:bg-white/90"
+            >
+              {localStorage.getItem("token") ? "Tableau de bord" : "Connexion"}
             </Link>
           </div>
         </div>
