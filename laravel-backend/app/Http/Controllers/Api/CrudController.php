@@ -70,6 +70,19 @@ abstract class CrudController extends Controller
         if (!empty($aliases)) {
             $request->merge($aliases);
         }
+
+        // Les formulaires envoient 0 ou "" pour « aucun » (ex. serviceId: 0 quand
+        // aucun service n'est choisi) : sans ça, la règle exists:… échoue sur un
+        // identifiant qui n'existe pas. Une clé étrangère vide devient null.
+        $emptyForeignKeys = [];
+        foreach ($request->all() as $key => $value) {
+            if (str_ends_with($key, '_id') && ($value === 0 || $value === '0' || $value === '')) {
+                $emptyForeignKeys[$key] = null;
+            }
+        }
+        if (!empty($emptyForeignKeys)) {
+            $request->merge($emptyForeignKeys);
+        }
     }
 
     /**
@@ -99,6 +112,19 @@ abstract class CrudController extends Controller
             if (array_key_exists($snake, $item) && !array_key_exists($camel, $item)) {
                 $item[$camel] = $item[$snake];
                 unset($item[$snake]);
+            }
+        }
+
+        // Les autres colonnes snake_case reçoivent un alias camelCase, lu par les
+        // formulaires (date_acquisition → dateAcquisition, numero_chassis →
+        // numeroChassis…). L'original est conservé : certaines pages lisent
+        // encore la forme snake (nom_ds, nom_as…).
+        foreach (array_keys($item) as $key) {
+            if (is_string($key) && str_contains($key, '_')) {
+                $camel = lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $key))));
+                if (!array_key_exists($camel, $item)) {
+                    $item[$camel] = $item[$key];
+                }
             }
         }
         return $item;
@@ -257,7 +283,7 @@ abstract class CrudController extends Controller
         $data = $this->filterExistingColumns($data);
         $item = $this->modelClass::create($data);
         $this->auditService->logCreate($request->user(), $this->resourceName, $item->id, $item->toArray(), $request);
-        return $this->successResponse($item, "{$this->resourceName} créé(e) avec succès", 201);
+        return $this->successResponse($this->camelizeKeys($item->toArray()), "{$this->resourceName} créé(e) avec succès", 201);
     }
 
     public function update(Request $request, int $id): JsonResponse
@@ -290,7 +316,7 @@ abstract class CrudController extends Controller
         $item->refresh();
         $this->auditService->logUpdate($request->user(), $this->resourceName, $id, $old, $item->toArray(), $request);
 
-        return $this->successResponse($item, "{$this->resourceName} mis(e) à jour");
+        return $this->successResponse($this->camelizeKeys($item->toArray()), "{$this->resourceName} mis(e) à jour");
     }
 
     public function destroy(Request $request, int $id): JsonResponse

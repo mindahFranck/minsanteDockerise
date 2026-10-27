@@ -1,4 +1,5 @@
 "use client"
+import { ItGrafikCredit } from "../components/ui"
 
 import type React from "react"
 
@@ -148,6 +149,7 @@ export default function Login({ onLogin }: LoginProps) {
                 )}
               </button>
             </form>
+            <ItGrafikCredit className="mt-6 border-t border-gray-100 pt-4 text-center" />
 
           </div>
         </div>

@@ -1,5 +1,6 @@
 import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestConfig } from "axios"
 import config from "../config/api"
+import { attachNotifications } from "./apiNotifications"
 
 const api: AxiosInstance = axios.create({
   baseURL: config.apiUrl,
@@ -55,5 +56,7 @@ api.interceptors.response.use(
     return Promise.reject(error)
   },
 )
+
+attachNotifications(api)
 
 export default api

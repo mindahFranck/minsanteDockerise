@@ -30,6 +30,7 @@ import OfflinePage from "./pages/OfflinePage"
 import OfflineIndicator from "./components/OfflineIndicator"
 import PWAInstallPrompt from "./components/PWAInstallPrompt"
 import ServiceWorkerUpdate from "./components/ServiceWorkerUpdate"
+import { Toaster } from "./components/ui"
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem("token"))
@@ -44,6 +45,7 @@ function App() {
       <OfflineIndicator />
       <PWAInstallPrompt />
       <ServiceWorkerUpdate />
+      <Toaster />
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<MapView />} />

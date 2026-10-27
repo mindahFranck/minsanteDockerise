@@ -13,7 +13,7 @@ import { usePermissions } from "../hooks/usePermissions"
 import { useFosaServices, useServicesForFosa } from "../hooks/useFosaServices"
 import SearchableSelect from "../components/SearchableSelect"
 import { exportGenericToPDF, exportGenericToExcel } from "../utils/exportUtils"
-import { PageHeader, StatCard, FilterBar, SearchInput, Badge, formatNumber } from "../components/ui"
+import { PageHeader, StatCard, FilterBar, SearchInput, Badge, formatNumber, toast } from "../components/ui"
 import type { BadgeVariant } from "../components/ui"
 
 /** Couleur du badge selon l'état de l'équipement. */
@@ -116,11 +116,11 @@ export default function EquipebiosPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.fosaId) {
-      alert("Veuillez d'abord sélectionner une FOSA.")
+      toast.warning("Veuillez d'abord sélectionner une FOSA.")
       return
     }
     if (!formData.serviceId) {
-      alert("Veuillez sélectionner un service.")
+      toast.warning("Veuillez sélectionner un service.")
       return
     }
     setSubmitting(true)
@@ -136,13 +136,7 @@ export default function EquipebiosPage() {
       loadEquipebios()
     } catch (error: any) {
       console.error("Error saving equipebio:", error)
-      const msg =
-        error?.response?.data?.message ||
-        (error?.response?.data?.errors
-          ? Object.values(error.response.data.errors).flat().join("\n")
-          : error?.message) ||
-        "Erreur lors de l'enregistrement"
-      alert(msg)
+      // Le message d'erreur est affiché par l'intercepteur de l'API (toast).
     } finally {
       setSubmitting(false)
     }

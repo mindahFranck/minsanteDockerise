@@ -402,10 +402,8 @@ export default function FosasPage() {
 
       if (editingItem) {
         await fosaService.update(editingItem.id, payload, imageFile || undefined)
-        alert('Mise à jour effectuée avec succès !')
       } else {
         await fosaService.create(payload, imageFile || undefined)
-        alert('FOSA créée avec succès !')
       }
       setIsModalOpen(false)
       setEditingItem(null)
@@ -413,7 +411,6 @@ export default function FosasPage() {
       loadData()
     } catch (error) {
       console.error("Error saving:", error)
-      alert('Erreur lors de l\'enregistrement. Veuillez réessayer.')
     } finally {
       setSubmitting(false)
     }

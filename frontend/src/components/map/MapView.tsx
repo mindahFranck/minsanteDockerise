@@ -1501,7 +1501,7 @@ const MapView: React.FC = () => {
                   airesantesPolygons={airesantesPolygons}
                   hospitals={hospitals}
                 />
-                <TileLayer url={mapStyles.find(s => s.id === mapStyle)?.url || mapStyles[0].url} />
+                <TileLayer url={mapStyles.find(s => s.id === mapStyle)?.url || mapStyles[0].url} attribution='&copy; OpenStreetMap · Réalisation <a href="https://www.it-grafik.com" target="_blank" rel="noopener">IT-GRAFIK</a>' />
 
                 {layersVisibility.cameroon && cameroonPolygon.length > 0 && (
                   <Polygon positions={cameroonPolygon} pathOptions={{ fillColor: '#007ac3', fillOpacity: 0.05, color: '#007ac3', weight: 2, opacity: 0.6 }} />

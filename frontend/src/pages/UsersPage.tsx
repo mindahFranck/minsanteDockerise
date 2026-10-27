@@ -178,7 +178,6 @@ export default function UsersPage() {
       loadUsers()
     } catch (error) {
       console.error("Error saving user:", error)
-      alert("Erreur lors de la sauvegarde de l'utilisateur")
     } finally {
       setSubmitting(false)
     }
@@ -241,7 +240,6 @@ export default function UsersPage() {
       loadUsers()
     } catch (error) {
       console.error("Error deleting user:", error)
-      alert("Erreur lors de la suppression de l'utilisateur")
     } finally {
       setSubmitting(false)
     }

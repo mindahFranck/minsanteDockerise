@@ -13,7 +13,7 @@ import SearchableSelect from "../components/SearchableSelect"
 import type { Batiment, Fosa } from "../types"
 import { usePermissions } from "../hooks/usePermissions"
 import { exportBatimentsToPDF, exportBatimentsToExcel } from "../utils/pageExports"
-import { PageHeader, StatCard, Badge, SearchInput, FilterBar, formatNumber, type BadgeVariant } from "../components/ui"
+import { PageHeader, StatCard, Badge, SearchInput, FilterBar, formatNumber, type BadgeVariant, toast } from "../components/ui"
 
 /** Couleur de la pastille selon l'état du bâtiment. */
 function etatVariant(etat?: string): BadgeVariant {
@@ -84,7 +84,7 @@ export default function BatimentsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.fosaId) {
-      alert("Veuillez sélectionner une FOSA.")
+      toast.warning("Veuillez sélectionner une FOSA.")
       return
     }
     setSubmitting(true)
@@ -100,13 +100,7 @@ export default function BatimentsPage() {
       loadBatiments()
     } catch (error: any) {
       console.error("Error saving batiment:", error)
-      const msg =
-        error?.response?.data?.message ||
-        (error?.response?.data?.errors
-          ? Object.values(error.response.data.errors).flat().join("\n")
-          : error?.message) ||
-        "Erreur lors de l'enregistrement du bâtiment"
-      alert(msg)
+      // Le message d'erreur est affiché par l'intercepteur de l'API (toast).
     } finally {
       setSubmitting(false)
     }

@@ -12,7 +12,7 @@ class EquipebioController extends CrudController
     protected string $modelClass = Equipebio::class;
     protected string $resourceName = 'equipement_biomedical';
     protected array $relations = ['fosa', 'service'];
-    protected array $filterFields = ['service_id'];
+    protected array $filterFields = ['service_id', 'fonction'];
     // La table equipebios n'a pas de colonne fosa_id : on filtre via le service.
     protected array $relationFilters = ['fosa_id' => ['service', 'fosa_id']];
     protected array $validationRules = [
@@ -20,10 +20,34 @@ class EquipebioController extends CrudController
         'type' => 'nullable|string|max:100',
         'quantite' => 'nullable|integer|min:0',
         'etat' => 'nullable|string|max:50',
+        'fonction' => 'nullable|string|max:200',
         'date_acquisition' => 'nullable|date',
         'service_id' => 'nullable|exists:services,id',
         'description' => 'nullable|string',
     ];
+
+    /**
+     * La table equipebios n'a pas de colonne `etat` : l'état saisi dans le
+     * formulaire (Bon, Moyen, Hors service…) était perdu à chaque enregistrement.
+     * Il est stocké dans la colonne existante `fonction` (état de fonctionnement),
+     * sans changement de schéma, et renvoyé sous le nom `etat`.
+     */
+    protected function normalizeInput(\Illuminate\Http\Request $request): void
+    {
+        parent::normalizeInput($request);
+        if ($request->has('etat') && !$request->has('fonction')) {
+            $request->merge(['fonction' => $request->input('etat')]);
+        }
+    }
+
+    protected function camelizeKeys(array $item): array
+    {
+        $item = parent::camelizeKeys($item);
+        if (!isset($item['etat']) && array_key_exists('fonction', $item)) {
+            $item['etat'] = $item['fonction'];
+        }
+        return $item;
+    }
 
     /**
      * @OA\Get(

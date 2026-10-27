@@ -14,7 +14,7 @@ import type { Service, Fosa, Batiment } from "../types"
 import { usePermissions } from "../hooks/usePermissions"
 import SearchableSelect from "../components/SearchableSelect"
 import { exportGenericToPDF, exportGenericToExcel } from "../utils/exportUtils"
-import { PageHeader, StatCard, SearchInput, FilterBar, formatNumber } from "../components/ui"
+import { PageHeader, StatCard, SearchInput, FilterBar, formatNumber, toast } from "../components/ui"
 
 export default function ServicesPage() {
   const permissions = usePermissions()
@@ -92,7 +92,7 @@ export default function ServicesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.fosaId) {
-      alert("Veuillez sélectionner une FOSA.")
+      toast.warning("Veuillez sélectionner une FOSA.")
       return
     }
     setSubmitting(true)
@@ -108,13 +108,7 @@ export default function ServicesPage() {
       loadServices()
     } catch (error: any) {
       console.error("Error saving service:", error)
-      const msg =
-        error?.response?.data?.message ||
-        (error?.response?.data?.errors
-          ? Object.values(error.response.data.errors).flat().join("\n")
-          : error?.message) ||
-        "Erreur lors de l'enregistrement du service"
-      alert(msg)
+      // Le message d'erreur est affiché par l'intercepteur de l'API (toast).
     } finally {
       setSubmitting(false)
     }

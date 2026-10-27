@@ -8,7 +8,7 @@ import {
 import { useEffect, useRef, useState, type ComponentType } from "react"
 import { usePermissions } from "../hooks/usePermissions"
 import { useAuth } from "../contexts/AuthContext"
-import { cn } from "./ui"
+import { cn, ItGrafikCredit } from "./ui"
 
 interface LayoutProps {
   onLogout: () => void
@@ -161,10 +161,10 @@ export default function Layout({ onLogout }: LayoutProps) {
   return (
     <div className="min-h-screen bg-surface">
       <header className="sticky top-0 z-40 bg-header text-white">
-        <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-4 px-4 sm:px-6 lg:h-20">
+        <div className="mx-auto flex h-16 max-w-[1600px] min-w-0 items-center gap-3 px-4 sm:px-6 xl:h-20 xl:gap-4">
           <button
             onClick={() => setMobileOpen(true)}
-            className="rounded-lg p-2 text-white/85 hover:bg-white/10 lg:hidden"
+            className="shrink-0 rounded-lg p-2 text-white/85 hover:bg-white/10 xl:hidden"
             aria-label="Ouvrir le menu"
           >
             <Menu className="size-5" />
@@ -178,11 +178,11 @@ export default function Layout({ onLogout }: LayoutProps) {
             </span>
           </Link>
 
-          <nav ref={navRef} className="hidden flex-1 items-center justify-center gap-1 lg:flex">
+          <nav ref={navRef} className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 xl:flex 2xl:gap-1">
             {sections.map((section) => {
               const active = sectionActive(section)
               const pill = cn(
-                "inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors xl:px-4",
+                "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition-colors 2xl:px-4",
                 active ? "bg-white text-header" : "text-white/85 hover:bg-white/10",
               )
 
@@ -233,10 +233,10 @@ export default function Layout({ onLogout }: LayoutProps) {
             })}
           </nav>
 
-          <div className="ml-auto flex shrink-0 items-center gap-3 lg:ml-0">
+          <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3 xl:ml-0">
             <Link
               to="/"
-              className="hidden h-10 items-center gap-2 rounded-lg bg-white px-4 text-sm font-semibold text-brand-900 transition-colors hover:bg-white/90 md:inline-flex"
+              className="hidden h-10 items-center gap-2 rounded-lg bg-white px-4 text-sm font-semibold text-brand-900 transition-colors hover:bg-white/90 2xl:inline-flex"
             >
               <Map className="size-4" />
               Carte
@@ -254,9 +254,9 @@ export default function Layout({ onLogout }: LayoutProps) {
                 <span className="flex size-10 items-center justify-center rounded-full bg-white/15 text-sm font-bold">
                   {initialsOf(displayName)}
                 </span>
-                <span className="hidden text-left leading-tight sm:block">
-                  <span className="block text-sm font-bold">{displayName}</span>
-                  {roleLabel && <span className="block text-xs text-white/60">{roleLabel}</span>}
+                <span className="hidden max-w-[12rem] text-left leading-tight 2xl:block">
+                  <span className="block truncate text-sm font-bold">{displayName}</span>
+                  {roleLabel && <span className="block truncate text-xs text-white/60">{roleLabel}</span>}
                 </span>
                 <ChevronDown className={cn("size-4 text-white/70 transition-transform", userMenuOpen && "rotate-180")} />
               </button>
@@ -274,7 +274,7 @@ export default function Layout({ onLogout }: LayoutProps) {
                   <Link
                     to="/"
                     role="menuitem"
-                    className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-gray-50 md:hidden"
+                    className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-gray-50 2xl:hidden"
                   >
                     <Map className="size-4 text-gray-500" />
                     Carte publique
@@ -297,7 +297,7 @@ export default function Layout({ onLogout }: LayoutProps) {
 
       {/* Menu mobile */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <div className="fixed inset-0 z-50 xl:hidden">
           <div className="absolute inset-0 bg-gray-900/50" onClick={() => setMobileOpen(false)} />
           <aside className="absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col bg-white shadow-lg">
             <div className="flex h-16 items-center justify-between bg-header px-4 text-white">
@@ -342,6 +342,11 @@ export default function Layout({ onLogout }: LayoutProps) {
       <main className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:py-8">
         <Outlet />
       </main>
+
+      <footer className="mx-auto flex max-w-[1600px] flex-col gap-1 border-t border-gray-200 px-4 py-5 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <p>IMMOSANTECam · Ministère de la Santé Publique du Cameroun</p>
+        <ItGrafikCredit />
+      </footer>
     </div>
   )
 }

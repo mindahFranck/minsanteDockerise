@@ -14,7 +14,7 @@ import { usePermissions } from "../hooks/usePermissions"
 import { useFosaServices, useServicesForFosa } from "../hooks/useFosaServices"
 import SearchableSelect from "../components/SearchableSelect"
 import { exportEquipementsToPDF, exportEquipementsToExcel } from "../utils/pageExports"
-import { PageHeader, FilterBar, SearchInput } from "../components/ui"
+import { PageHeader, FilterBar, SearchInput, toast } from "../components/ui"
 
 /** Squelette du tableau pendant le chargement. */
 function TableSkeleton() {
@@ -94,11 +94,11 @@ export default function EquipementsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.fosaId) {
-      alert("Veuillez d'abord sélectionner une FOSA.")
+      toast.warning("Veuillez d'abord sélectionner une FOSA.")
       return
     }
     if (!formData.serviceId) {
-      alert("Veuillez sélectionner un service.")
+      toast.warning("Veuillez sélectionner un service.")
       return
     }
     setSubmitting(true)
@@ -114,13 +114,7 @@ export default function EquipementsPage() {
       loadData()
     } catch (error: any) {
       console.error("Error saving:", error)
-      const msg =
-        error?.response?.data?.message ||
-        (error?.response?.data?.errors
-          ? Object.values(error.response.data.errors).flat().join("\n")
-          : error?.message) ||
-        "Erreur lors de l'enregistrement"
-      alert(msg)
+      // Le message d'erreur est affiché par l'intercepteur de l'API (toast).
     } finally {
       setSubmitting(false)
     }

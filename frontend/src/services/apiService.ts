@@ -1,5 +1,6 @@
 import axios from "axios";
 import { cacheService, CacheTTL, CacheKeys } from "./cacheService";
+import { attachNotifications } from "./apiNotifications";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1";
@@ -10,6 +11,9 @@ const apiClient = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+// Erreurs explicites ; pas de toast de succès (client surtout utilisé en lecture par la carte)
+attachNotifications(apiClient, { success: false });
 
 // Add token to requests if available
 apiClient.interceptors.request.use((config) => {
