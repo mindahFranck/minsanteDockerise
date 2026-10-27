@@ -65,7 +65,7 @@ export const usePermissions = (): Permissions => {
       canView: true,
       canCreate: true,
       canEdit: true,
-      canDelete: false, // Admin NE PEUT PAS supprimer
+      canDelete: true, // Admin peut supprimer
       canManageUsers: true,
       canManageSettings: true,
       canImportData: true,

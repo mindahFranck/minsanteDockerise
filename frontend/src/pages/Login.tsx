@@ -5,6 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
+import { AlertCircle, Loader2, Lock, LogIn, Mail } from "lucide-react"
 
 interface LoginProps {
   onLogin: () => void
@@ -39,69 +40,118 @@ export default function Login({ onLogin }: LoginProps) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">IMMOSANTECam - G1</h1>
-          <p className="text-gray-600 mt-2">Ministère de la Santé Publique du Cameroun</p>
+    <div className="flex min-h-screen bg-surface">
+      {/* Panneau de marque */}
+      <aside className="relative hidden w-[44%] max-w-xl flex-col justify-between overflow-hidden bg-header p-10 text-white lg:flex xl:p-14">
+        <div className="flex items-center gap-3">
+          <img src="/favicon.svg" alt="" className="size-11 rounded-xl" />
+          <span className="border-l border-white/25 pl-3">
+            <span className="block text-[10px] uppercase tracking-[0.14em] text-white/60">MINSANTÉ</span>
+            <span className="block text-lg font-bold leading-tight">IMMOSANTECam</span>
+          </span>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm">{error}</div>}
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="votre@email.com"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Mot de passe
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="••••••••"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-          >
-            {loading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Connexion en cours...
-              </>
-            ) : (
-              "Se connecter"
-            )}
-          </button>
-        </form>
-
-        <div className="mt-6 text-center text-sm text-gray-600">
-          <p>Compte par défaut: admin@health.cm / Admin@2024</p>
+        <div className="max-w-md">
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/60">
+            Ministère de la Santé Publique du Cameroun
+          </p>
+          <h2 className="mt-3 text-3xl font-bold leading-tight tracking-tight xl:text-4xl">
+            Le patrimoine des formations sanitaires, en un seul lieu.
+          </h2>
+          <p className="mt-4 text-sm leading-relaxed text-white/75">
+            Inventaire, état et suivi des infrastructures, équipements et ressources des formations sanitaires
+            du Cameroun — de la région à l'aire de santé.
+          </p>
         </div>
-      </div>
+
+        <p className="text-xs text-white/50">IMMOSANTECam - G1</p>
+
+        {/* Motif décoratif discret */}
+        <div aria-hidden className="pointer-events-none absolute -bottom-24 -right-24 size-80 rounded-full border-[40px] border-white/5" />
+        <div aria-hidden className="pointer-events-none absolute -bottom-10 -right-10 size-40 rounded-full border-[24px] border-white/5" />
+      </aside>
+
+      {/* Formulaire */}
+      <main className="flex flex-1 items-center justify-center px-4 py-10 sm:px-6">
+        <div className="w-full max-w-md">
+          {/* Marque (mobile) */}
+          <div className="mb-6 flex items-center justify-center gap-3 rounded-2xl bg-header px-5 py-4 text-white lg:hidden">
+            <img src="/favicon.svg" alt="" className="size-10 rounded-xl" />
+            <span className="border-l border-white/25 pl-3">
+              <span className="block text-[10px] uppercase tracking-[0.14em] text-white/60">MINSANTÉ</span>
+              <span className="block text-lg font-bold leading-tight">IMMOSANTECam</span>
+            </span>
+          </div>
+
+          <div className="card p-8">
+            <div className="mb-8">
+              <p className="kicker mb-1">Espace sécurisé</p>
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900">IMMOSANTECam - G1</h1>
+              <p className="mt-1 text-sm text-gray-500">Ministère de la Santé Publique du Cameroun</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {error && (
+                <div className="flex items-start gap-2 rounded-xl border border-danger/20 bg-danger-soft px-3 py-2.5 text-sm text-danger">
+                  <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <div>
+                <label htmlFor="email" className="label">
+                  Email
+                </label>
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="input pl-9"
+                    placeholder="votre@email.com"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="password" className="label">
+                  Mot de passe
+                </label>
+                <div className="relative">
+                  <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="input pl-9"
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+
+              <button type="submit" disabled={loading} className="btn btn-primary w-full">
+                {loading ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Connexion en cours...
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="size-4" />
+                    Se connecter
+                  </>
+                )}
+              </button>
+            </form>
+
+          </div>
+        </div>
+      </main>
     </div>
   )
 }

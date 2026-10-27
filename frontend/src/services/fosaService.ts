@@ -1,4 +1,5 @@
 import api from "./api";
+import { offlineCache } from "./offlineCache";
 
 export interface Fosa {
   id: number;
@@ -64,15 +65,50 @@ class FosaService {
     search?: string;
     type?: string;
   }): Promise<PaginatedResponse<Fosa>> {
-    const response = await api.get<PaginatedResponse<Fosa>>("/fosas", {
-      params,
-    });
-    return response.data;
+    try {
+      const response = await api.get<PaginatedResponse<Fosa>>("/fosas", {
+        params,
+      });
+      // Mémoriser pour usage hors ligne (uniquement en lecture sans filtre)
+      if (!params || (!params.page && !params.search && !params.type)) {
+        try {
+          await offlineCache.saveFosas(response.data.data || []);
+        } catch {
+          // ignore cache write failures
+        }
+      }
+      return response.data;
+    } catch (err) {
+      if (!navigator.onLine) {
+        const cached = await offlineCache.getFosas();
+        if (cached.length) {
+          return {
+            success: true,
+            data: cached,
+            pagination: {
+              page: 1,
+              limit: cached.length,
+              total: cached.length,
+              totalPages: 1,
+            },
+          };
+        }
+      }
+      throw err;
+    }
   }
 
   async getById(id: number): Promise<ApiResponse<Fosa>> {
-    const response = await api.get<ApiResponse<Fosa>>(`/fosas/${id}`);
-    return response.data;
+    try {
+      const response = await api.get<ApiResponse<Fosa>>(`/fosas/${id}`);
+      return response.data;
+    } catch (err) {
+      if (!navigator.onLine) {
+        const cached = await offlineCache.getFosaById(id);
+        if (cached) return { success: true, data: cached };
+      }
+      throw err;
+    }
   }
 
   async create(data: FosaCreateData, image?: File): Promise<ApiResponse<Fosa>> {
@@ -105,8 +141,10 @@ class FosaService {
   ): Promise<ApiResponse<Fosa>> {
     const formData = new FormData();
 
+    // Exclure les champs non modifiables
+    const excludeFields = ['latitude', 'longitude', 'arrondissementId', 'airesanteId'];
     Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
+      if (value !== undefined && value !== null && !excludeFields.includes(key)) {
         formData.append(key, value.toString());
       }
     });
@@ -115,7 +153,9 @@ class FosaService {
       formData.append("image", image);
     }
 
-    const response = await api.put<ApiResponse<Fosa>>(
+    // Laravel: POST avec _method=PUT pour supporter multipart/form-data
+    formData.append("_method", "PUT");
+    const response = await api.post<ApiResponse<Fosa>>(
       `/fosas/${id}`,
       formData,
       {
@@ -134,35 +174,69 @@ class FosaService {
 
   // Spatial queries
   async getByRegionSpatial(regionId: number): Promise<Fosa[]> {
-    const response = await api.get<{
-      success: boolean;
-      data: Fosa[];
-      count: number;
-    }>(`/fosas/spatial/region/${regionId}`);
-    return response.data.data;
+    const cacheKey = `spatial:region:${regionId}`;
+    try {
+      const response = await api.get<{
+        success: boolean;
+        data: Fosa[];
+        count: number;
+      }>(`/fosas/spatial/region/${regionId}`);
+      try { await offlineCache.saveGeoData(cacheKey, response.data.data); } catch {}
+      return response.data.data;
+    } catch (err) {
+      if (!navigator.onLine) {
+        const cached = await offlineCache.getGeoData<Fosa[]>(cacheKey);
+        if (cached) return cached;
+      }
+      throw err;
+    }
   }
 
   async getByDepartementSpatial(departementId: number): Promise<Fosa[]> {
-    const response = await api.get<{
-      success: boolean;
-      data: Fosa[];
-      count: number;
-    }>(`/fosas/spatial/departement/${departementId}`);
-    return response.data.data;
+    const cacheKey = `spatial:departement:${departementId}`;
+    try {
+      const response = await api.get<{
+        success: boolean;
+        data: Fosa[];
+        count: number;
+      }>(`/fosas/spatial/departement/${departementId}`);
+      try { await offlineCache.saveGeoData(cacheKey, response.data.data); } catch {}
+      return response.data.data;
+    } catch (err) {
+      if (!navigator.onLine) {
+        const cached = await offlineCache.getGeoData<Fosa[]>(cacheKey);
+        if (cached) return cached;
+      }
+      throw err;
+    }
   }
 
   async getByArrondissementSpatial(arrondissementId: number): Promise<Fosa[]> {
-    const response = await api.get<{
-      success: boolean;
-      data: Fosa[];
-      count: number;
-    }>(`/fosas/spatial/arrondissement/${arrondissementId}`);
-    return response.data.data;
+    const cacheKey = `spatial:arrondissement:${arrondissementId}`;
+    try {
+      const response = await api.get<{
+        success: boolean;
+        data: Fosa[];
+        count: number;
+      }>(`/fosas/spatial/arrondissement/${arrondissementId}`);
+      try { await offlineCache.saveGeoData(cacheKey, response.data.data); } catch {}
+      return response.data.data;
+    } catch (err) {
+      if (!navigator.onLine) {
+        const cached = await offlineCache.getGeoData<Fosa[]>(cacheKey);
+        if (cached) return cached;
+      }
+      throw err;
+    }
   }
 
   getImageUrl(imagePath?: string): string {
     if (!imagePath) return "/placeholder-hospital.png";
-    return `${api.defaults.baseURL?.replace("/api", "")}${imagePath}`;
+    if (imagePath.startsWith("http")) return imagePath;
+    // Extraire le domaine depuis baseURL (enlever /api/v1 à la fin)
+    const baseUrl = (api.defaults.baseURL || "").replace(/\/api\/v1\/?$/, "").replace(/\/api\/?$/, "");
+    if (imagePath.startsWith("/")) return `${baseUrl}${imagePath}`;
+    return `${baseUrl}/storage/${imagePath}`;
   }
 }
 

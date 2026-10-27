@@ -32,41 +32,48 @@ export default function DataTable<T extends { id: number }>({
   onPageChange,
 }: DataTableProps<T>) {
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="card overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full border-collapse">
+          <thead className="table-head">
             <tr>
               {columns.map((column, index) => (
                 <th
                   key={index}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
                   {column.label}
                 </th>
               ))}
               {(onEdit || onDelete) && (
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="!text-right">
                   Actions
                 </th>
               )}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="table-body">
+            {data.length === 0 && (
+              <tr>
+                <td colSpan={columns.length + (onEdit || onDelete ? 1 : 0)} className="!py-12 text-center !text-gray-400">
+                  Aucun élément à afficher
+                </td>
+              </tr>
+            )}
             {data.map((item, index) => (
-              <tr key={index} className="hover:bg-gray-50">
+              <tr key={index}>
                 {columns.map((column, index) => (
-                  <td key={String(column.key) + index} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td key={String(column.key) + index} className="whitespace-nowrap">
                     {column.render ? column.render(item) : String(item[column.key as keyof T] || "-")}
                   </td>
                 ))}
                 {(onEdit || onDelete) && (
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end gap-2">
+                  <td className="whitespace-nowrap text-right">
+                    <div className="flex justify-end gap-1">
                       {onEdit && (
                         <button
                           onClick={() => onEdit(item)}
-                          className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50"
+                          className="btn-icon hover:!bg-brand-50 hover:!text-brand-600"
+                          title="Modifier"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
@@ -74,7 +81,8 @@ export default function DataTable<T extends { id: number }>({
                       {onDelete && (
                         <button
                           onClick={() => onDelete(item)}
-                          className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50"
+                          className="btn-icon hover:!bg-danger-soft hover:!text-danger"
+                          title="Supprimer"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -89,22 +97,22 @@ export default function DataTable<T extends { id: number }>({
       </div>
 
       {pagination && onPageChange && (
-        <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
-          <div className="text-sm text-gray-700">
+        <div className="flex items-center justify-between border-t border-gray-100 px-4 py-3">
+          <div className="font-mono text-xs text-gray-500">
             Page {pagination.page} sur {pagination.totalPages} ({pagination.total} résultats)
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => onPageChange(pagination.page - 1)}
               disabled={pagination.page === 1}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn btn-outline btn-sm"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={() => onPageChange(pagination.page + 1)}
               disabled={pagination.page === pagination.totalPages}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn btn-outline btn-sm"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

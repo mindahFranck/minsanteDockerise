@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useEffect, useState, useCallback } from "react"
-import { Plus, Search, ImageIcon, Filter, X as XIcon } from "lucide-react"
+import { Plus, ImageIcon, SlidersHorizontal, Loader2, Check, X as XIcon } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
 import ConfirmDialog from "../components/ConfirmDialog"
@@ -16,6 +16,10 @@ import { departementService } from "../services/departementService"
 import type { Arrondissement, Airesante, Region, Departement } from "../types"
 import { usePermissions } from "../hooks/usePermissions"
 import { exportFosasToPDF, exportFosasToExcel } from "../utils/exportUtils"
+import {
+  PageHeader, StatCard, Badge, SearchInput, FilterBar,
+  cn, formatNumber, formatPercent, percent,
+} from "../components/ui"
 
 // Interface FOSA étendue
 interface Fosa extends FosaServiceType {
@@ -75,6 +79,62 @@ const normalizeFosaData = (fosaData: any): Fosa => {
     createdAt: fosaData.createdAt,
     updatedAt: fosaData.updatedAt,
   }
+}
+
+/* --- Briques locales de présentation ---------------------------------------- */
+
+/** Section de formulaire : titre en capitales, description, grille 2 colonnes. */
+function FormSection({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+  return (
+    <section className="border-t border-gray-100 pt-5 first:border-t-0 first:pt-0">
+      <div className="mb-4">
+        <h3 className="kicker !text-gray-900">{title}</h3>
+        {description && <p className="mt-1 text-sm text-gray-500">{description}</p>}
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">{children}</div>
+    </section>
+  )
+}
+
+/** Case à cocher présentée en tuile (questions OUI/NON). */
+function CheckField({
+  id,
+  checked,
+  onChange,
+  label,
+  children,
+}: {
+  id: string
+  checked: boolean
+  onChange: (checked: boolean) => void
+  label: string
+  children?: React.ReactNode
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-xl border px-4 py-3 transition-colors",
+        checked ? "border-brand-200 bg-brand-50/60" : "border-gray-200 bg-white",
+      )}
+    >
+      <div className="flex items-center gap-3">
+        <span className="relative inline-flex size-4 shrink-0">
+          <input
+            type="checkbox"
+            id={id}
+            checked={checked}
+            onChange={(e) => onChange(e.target.checked)}
+            className="peer size-4 cursor-pointer appearance-none rounded border border-gray-300 bg-white checked:border-brand-500 checked:bg-brand-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30"
+          />
+          <Check className="pointer-events-none absolute inset-0 hidden size-4 p-0.5 text-white peer-checked:block" strokeWidth={3} />
+        </span>
+        <label htmlFor={id} className="cursor-pointer text-sm font-medium text-gray-700">
+          {label}
+        </label>
+      </div>
+      {children}
+    </div>
+  )
 }
 
 export default function FosasPage() {
@@ -149,7 +209,7 @@ export default function FosasPage() {
     try {
       setLoading(true)
 
-      // Load reference data first
+      // Charger les données de référence
       const [regionResponse, deptResponse, arrResponse, airesResponse] = await Promise.all([
         regionService.getAll({ limit: 1000 }),
         departementService.getAll({ limit: 1000 }),
@@ -162,63 +222,54 @@ export default function FosasPage() {
       setArrondissements(arrResponse.data)
       setAiresantes(airesResponse.data)
 
-      // Determine which spatial endpoint to call based on active geographic filters
+      // Charger les FOSA avec filtrage backend si filtres géographiques actifs
       let fosasData: any[] = []
-
       if (filterArrondissement) {
-        // Get FOSA by arrondissement (spatial)
         const arrondissement = arrResponse.data.find((a: Arrondissement) => a.nom === filterArrondissement)
         if (arrondissement) {
-          const rawData = await fosaService.getByArrondissementSpatial(arrondissement.id)
-          fosasData = rawData.map(normalizeFosaData)
+          const raw = await fosaService.getByArrondissementSpatial(arrondissement.id)
+          fosasData = raw.map(normalizeFosaData)
         }
       } else if (filterDepartement) {
-        // Get FOSA by departement (spatial)
         const departement = deptResponse.data.find((d: Departement) => d.departement === filterDepartement)
         if (departement) {
-          const rawData = await fosaService.getByDepartementSpatial(departement.id)
-          fosasData = rawData.map(normalizeFosaData)
+          const raw = await fosaService.getByDepartementSpatial(departement.id)
+          fosasData = raw.map(normalizeFosaData)
         }
       } else if (filterRegion) {
-        // Get FOSA by region (spatial)
         const region = regionResponse.data.find((r: Region) => r.nom === filterRegion)
         if (region) {
-          const rawData = await fosaService.getByRegionSpatial(region.id)
-          fosasData = rawData.map(normalizeFosaData)
+          const raw = await fosaService.getByRegionSpatial(region.id)
+          fosasData = raw.map(normalizeFosaData)
         }
       } else {
-        // No geographic filter - use standard pagination endpoint
-        const fosaResponse = await fosaService.getAll({ page, limit: 10, search })
-        // Normaliser les données de pagination aussi
+        // Pas de filtre géo : charger toutes les FOSA
+        const fosaResponse = await fosaService.getAll({ limit: 10000 })
         fosasData = fosaResponse.data.map(normalizeFosaData)
-        setPagination(fosaResponse.pagination)
       }
 
       setFosas(fosasData)
-
-      // If using spatial query, update pagination to show all results
-      if (filterRegion || filterDepartement || filterArrondissement) {
-        setPagination({
-          page: 1,
-          limit: fosasData.length,
-          total: fosasData.length,
-          totalPages: 1
-        })
-      }
     } catch (error) {
       console.error("Error loading data:", error)
     } finally {
       setLoading(false)
     }
-  }, [page, search, filterRegion, filterDepartement, filterArrondissement])
+  }, [filterRegion, filterDepartement, filterArrondissement])
 
   useEffect(() => {
     loadData()
   }, [loadData])
 
-  // Appliquer les filtres côté client sur des données normalisées
-  const filteredFosas = fosas.filter((fosa) => {
-    // Les filtres géographiques (région, département, arrondissement) sont déjà appliqués par l'API spatiale
+  // Appliquer tous les filtres côté frontend (les filtres géo sont déjà appliqués par le backend)
+  const allFilteredFosas = fosas.filter((fosa) => {
+    // Recherche textuelle
+    if (search) {
+      const q = search.toLowerCase().trim()
+      const nom = (fosa.nom || '').toLowerCase()
+      const type = (fosa.type || '').toLowerCase()
+      const catRec = (fosa.catRec || '').toLowerCase()
+      if (!nom.includes(q) && !type.includes(q) && !catRec.includes(q)) return false
+    }
 
     // Filtre Statut Juridique
     if (filterStatutJuridique) {
@@ -227,11 +278,13 @@ export default function FosasPage() {
       if (fosaStatut !== selectedStatut) return false
     }
 
-    // Filtre Catégorie
+    // Filtre Catégorie (matching sur catRec OU type)
     if (filterCategorie) {
-      const fosaCategorie = fosa.catRec?.toLowerCase().trim() || ''
-      const selectedCategorie = filterCategorie.toLowerCase().trim()
-      if (fosaCategorie !== selectedCategorie) return false
+      const target = filterCategorie.toLowerCase().trim()
+      const fosaCategorie = (fosa.catRec || '').toLowerCase().trim()
+      const fosaType = (fosa.type || '').toLowerCase().trim()
+      if (fosaCategorie !== target && fosaType !== target &&
+          !fosaCategorie.includes(target) && !fosaType.includes(target)) return false
     }
 
     // Filtre Statut (Ouvert/Fermé)
@@ -258,6 +311,23 @@ export default function FosasPage() {
 
     return true
   })
+
+  // Pagination frontend
+  const PER_PAGE = 15
+  const totalFiltered = allFilteredFosas.length
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / PER_PAGE))
+  const currentPage = Math.min(page, totalPages)
+  const filteredFosas = allFilteredFosas.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE)
+
+  // Mettre à jour l'objet pagination pour le composant DataTable
+  useEffect(() => {
+    setPagination({
+      page: currentPage,
+      limit: PER_PAGE,
+      total: totalFiltered,
+      totalPages,
+    })
+  }, [totalFiltered, currentPage, totalPages])
 
   // Fonction pour réinitialiser tous les filtres
   const clearFilters = () => {
@@ -325,10 +395,17 @@ export default function FosasPage() {
     e.preventDefault()
     setSubmitting(true)
     try {
+      // Nettoyer le payload : ne pas envoyer 'type' (utilisé uniquement en lecture, représente cat_rec)
+      // Le backend gère : catRec -> cat_rec, statutRec -> statut_rec
+      const { type, ...cleanData } = formData as any
+      const payload = cleanData
+
       if (editingItem) {
-        await fosaService.update(editingItem.id, formData, imageFile || undefined)
+        await fosaService.update(editingItem.id, payload, imageFile || undefined)
+        alert('Mise à jour effectuée avec succès !')
       } else {
-        await fosaService.create(formData, imageFile || undefined)
+        await fosaService.create(payload, imageFile || undefined)
+        alert('FOSA créée avec succès !')
       }
       setIsModalOpen(false)
       setEditingItem(null)
@@ -336,6 +413,7 @@ export default function FosasPage() {
       loadData()
     } catch (error) {
       console.error("Error saving:", error)
+      alert('Erreur lors de l\'enregistrement. Veuillez réessayer.')
     } finally {
       setSubmitting(false)
     }
@@ -374,7 +452,7 @@ export default function FosasPage() {
       responsableTelephone: item.responsableTelephone || "",
     })
     if (item.image) {
-      setImagePreview(`${(import.meta as any).env?.VITE_API_URL || "http://localhost:5000"}${item.image}`)
+      setImagePreview(fosaService.getImageUrl(item.image))
     }
     setIsModalOpen(true)
   }
@@ -399,60 +477,87 @@ export default function FosasPage() {
   }
 
   const columns = [
-    { key: "id", label: "ID" },
+    {
+      key: "id",
+      label: "ID",
+      render: (f: Fosa) => <span className="font-mono text-xs text-gray-500">{f.id}</span>,
+    },
     {
       key: "image",
       label: "Image",
       render: (f: Fosa) =>
         f.image ? (
           <img
-            src={`${(import.meta as any).env?.VITE_API_URL || "http://localhost:5000"}${f.image}`}
+            src={fosaService.getImageUrl(f.image)}
             alt={f.nom}
-            className="w-12 h-12 object-cover rounded"
+            className="size-10 rounded-lg border border-gray-200 object-cover"
           />
         ) : (
-          <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
-            <ImageIcon className="w-6 h-6 text-gray-400" />
+          <div className="flex size-10 items-center justify-center rounded-lg bg-gray-100">
+            <ImageIcon className="size-4 text-gray-400" />
           </div>
         ),
     },
-    { key: "nom", label: "Nom" },
-    { key: "type", label: "Type" },
-    { key: "capaciteLits", label: "Capacité Lits" },
+    {
+      key: "nom",
+      label: "Nom",
+      render: (f: Fosa) => <span className="font-semibold text-gray-900">{f.nom || "-"}</span>,
+    },
+    {
+      key: "type",
+      label: "Type",
+      render: (f: Fosa) => <span className="text-gray-700">{f.type || "-"}</span>,
+    },
+    {
+      key: "capaciteLits",
+      label: "Capacité Lits",
+      render: (f: Fosa) => <span className="tabular-nums">{f.capaciteLits || "-"}</span>,
+    },
     {
       key: "estFerme",
       label: "Statut",
       render: (f: Fosa) => (
-        <span
-          className={`px-2 py-1 rounded text-xs ${f.estFerme ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}
-        >
+        <Badge variant={f.estFerme ? "danger" : "success"} withDot>
           {f.estFerme ? "Fermé" : "Ouvert"}
+        </Badge>
+      ),
+    },
+    {
+      key: "situation",
+      label: "Situation",
+      render: (f: Fosa) => (
+        <span className="block max-w-[16rem] truncate text-gray-700" title={f.situation || undefined}>
+          {f.situation || "-"}
         </span>
       ),
     },
-    { key: "situation", label: "Situation" },
     {
       key: "catRec",
       label: "Catégorie",
-      render: (f: Fosa) => f.catRec || "-"
+      render: (f: Fosa) =>
+        f.catRec ? (
+          <span className="rounded-md bg-brand-50 px-1.5 py-0.5 font-mono text-xs font-semibold text-brand-600">
+            {f.catRec}
+          </span>
+        ) : (
+          "-"
+        ),
     },
     {
       key: "statutRec",
       label: "Statut juridique",
-      render: (f: Fosa) => f.statutRec || "-"
+      render: (f: Fosa) => <span className="text-gray-700">{f.statutRec || "-"}</span>,
     },
     {
       key: "nomDirect",
       label: "Directeur",
-      render: (f: Fosa) => f.nomDirect || "-"
+      render: (f: Fosa) => <span className="text-gray-700">{f.nomDirect || "-"}</span>,
     },
     {
       key: "fonction",
       label: "Fonctionnel",
       render: (f: Fosa) => (
-        <span className={`px-2 py-1 rounded text-xs ${f.fonction ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}>
-          {f.fonction ? "Oui" : "Non"}
-        </span>
+        <Badge variant={f.fonction ? "success" : "neutral"}>{f.fonction ? "Oui" : "Non"}</Badge>
       ),
     },
     {
@@ -460,21 +565,21 @@ export default function FosasPage() {
       label: "Sécurité",
       render: (f: Fosa) => (
         <div className="flex gap-1">
-          {f.aTitreFoncier && <span className="px-1 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">TF</span>}
-          {f.aCloture && <span className="px-1 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">Clôture</span>}
-          {!f.aTitreFoncier && !f.aCloture && <span className="text-gray-400 text-xs">-</span>}
+          {f.aTitreFoncier && <Badge variant="info">TF</Badge>}
+          {f.aCloture && <Badge variant="info">Clôture</Badge>}
+          {!f.aTitreFoncier && !f.aCloture && <span className="text-xs text-gray-400">-</span>}
         </div>
       ),
     },
     {
       key: "arrondissement",
       label: "Arrondissement",
-      render: (f: Fosa) => f.arrondissement?.nom || "-"
+      render: (f: Fosa) => <span className="text-gray-700">{f.arrondissement?.nom || "-"}</span>,
     },
     {
       key: "airesante",
       label: "Aire de Santé",
-      render: (f: Fosa) => f.airesante?.nom_as || "-"
+      render: (f: Fosa) => <span className="text-gray-700">{f.airesante?.nom_as || "-"}</span>,
     },
   ]
 
@@ -487,81 +592,125 @@ export default function FosasPage() {
     exportFosasToExcel(filteredFosas)
   }
 
+  // Indicateurs calculés sur la liste filtrée déjà chargée
+  const kpiOuvertes = allFilteredFosas.filter((f) => !f.estFerme).length
+  const kpiFermees = totalFiltered - kpiOuvertes
+  const kpiElectrifiees = allFilteredFosas.filter((f) => f.connecteeElectricite).length
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Formations Sanitaires (FOSA)</h1>
-        <div className="flex gap-3">
-          <ExportButtons
-            onExportPDF={handleExportPDF}
-            onExportExcel={handleExportExcel}
-            disabled={filteredFosas.length === 0}
-          />
-          {permissions.canCreate && permissions.canManageFosas && (
+      <PageHeader
+        kicker="Formations sanitaires"
+        title="Formations Sanitaires (FOSA)"
+        description="Répertoire des formations sanitaires : identification, localisation, infrastructures et contacts."
+        actions={
+          permissions.canCreate && permissions.canManageFosas ? (
             <button
               onClick={() => {
                 setEditingItem(null)
                 resetForm()
                 setIsModalOpen(true)
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="btn btn-primary"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="size-4" />
               Ajouter
             </button>
-          )}
-        </div>
-      </div>
+          ) : undefined
+        }
+      />
 
-      <div className="space-y-4">
-        <div className="flex gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Rechercher..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+      {loading ? (
+        <div className="grid animate-pulse grid-cols-2 gap-4 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="card h-[118px]" />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <StatCard
+            label="FOSA affichées"
+            value={formatNumber(totalFiltered)}
+            hint={`sur ${formatNumber(fosas.length)} chargées`}
+          />
+          <StatCard
+            label="Ouvertes"
+            value={formatNumber(kpiOuvertes)}
+            tone="success"
+            hint={`${formatPercent(percent(kpiOuvertes, totalFiltered))} des FOSA affichées`}
+          />
+          <StatCard
+            label="Fermées"
+            value={formatNumber(kpiFermees)}
+            tone={kpiFermees > 0 ? "danger" : "default"}
+            hint={`${formatPercent(percent(kpiFermees, totalFiltered))} des FOSA affichées`}
+          />
+          <StatCard
+            label="Électrifiées"
+            value={formatNumber(kpiElectrifiees)}
+            tone="brand"
+            hint={`${formatPercent(percent(kpiElectrifiees, totalFiltered))} raccordées au réseau`}
+          />
+        </div>
+      )}
+
+      <div className="space-y-3">
+        <FilterBar
+          actions={
+            <ExportButtons
+              onExportPDF={handleExportPDF}
+              onExportExcel={handleExportExcel}
+              disabled={filteredFosas.length === 0}
             />
-          </div>
+          }
+        >
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder="Rechercher..."
+            className="w-full sm:w-80"
+          />
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${showFilters || hasActiveFilters
-              ? "bg-blue-50 border-blue-500 text-blue-700"
-              : "border-gray-300 text-gray-700 hover:bg-gray-50"
-              }`}
+            className={cn("chip", (showFilters || hasActiveFilters) && "chip-active")}
           >
-            <Filter className="w-5 h-5" />
+            <SlidersHorizontal className="size-4" />
             Filtres
             {hasActiveFilters && (
-              <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
+              <span className="rounded-full bg-brand-500 px-2 py-0.5 text-[11px] font-semibold leading-none text-white">
                 Actifs
               </span>
             )}
           </button>
-        </div>
+          {hasActiveFilters && (
+            <button onClick={clearFilters} className="btn btn-ghost btn-sm">
+              <XIcon className="size-4" />
+              Réinitialiser
+            </button>
+          )}
+        </FilterBar>
 
         {/* Panneau de filtres */}
         {showFilters && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-800">Filtres</h3>
+          <div className="card p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h3 className="card-title">Filtres avancés</h3>
+                <p className="card-subtitle mt-0.5">Les filtres géographiques sont appliqués côté serveur.</p>
+              </div>
               {hasActiveFilters && (
-                <button
-                  onClick={clearFilters}
-                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                >
-                  <XIcon className="w-4 h-4" />
+                <button onClick={clearFilters} className="btn btn-ghost btn-sm">
+                  <XIcon className="size-4" />
                   Réinitialiser
                 </button>
               )}
             </div>
 
-            <div className="grid grid-cols-4 gap-4 mb-4">
+            <p className="kicker mb-2">Localisation</p>
+            <div className="mb-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {/* Filtre Région */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Région</label>
+                <label className="label">Région</label>
                 <select
                   value={filterRegion}
                   onChange={(e) => {
@@ -569,7 +718,7 @@ export default function FosasPage() {
                     setFilterDepartement("")
                     setFilterArrondissement("")
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="input"
                 >
                   <option value="">Toutes les régions</option>
                   {regions.map((r) => (
@@ -582,14 +731,14 @@ export default function FosasPage() {
 
               {/* Filtre Département */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Département</label>
+                <label className="label">Département</label>
                 <select
                   value={filterDepartement}
                   onChange={(e) => {
                     setFilterDepartement(e.target.value)
                     setFilterArrondissement("")
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="input"
                   disabled={!filterRegion}
                 >
                   <option value="">Tous les départements</option>
@@ -609,11 +758,11 @@ export default function FosasPage() {
 
               {/* Filtre Arrondissement */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Arrondissement</label>
+                <label className="label">Arrondissement</label>
                 <select
                   value={filterArrondissement}
                   onChange={(e) => setFilterArrondissement(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="input"
                   disabled={!filterDepartement}
                 >
                   <option value="">Tous les arrondissements</option>
@@ -633,33 +782,40 @@ export default function FosasPage() {
 
               {/* Filtre Catégorie (HD, CSI, CMA, etc.) */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
+                <label className="label">Catégorie</label>
                 <select
                   value={filterCategorie}
                   onChange={(e) => setFilterCategorie(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="input"
                 >
                   <option value="">Toutes les catégories</option>
-                  <option value="HD">HD</option>
-                  <option value="CSI">CSI</option>
-                  <option value="CMA">CMA</option>
-                  <option value="Centre de santé">Centre de santé</option>
                   <option value="CHU">CHU</option>
                   <option value="CHR">CHR</option>
                   <option value="CHD">CHD</option>
+                  <option value="HG">HG</option>
+                  <option value="HC">HC</option>
+                  <option value="HR">HR</option>
+                  <option value="HD">HD</option>
+                  <option value="CMA">CMA</option>
+                  <option value="CSI">CSI</option>
+                  <option value="SSD">SSD</option>
+                  <option value="EF">EF</option>
+                  <option value="DRS">DRS</option>
+                  <option value="PRG">PRG</option>
+                  <option value="Centre de santé">Centre de santé</option>
                 </select>
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-4">
-
+            <p className="kicker mb-2">Statut et sécurité</p>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {/* Filtre Statut Juridique (Public, Privé laïc, etc.) */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Statut juridique</label>
+                <label className="label">Statut juridique</label>
                 <select
                   value={filterStatutJuridique}
                   onChange={(e) => setFilterStatutJuridique(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="input"
                 >
                   <option value="">Tous les statuts</option>
                   <option value="Public">Public</option>
@@ -671,11 +827,11 @@ export default function FosasPage() {
 
               {/* Filtre Statut */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+                <label className="label">Statut</label>
                 <select
                   value={filterStatut}
                   onChange={(e) => setFilterStatut(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="input"
                 >
                   <option value="all">Tous</option>
                   <option value="ouvert">Ouvert</option>
@@ -685,11 +841,11 @@ export default function FosasPage() {
 
               {/* Filtre Fonctionnel */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Fonctionnel</label>
+                <label className="label">Fonctionnel</label>
                 <select
                   value={filterFonctionnel}
                   onChange={(e) => setFilterFonctionnel(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="input"
                 >
                   <option value="all">Tous</option>
                   <option value="oui">Oui</option>
@@ -699,11 +855,11 @@ export default function FosasPage() {
 
               {/* Filtre Sécurité */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Sécurité</label>
+                <label className="label">Sécurité</label>
                 <select
                   value={filterSecurite}
                   onChange={(e) => setFilterSecurite(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="input"
                 >
                   <option value="all">Tous</option>
                   <option value="titre_foncier">Titre Foncier</option>
@@ -718,7 +874,18 @@ export default function FosasPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64">Chargement...</div>
+        <div className="card animate-pulse overflow-hidden">
+          <div className="h-11 bg-table-head" />
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-4 border-b border-gray-100 px-4 py-3">
+              <div className="size-10 rounded-lg bg-gray-100" />
+              <div className="h-3 w-48 rounded bg-gray-100" />
+              <div className="h-3 w-24 rounded bg-gray-100" />
+              <div className="ml-auto h-5 w-16 rounded-full bg-gray-100" />
+            </div>
+          ))}
+          <span className="sr-only">Chargement...</span>
+        </div>
       ) : (
         <DataTable
           data={filteredFosas}
@@ -737,389 +904,337 @@ export default function FosasPage() {
         size="xlarge"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="max-h-96 overflow-y-auto p-4">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Image</label>
+          <div className="-mx-6 max-h-[65vh] space-y-6 overflow-y-auto px-6">
+            <FormSection title="Identification" description="Nom, image, statut et catégorie de la formation sanitaire.">
+              <div className="sm:col-span-2">
+                <label className="label">Image</label>
                 <div className="flex items-center gap-4">
-                  {imagePreview && (
+                  {imagePreview ? (
                     <img
                       src={imagePreview}
                       alt="Preview"
-                      className="w-24 h-24 object-cover rounded border"
+                      className="size-20 shrink-0 rounded-xl border border-gray-200 object-cover"
                     />
+                  ) : (
+                    <div className="flex size-20 shrink-0 items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50">
+                      <ImageIcon className="size-5 text-gray-400" />
+                    </div>
                   )}
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleImageChange}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="block w-full text-sm text-gray-500 file:mr-3 file:h-10 file:cursor-pointer file:rounded-xl file:border-0 file:bg-brand-50 file:px-4 file:text-sm file:font-semibold file:text-brand-600 hover:file:bg-brand-100"
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Nom *</label>
+              <div className="sm:col-span-2">
+                <label className="label">Nom *</label>
                 <input
                   type="text"
                   value={formData.nom}
                   onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="input"
                 />
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Type *</label>
-                  <select
-                    value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Sélectionner...</option>
-                    <option value="Public">Public</option>
-                    <option value="Parapublic">Parapublic</option>
-                    <option value="Privé laïc">Privé laïc</option>
-                    <option value="Privé confessionnel">Privé confessionnel</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Capacité Lits</label>
-                  <input
-                    type="number"
-                    value={formData.capaciteLits}
-                    onChange={(e) => setFormData({ ...formData, capaciteLits: Number(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
-                  <input
-                    type="number"
-                    step="0.0000001"
-                    value={formData.longitude}
-                    onChange={(e) => setFormData({ ...formData, longitude: Number(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Ex: 11.5021"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
-                  <input
-                    type="number"
-                    step="0.0000001"
-                    value={formData.latitude}
-                    onChange={(e) => setFormData({ ...formData, latitude: Number(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Ex: 3.8480"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Arrondissement *</label>
-                  <select
-                    value={formData.arrondissementId}
-                    onChange={(e) => setFormData({ ...formData, arrondissementId: Number(e.target.value) })}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Sélectionner...</option>
-                    {arrondissements.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.nom}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Aire de Santé *</label>
-                  <select
-                    value={formData.airesanteId}
-                    onChange={(e) => setFormData({ ...formData, airesanteId: Number(e.target.value) })}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Sélectionner...</option>
-                    {airesantes.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.nom_as}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div>
+                <label className="label">Statut juridique *</label>
+                <select
+                  value={formData.statutRec}
+                  onChange={(e) => setFormData({ ...formData, statutRec: e.target.value })}
+                  required
+                  className="input"
+                >
+                  <option value="">Sélectionner...</option>
+                  <option value="Public">Public</option>
+                  <option value="Parapublic">Parapublic</option>
+                  <option value="Privé laïc">Privé laïc</option>
+                  <option value="Privé confessionnel">Privé confessionnel</option>
+                </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Situation</label>
+                <label className="label">Capacité Lits</label>
+                <input
+                  type="number"
+                  value={formData.capaciteLits}
+                  onChange={(e) => setFormData({ ...formData, capaciteLits: Number(e.target.value) || 0 })}
+                  className="input"
+                />
+              </div>
+              <div>
+                <label className="label">Org Unit (Nom officiel)</label>
+                <input
+                  type="text"
+                  value={formData.orgUnit}
+                  onChange={(e) => setFormData({ ...formData, orgUnit: e.target.value })}
+                  className="input"
+                />
+              </div>
+              <div>
+                <label className="label">Statut</label>
+                <select
+                  value={formData.statutRec}
+                  onChange={(e) => setFormData({ ...formData, statutRec: e.target.value })}
+                  className="input"
+                >
+                  <option value="">Sélectionner...</option>
+                  <option value="Formation Sanitaire">Formation Sanitaire</option>
+                  <option value="Centre de Formation">Centre de Formation</option>
+                </select>
+              </div>
+              <div>
+                <label className="label">Catégorie</label>
+                <select
+                  value={formData.catRec}
+                  onChange={(e) => setFormData({ ...formData, catRec: e.target.value })}
+                  className="input"
+                >
+                  <option value="">Sélectionner une catégorie...</option>
+                  <option value="CHU">CHU - Centre Hospitalier Universitaire</option>
+                  <option value="CHR">CHR - Centre Hospitalier Régional</option>
+                  <option value="CHD">CHD - Centre Hospitalier Départemental</option>
+                  <option value="HG">HG - Hôpital Général</option>
+                  <option value="HC">HC - Hôpital Central</option>
+                  <option value="HR">HR - Hôpital Régional</option>
+                  <option value="HD">HD - Hôpital de District</option>
+                  <option value="CMA">CMA - Centre Médical d'Arrondissement</option>
+                  <option value="CSI">CSI - Centre de Santé Intégré</option>
+                  <option value="SSD">SSD - Service de Santé du District</option>
+                  <option value="EF">EF - Établissement de Formation</option>
+                  <option value="DRS">DRS - Délégation Régionale de la Santé Publique</option>
+                  <option value="PRG">PRG - Programme de Santé</option>
+                </select>
+              </div>
+              <div>
+                <label className="label">Nom du Directeur</label>
+                <input
+                  type="text"
+                  value={formData.nomDirect}
+                  onChange={(e) => setFormData({ ...formData, nomDirect: e.target.value })}
+                  className="input"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <CheckField
+                  id="fonction"
+                  checked={formData.fonction}
+                  onChange={(checked) => setFormData({ ...formData, fonction: checked })}
+                  label="Fonctionnel"
+                />
+              </div>
+            </FormSection>
+
+            <FormSection title="Localisation" description="Coordonnées GPS, rattachement administratif et situation.">
+              {!editingItem && (
+                <>
+                  <div>
+                    <label className="label">Longitude</label>
+                    <input
+                      type="number"
+                      step="0.0000001"
+                      value={formData.longitude}
+                      onChange={(e) => setFormData({ ...formData, longitude: Number(e.target.value) || 0 })}
+                      className="input"
+                      placeholder="Ex: 11.5021"
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Latitude</label>
+                    <input
+                      type="number"
+                      step="0.0000001"
+                      value={formData.latitude}
+                      onChange={(e) => setFormData({ ...formData, latitude: Number(e.target.value) || 0 })}
+                      className="input"
+                      placeholder="Ex: 3.8480"
+                    />
+                  </div>
+                  <div>
+                    <label className="label">Arrondissement</label>
+                    <select
+                      value={formData.arrondissementId}
+                      onChange={(e) => setFormData({ ...formData, arrondissementId: Number(e.target.value) })}
+                      className="input"
+                    >
+                      <option value="">Sélectionner...</option>
+                      {arrondissements.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.nom}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label">Aire de Santé</label>
+                    <select
+                      value={formData.airesanteId}
+                      onChange={(e) => setFormData({ ...formData, airesanteId: Number(e.target.value) })}
+                      className="input"
+                    >
+                      <option value="">Sélectionner...</option>
+                      {airesantes.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.nom_as}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </>
+              )}
+              <div className="sm:col-span-2">
+                <label className="label">Situation</label>
                 <textarea
                   value={formData.situation}
                   onChange={(e) => setFormData({ ...formData, situation: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="input"
                 />
               </div>
+            </FormSection>
 
-              {/* Questions OUI/NON */}
-              <div className="border-t pt-4 mt-4">
-                <h3 className="font-semibold text-gray-800 mb-3">Questions sur les infrastructures</h3>
-
-                <div className="space-y-3">
-                  {/* Question Clôture */}
-                  <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                    <input
-                      type="checkbox"
-                      id="aCloture"
-                      checked={formData.aCloture}
-                      onChange={(e) => setFormData({ ...formData, aCloture: e.target.checked })}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <label htmlFor="aCloture" className="ml-3 text-sm font-medium text-gray-700">
-                      La FOSA a-t-elle une clôture ?
-                    </label>
-                  </div>
-
-                  {/* Question Titre Foncier */}
-                  <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                    <input
-                      type="checkbox"
-                      id="aTitreFoncier"
-                      checked={formData.aTitreFoncier}
-                      onChange={(e) => setFormData({ ...formData, aTitreFoncier: e.target.checked })}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <label htmlFor="aTitreFoncier" className="ml-3 text-sm font-medium text-gray-700">
-                      La FOSA a-t-elle un titre foncier ?
-                    </label>
-                  </div>
-
-                  {/* Question Électricité */}
-                  <div className="p-3 bg-gray-50 rounded-lg space-y-3">
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id="connecteeElectricite"
-                        checked={formData.connecteeElectricite}
-                        onChange={(e) => setFormData({ ...formData, connecteeElectricite: e.target.checked })}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                      />
-                      <label htmlFor="connecteeElectricite" className="ml-3 text-sm font-medium text-gray-700">
-                        La FOSA est-elle connectée au réseau national d'électricité ?
-                      </label>
+            {/* Questions OUI/NON */}
+            <FormSection title="Questions sur les infrastructures" description="Clôture, titre foncier et raccordement électrique.">
+              <CheckField
+                id="aCloture"
+                checked={formData.aCloture}
+                onChange={(checked) => setFormData({ ...formData, aCloture: checked })}
+                label="La FOSA a-t-elle une clôture ?"
+              />
+              <CheckField
+                id="aTitreFoncier"
+                checked={formData.aTitreFoncier}
+                onChange={(checked) => setFormData({ ...formData, aTitreFoncier: checked })}
+                label="La FOSA a-t-elle un titre foncier ?"
+              />
+              <div className="sm:col-span-2">
+                <CheckField
+                  id="connecteeElectricite"
+                  checked={formData.connecteeElectricite}
+                  onChange={(checked) => setFormData({ ...formData, connecteeElectricite: checked })}
+                  label="La FOSA est-elle connectée au réseau national d'électricité ?"
+                >
+                  {/* Type de courant - affiché seulement si connectée */}
+                  {formData.connecteeElectricite && (
+                    <div className="mt-3 sm:max-w-xs">
+                      <label className="label">Type de courant *</label>
+                      <select
+                        value={formData.typeCourant}
+                        onChange={(e) => setFormData({ ...formData, typeCourant: e.target.value })}
+                        required={formData.connecteeElectricite}
+                        className="input"
+                      >
+                        <option value="">Sélectionner...</option>
+                        <option value="monophase">Monophasé</option>
+                        <option value="triphase">Triphasé</option>
+                      </select>
                     </div>
-
-                    {/* Type de courant - affiché seulement si connectée */}
-                    {formData.connecteeElectricite && (
-                      <div className="ml-7 mt-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Type de courant *
-                        </label>
-                        <select
-                          value={formData.typeCourant}
-                          onChange={(e) => setFormData({ ...formData, typeCourant: e.target.value })}
-                          required={formData.connecteeElectricite}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Sélectionner...</option>
-                          <option value="monophase">Monophasé</option>
-                          <option value="triphase">Triphasé</option>
-                        </select>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                  )}
+                </CheckField>
               </div>
+            </FormSection>
 
-              {/* Nouveaux champs (Page 4) */}
-              <div className="grid grid-cols-3 gap-4 pt-4 border-t mt-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Org Unit (Nom officiel)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.orgUnit}
-                    onChange={(e) => setFormData({ ...formData, orgUnit: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Statut
-                  </label>
-                  <select
-                    value={formData.statutRec}
-                    onChange={(e) => setFormData({ ...formData, statutRec: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Sélectionner...</option>
-                    <option value="Formation Sanitaire">Formation Sanitaire</option>
-                    <option value="Centre de Formation">Centre de Formation</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Catégorie
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.catRec}
-                    onChange={(e) => setFormData({ ...formData, catRec: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Ex: CHU, CHR, CHD, CMA, CSI"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nom du Directeur
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.nomDirect}
-                    onChange={(e) => setFormData({ ...formData, nomDirect: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="fonction"
-                    checked={formData.fonction}
-                    onChange={(e) => setFormData({ ...formData, fonction: e.target.checked })}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <label htmlFor="fonction" className="ml-2 text-sm text-gray-700">
-                    Fonctionnel
-                  </label>
-                </div>
+            {/* Champs de contacts */}
+            <FormSection title="Informations de contact">
+              <div>
+                <label className="label">Téléphone principal</label>
+                <input
+                  type="tel"
+                  value={formData.telephone}
+                  onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
+                  className="input"
+                  placeholder="Ex: +237 6XX XXX XXX"
+                />
               </div>
+              <div>
+                <label className="label">Email</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="input"
+                  placeholder="Ex: fosa@example.com"
+                />
+              </div>
+              <div>
+                <label className="label">Nom du responsable</label>
+                <input
+                  type="text"
+                  value={formData.responsableNom}
+                  onChange={(e) => setFormData({ ...formData, responsableNom: e.target.value })}
+                  className="input"
+                />
+              </div>
+              <div>
+                <label className="label">Téléphone du responsable</label>
+                <input
+                  type="tel"
+                  value={formData.responsableTelephone}
+                  onChange={(e) => setFormData({ ...formData, responsableTelephone: e.target.value })}
+                  className="input"
+                />
+              </div>
+            </FormSection>
 
-              {/* Champs de contacts */}
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t mt-4">
-                <h3 className="col-span-2 font-semibold text-gray-800 mb-2">Informations de contact</h3>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Téléphone principal
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.telephone}
-                    onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Ex: +237 6XX XXX XXX"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Ex: fosa@example.com"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nom du responsable
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.responsableNom}
-                    onChange={(e) => setFormData({ ...formData, responsableNom: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Téléphone du responsable
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.responsableTelephone}
-                    onChange={(e) => setFormData({ ...formData, responsableTelephone: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
+            {/* Champs de maintenance */}
+            <FormSection title="Maintenance et inspection">
+              <div>
+                <label className="label">Dernière inspection</label>
+                <input
+                  type="date"
+                  value={formData.lastInspection}
+                  onChange={(e) => setFormData({ ...formData, lastInspection: e.target.value })}
+                  className="input"
+                />
               </div>
-
-              {/* Champs de maintenance */}
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t mt-4">
-                <h3 className="col-span-2 font-semibold text-gray-800 mb-2">Maintenance et inspection</h3>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Dernière inspection
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.lastInspection}
-                    onChange={(e) => setFormData({ ...formData, lastInspection: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Prochaine inspection
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.nextInspection}
-                    onChange={(e) => setFormData({ ...formData, nextInspection: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Priorité de maintenance
-                  </label>
-                  <select
-                    value={formData.maintenancePriority}
-                    onChange={(e) => setFormData({ ...formData, maintenancePriority: e.target.value as "low" | "medium" | "high" | "urgent" })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="low">Basse</option>
-                    <option value="medium">Moyenne</option>
-                    <option value="high">Haute</option>
-                    <option value="urgent">Urgente</option>
-                  </select>
-                </div>
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Problèmes identifiés
-                  </label>
-                  <textarea
-                    value={formData.maintenanceIssues}
-                    onChange={(e) => setFormData({ ...formData, maintenanceIssues: e.target.value })}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Décrivez les problèmes de maintenance identifiés..."
-                  />
-                </div>
+              <div>
+                <label className="label">Prochaine inspection</label>
+                <input
+                  type="date"
+                  value={formData.nextInspection}
+                  onChange={(e) => setFormData({ ...formData, nextInspection: e.target.value })}
+                  className="input"
+                />
               </div>
-            </div>
+              <div>
+                <label className="label">Priorité de maintenance</label>
+                <select
+                  value={formData.maintenancePriority}
+                  onChange={(e) => setFormData({ ...formData, maintenancePriority: e.target.value as "low" | "medium" | "high" | "urgent" })}
+                  className="input"
+                >
+                  <option value="low">Basse</option>
+                  <option value="medium">Moyenne</option>
+                  <option value="high">Haute</option>
+                  <option value="urgent">Urgente</option>
+                </select>
+              </div>
+              <div className="sm:col-span-2">
+                <label className="label">Problèmes identifiés</label>
+                <textarea
+                  value={formData.maintenanceIssues}
+                  onChange={(e) => setFormData({ ...formData, maintenanceIssues: e.target.value })}
+                  rows={3}
+                  className="input"
+                  placeholder="Décrivez les problèmes de maintenance identifiés..."
+                />
+              </div>
+            </FormSection>
           </div>
 
-          <div className="flex gap-2 justify-end">
+          <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
               disabled={submitting}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn btn-outline"
             >
               Annuler
             </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
+            <button type="submit" disabled={submitting} className="btn btn-primary">
               {submitting ? (
                 <>
-                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
+                  <Loader2 className="size-4 animate-spin" />
                   <span>Enregistrement...</span>
                 </>
               ) : (

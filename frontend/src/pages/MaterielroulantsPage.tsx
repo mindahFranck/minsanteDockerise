@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useEffect, useState } from "react"
-import { Plus, Search } from "lucide-react"
+import { Loader2, Plus, Truck } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
 import ConfirmDialog from "../components/ConfirmDialog"
@@ -12,7 +12,48 @@ import { materielroulantService } from "../services/materielroulantService"
 import { fosaService } from "../services/fosaService"
 import type { Materielroulant, Fosa } from "../types"
 import { usePermissions } from "../hooks/usePermissions"
+import SearchableSelect from "../components/SearchableSelect"
+import { useServicesForFosa } from "../hooks/useFosaServices"
 import { exportMaterielroulantsToPDF, exportMaterielroulantsToExcel } from "../utils/pageExports"
+import { PageHeader, StatCard, FilterBar, SearchInput, Badge, formatNumber } from "../components/ui"
+import type { BadgeVariant } from "../components/ui"
+
+/** Couleur du badge selon l'état du véhicule. */
+function etatVariant(etat?: string): BadgeVariant {
+  switch (etat) {
+    case "Neuf":
+    case "Bon":
+      return "success"
+    case "Moyen":
+      return "warning"
+    case "Mauvais":
+    case "Hors service":
+      return "danger"
+    default:
+      return "neutral"
+  }
+}
+
+/** Intertitre de section dans le formulaire. */
+function FormSection({ title }: { title: string }) {
+  return <p className="kicker border-t border-gray-100 pt-4">{title}</p>
+}
+
+/** Squelette du tableau pendant le chargement. */
+function TableSkeleton() {
+  return (
+    <div className="card animate-pulse overflow-hidden">
+      <div className="h-11 bg-table-head" />
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="flex gap-4 border-b border-gray-100 px-4 py-3.5">
+          <div className="h-3 w-1/6 rounded bg-gray-200" />
+          <div className="h-3 w-1/4 rounded bg-gray-100" />
+          <div className="h-3 w-1/5 rounded bg-gray-100" />
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export default function MaterielroulantsPage() {
   const permissions = usePermissions()
@@ -24,6 +65,9 @@ export default function MaterielroulantsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<Materielroulant | null>(null)
   const [search, setSearch] = useState("")
+  const [filterFosaId, setFilterFosaId] = useState<number | null>(null)
+  const [filterServiceId, setFilterServiceId] = useState<number | null>(null)
+  const { services: filterServices, loadServicesForFosa: loadFilterServices } = useServicesForFosa()
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -58,13 +102,21 @@ export default function MaterielroulantsPage() {
 
   useEffect(() => {
     loadData()
-  }, [page, search])
+  }, [page, search, filterFosaId, filterServiceId])
+
+  // Recharge les services du filtre quand la FOSA du filtre change
+  useEffect(() => {
+    loadFilterServices(filterFosaId)
+  }, [filterFosaId, loadFilterServices])
 
   const loadData = async () => {
     try {
       setLoading(true)
+      const params: any = { page, limit: 10, search }
+      if (filterFosaId) params.fosaId = filterFosaId
+      if (filterServiceId) params.serviceId = filterServiceId
       const [matResponse, fosaResponse] = await Promise.all([
-        materielroulantService.getAll({ page, limit: 10, search }),
+        materielroulantService.getAll(params),
         fosaService.getAll({ limit: 100 }),
       ])
       setMaterielroulants(matResponse.data)
@@ -169,30 +221,32 @@ export default function MaterielroulantsPage() {
 
   const columns = [
     { key: "id", label: "ID" },
-    { key: "numeroChassis", label: "N° Chassis" },
-    { key: "marque", label: "Marque" },
+    { key: "numeroChassis", label: "N° Chassis", render: (m: Materielroulant) => <span className="font-mono text-xs">{m.numeroChassis || "-"}</span> },
+    { key: "marque", label: "Marque", render: (m: Materielroulant) => <span className="font-medium text-gray-900">{m.marque || "-"}</span> },
     { key: "modele", label: "Modèle" },
     { key: "type", label: "Type" },
-    { key: "annee", label: "Année" },
-    { key: "quantite", label: "Quantité" },
-    { key: "etat", label: "État" },
+    { key: "annee", label: "Année", render: (m: Materielroulant) => <span className="tabular-nums">{m.annee || "-"}</span> },
+    { key: "quantite", label: "Quantité", render: (m: Materielroulant) => <span className="tabular-nums">{m.quantite || "-"}</span> },
+    {
+      key: "etat",
+      label: "État",
+      render: (m: Materielroulant) => (m.etat ? <Badge variant={etatVariant(m.etat)} withDot>{m.etat}</Badge> : "-"),
+    },
     { key: "fosa", label: "FOSA", render: (m: Materielroulant) => m.fosa?.nom || "-" },
   ]
+
 
   const handleExportPDF = () => exportMaterielroulantsToPDF(materielroulants)
   const handleExportExcel = () => exportMaterielroulantsToExcel(materielroulants)
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Matériel Roulant</h1>
-        <div className="flex gap-3">
-          <ExportButtons
-            onExportPDF={handleExportPDF}
-            onExportExcel={handleExportExcel}
-            disabled={materielroulants.length === 0}
-          />
-          {permissions.canCreate && permissions.canManageEquipments && (
+      <PageHeader
+        kicker="Équipements"
+        title="Matériel roulant"
+        description="Ambulances, véhicules de service, motos et camions affectés aux formations sanitaires."
+        actions={
+          permissions.canCreate && permissions.canManageEquipments ? (
             <button
               onClick={() => {
                 setEditingItem(null)
@@ -207,32 +261,61 @@ export default function MaterielroulantsPage() {
                   quantite: 1,
                   fosaId: 0,
                 })
-            setIsModalOpen(true)
-          }}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          <Plus className="w-5 h-5" />
-          Ajouter
-        </button>
-          )}
-        </div>
+                setIsModalOpen(true)
+              }}
+              className="btn btn-primary"
+            >
+              <Plus className="size-4" />
+              Ajouter
+            </button>
+          ) : undefined
+        }
+      />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Total"
+          value={formatNumber(pagination.total)}
+          hint="véhicules selon les filtres"
+          tone="brand"
+          icon={<Truck />}
+        />
       </div>
 
-      <div className="flex gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Rechercher..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+      <FilterBar
+        actions={
+          <ExportButtons
+            onExportPDF={handleExportPDF}
+            onExportExcel={handleExportExcel}
+            disabled={materielroulants.length === 0}
+          />
+        }
+      >
+        <SearchInput value={search} onChange={setSearch} className="w-full sm:w-72" />
+        <div className="w-full sm:w-56">
+          <SearchableSelect
+            options={fosas.map((f) => ({ id: f.id, label: f.nom }))}
+            value={filterFosaId}
+            onChange={(v) => {
+              setFilterFosaId(v ? Number(v) : null)
+              setFilterServiceId(null)
+            }}
+            placeholder="Toutes les FOSA"
           />
         </div>
-      </div>
+        <div className="w-full sm:w-56">
+          <SearchableSelect
+            options={filterServices.map((s) => ({ id: s.id, label: s.nom }))}
+            value={filterServiceId}
+            onChange={(v) => setFilterServiceId(v ? Number(v) : null)}
+            placeholder={filterFosaId ? "Tous les services" : "Choisir une FOSA d'abord"}
+            disabled={!filterFosaId}
+          />
+        </div>
+      </FilterBar>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64">Chargement...</div>
+        <TableSkeleton />
       ) : (
         <DataTable
           data={materielroulants}
@@ -246,46 +329,47 @@ export default function MaterielroulantsPage() {
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingItem ? "Modifier" : "Ajouter"} size="large">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
+          <p className="kicker">Identification</p>
+          <div className="grid gap-4 sm:grid-cols-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Numéro de Chassis</label>
+              <label className="label">Numéro de Chassis</label>
               <input
                 type="text"
                 value={formData.numeroChassis}
                 onChange={(e) => setFormData({ ...formData, numeroChassis: e.target.value })}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Marque</label>
+              <label className="label">Marque</label>
               <input
                 type="text"
                 value={formData.marque}
                 onChange={(e) => setFormData({ ...formData, marque: e.target.value })}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Modèle</label>
+              <label className="label">Modèle</label>
               <input
                 type="text"
                 value={formData.modele}
                 onChange={(e) => setFormData({ ...formData, modele: e.target.value })}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
               />
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid gap-4 sm:grid-cols-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+              <label className="label">Type</label>
               <select
                 value={formData.type}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
               >
                 <option value="">Sélectionner...</option>
                 <option value="Ambulance">Ambulance</option>
@@ -295,7 +379,7 @@ export default function MaterielroulantsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Année</label>
+              <label className="label">Année</label>
               <input
                 type="number"
                 value={formData.annee}
@@ -303,36 +387,36 @@ export default function MaterielroulantsPage() {
                 required
                 min="1900"
                 max={new Date().getFullYear() + 1}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Quantité</label>
+              <label className="label">Quantité</label>
               <input
                 type="number"
                 value={formData.quantite}
                 onChange={(e) => setFormData({ ...formData, quantite: Number.parseInt(e.target.value) || 1 })}
                 min="1"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
               />
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid gap-4 sm:grid-cols-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Date de mise en circulation</label>
+              <label className="label">Date de mise en circulation</label>
               <input
                 type="date"
                 value={formData.dateMiseEnCirculation}
                 onChange={(e) => setFormData({ ...formData, dateMiseEnCirculation: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
               />
             </div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">État</label>
+            <div className="sm:col-span-2">
+              <label className="label">État</label>
               <select
                 value={formData.etat}
                 onChange={(e) => setFormData({ ...formData, etat: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
               >
                 <option value="">Sélectionner...</option>
                 <option value="Neuf">Neuf</option>
@@ -345,90 +429,91 @@ export default function MaterielroulantsPage() {
           </div>
 
           {/* Nouveaux champs (Page 4) */}
-          <div className="grid grid-cols-3 gap-4 border-t pt-4 mt-4">
+          <FormSection title="Affectation et usage" />
+          <div className="grid gap-4 sm:grid-cols-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Date Mise en Service</label>
+              <label className="label">Date Mise en Service</label>
               <input
                 type="date"
                 value={formData.dateMiseService}
                 onChange={(e) => setFormData({ ...formData, dateMiseService: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Type Véhicule</label>
+              <label className="label">Type Véhicule</label>
               <input
                 type="text"
                 value={formData.typeVehicule}
                 onChange={(e) => setFormData({ ...formData, typeVehicule: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
                 placeholder="Ex: PICK UP, SUV, Ambulance"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Immatriculation</label>
+              <label className="label">Immatriculation</label>
               <input
                 type="text"
                 value={formData.immatriculation}
                 onChange={(e) => setFormData({ ...formData, immatriculation: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
                 placeholder="Ex: CA 6161 D"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Usage</label>
+              <label className="label">Usage</label>
               <input
                 type="text"
                 value={formData.usage}
                 onChange={(e) => setFormData({ ...formData, usage: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
                 placeholder="Ex: Fonction"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Code</label>
+              <label className="label">Code</label>
               <input
                 type="text"
                 value={formData.code}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Structure</label>
+              <label className="label">Structure</label>
               <input
                 type="text"
                 value={formData.structure}
                 onChange={(e) => setFormData({ ...formData, structure: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
                 placeholder="Ex: Cabinet du Ministre"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Nom Utilisateur</label>
+              <label className="label">Nom Utilisateur</label>
               <input
                 type="text"
                 value={formData.nomUtilisateur}
                 onChange={(e) => setFormData({ ...formData, nomUtilisateur: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Fonction Utilisateur</label>
+              <label className="label">Fonction Utilisateur</label>
               <input
                 type="text"
                 value={formData.fonctionUtilisateur}
                 onChange={(e) => setFormData({ ...formData, fonctionUtilisateur: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
                 placeholder="Ex: Ministre de la santé"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Énergie</label>
+              <label className="label">Énergie</label>
               <select
                 value={formData.energie}
                 onChange={(e) => setFormData({ ...formData, energie: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
               >
                 <option value="">Sélectionner...</option>
                 <option value="Gasoil">Gasoil</option>
@@ -437,21 +522,21 @@ export default function MaterielroulantsPage() {
                 <option value="Hybride">Hybride</option>
               </select>
             </div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Financement</label>
+            <div className="sm:col-span-2">
+              <label className="label">Financement</label>
               <input
                 type="text"
                 value={formData.financement}
                 onChange={(e) => setFormData({ ...formData, financement: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
               />
             </div>
-            <div className="col-span-3">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Acte d'Affectation</label>
+            <div className="sm:col-span-3">
+              <label className="label">Acte d'Affectation</label>
               <textarea
                 value={formData.acteAffectation}
                 onChange={(e) => setFormData({ ...formData, acteAffectation: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
                 rows={3}
                 placeholder="Ex: Décision n°1320/D/MINSANTE/CAB du 03/07/2020"
               />
@@ -459,41 +544,28 @@ export default function MaterielroulantsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">FOSA</label>
-            <select
-              value={formData.fosaId || ""}
-              onChange={(e) => setFormData({ ...formData, fosaId: Number.parseInt(e.target.value) || 0 })}
+            <label className="label">FOSA</label>
+            <SearchableSelect
+              options={fosas.map((f) => ({ id: f.id, label: f.nom }))}
+              value={formData.fosaId || null}
+              onChange={(v) => setFormData({ ...formData, fosaId: v ? Number(v) : 0 })}
+              placeholder="Rechercher et sélectionner une FOSA"
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Sélectionner une FOSA...</option>
-              {fosas.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.nom}
-                </option>
-              ))}
-            </select>
+            />
           </div>
-          <div className="flex gap-2 justify-end">
+          <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
               disabled={submitting}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn btn-outline"
             >
               Annuler
             </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
+            <button type="submit" disabled={submitting} className="btn btn-primary">
               {submitting ? (
                 <>
-                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                  </svg>
+                  <Loader2 className="size-4 animate-spin" />
                   <span>Enregistrement...</span>
                 </>
               ) : (

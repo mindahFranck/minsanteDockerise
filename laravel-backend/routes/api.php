@@ -214,6 +214,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/buildings', [StatisticsController::class, 'buildings']);
             Route::get('/patients', [StatisticsController::class, 'patients']);
             Route::get('/comparative', [StatisticsController::class, 'comparative']);
+            Route::get('/dashboard', [StatisticsController::class, 'dashboard']);
         });
 
         // Import - protégé

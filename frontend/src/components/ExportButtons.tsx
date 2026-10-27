@@ -22,19 +22,19 @@ export default function ExportButtons({
       <button
         onClick={onExportPDF}
         disabled={disabled}
-        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+        className="btn btn-outline"
         title="Exporter en PDF"
       >
-        <FileDown className="w-4 h-4" />
+        <FileDown className="size-4 text-danger" />
         <span className="hidden sm:inline">PDF</span>
       </button>
       <button
         onClick={onExportExcel}
         disabled={disabled}
-        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+        className="btn btn-outline"
         title="Exporter en Excel"
       >
-        <FileSpreadsheet className="w-4 h-4" />
+        <FileSpreadsheet className="size-4 text-success" />
         <span className="hidden sm:inline">Excel</span>
       </button>
     </div>

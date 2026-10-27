@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\{Region, Departement, Fosa, Personnel, Equipement, Batiment, Equipebio, Materielroulant, Parametre};
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class StatisticsService
@@ -163,5 +164,113 @@ class StatisticsService
             'personnelDistribution' => $personnelDistribution,
             'securityStats' => $securityStats,
         ];
+    }
+
+    /**
+     * Indicateurs du tableau de bord, calculés en une passe par table.
+     * Lecture seule ; mis en cache 5 minutes (les données changent par import).
+     */
+    public function getDashboard(): array
+    {
+        return Cache::remember('statistics.dashboard', 300, function () {
+            $f = DB::selectOne("SELECT
+                COUNT(*) AS total,
+                SUM(CASE WHEN est_ferme = 0 THEN 1 ELSE 0 END) AS ouvertes,
+                SUM(CASE WHEN est_ferme = 1 THEN 1 ELSE 0 END) AS fermees,
+                SUM(CASE WHEN fonction = 1 THEN 1 ELSE 0 END) AS fonctionnelles,
+                SUM(CASE WHEN connectee_electricite = 1 THEN 1 ELSE 0 END) AS electrifiees,
+                SUM(CASE WHEN a_titre_foncier = 1 THEN 1 ELSE 0 END) AS titre_foncier,
+                SUM(CASE WHEN a_cloture = 1 THEN 1 ELSE 0 END) AS cloturees,
+                SUM(CASE WHEN a_titre_foncier = 1 AND a_cloture = 1 THEN 1 ELSE 0 END) AS securisees,
+                SUM(CASE WHEN latitude <> 0 AND longitude <> 0 THEN 1 ELSE 0 END) AS geolocalisees,
+                COALESCE(SUM(capacite_lits), 0) AS lits,
+                SUM(CASE WHEN maintenance_priority = 'urgent' THEN 1 ELSE 0 END) AS maintenance_urgente,
+                SUM(CASE WHEN maintenance_priority = 'high' THEN 1 ELSE 0 END) AS maintenance_haute,
+                SUM(CASE WHEN next_inspection IS NOT NULL AND next_inspection < CURDATE() THEN 1 ELSE 0 END) AS inspections_en_retard
+                FROM tmpfosa");
+
+            $parRegion = DB::select("SELECT
+                COALESCE(r.nom, 'Non rattachée') AS region,
+                COUNT(f.id) AS total,
+                SUM(CASE WHEN f.est_ferme = 0 THEN 1 ELSE 0 END) AS ouvertes,
+                SUM(CASE WHEN f.connectee_electricite = 1 THEN 1 ELSE 0 END) AS electrifiees,
+                SUM(CASE WHEN f.a_titre_foncier = 1 AND f.a_cloture = 1 THEN 1 ELSE 0 END) AS securisees,
+                COALESCE(SUM(f.capacite_lits), 0) AS lits
+                FROM tmpfosa f
+                LEFT JOIN arrondissements a ON f.arrondissement_id = a.id
+                LEFT JOIN departements d ON a.departement_id = d.id
+                LEFT JOIN regions r ON d.region_id = r.id
+                GROUP BY r.nom ORDER BY total DESC");
+
+            $parCategorie = DB::select("SELECT COALESCE(NULLIF(cat_rec, ''), 'Non spécifiée') AS label, COUNT(*) AS total,
+                SUM(CASE WHEN est_ferme = 0 THEN 1 ELSE 0 END) AS ouvertes
+                FROM tmpfosa GROUP BY label ORDER BY total DESC");
+
+            $parStatut = DB::select("SELECT COALESCE(NULLIF(statut_rec, ''), 'Non spécifié') AS label, COUNT(*) AS total,
+                SUM(CASE WHEN est_ferme = 0 THEN 1 ELSE 0 END) AS ouvertes
+                FROM tmpfosa GROUP BY label ORDER BY total DESC");
+
+            $parType = DB::select("SELECT COALESCE(NULLIF(type, ''), 'Non spécifié') AS label, COUNT(*) AS total,
+                SUM(CASE WHEN est_ferme = 0 THEN 1 ELSE 0 END) AS ouvertes
+                FROM tmpfosa GROUP BY label ORDER BY total DESC");
+
+            $personnel = DB::selectOne("SELECT COUNT(*) AS total, COUNT(DISTINCT fosa_id) AS fosas_dotees FROM personnels");
+            $personnelParCategorie = DB::select("SELECT COALESCE(c.nom, 'Non classé') AS label, COUNT(p.id) AS total
+                FROM personnels p LEFT JOIN categories c ON p.categorie_id = c.id
+                GROUP BY c.nom ORDER BY total DESC");
+
+            $batiments = DB::selectOne("SELECT COUNT(*) AS total, COALESCE(SUM(superficie), 0) AS superficie FROM batiments");
+            $batimentsParEtat = DB::select("SELECT COALESCE(NULLIF(etat, ''), 'Non renseigné') AS label, COUNT(*) AS total
+                FROM batiments GROUP BY label ORDER BY total DESC");
+
+            $equipebios = DB::selectOne("SELECT COALESCE(SUM(COALESCE(quantite, 1)), 0) AS total FROM equipebios");
+            $equipements = DB::selectOne("SELECT COUNT(*) AS total FROM equipements");
+            $vehicules = DB::selectOne("SELECT COALESCE(SUM(COALESCE(quantite, 1)), 0) AS total FROM materielroulants");
+            $vehiculesParEtat = DB::select("SELECT COALESCE(NULLIF(etat, ''), 'Non renseigné') AS label,
+                COALESCE(SUM(COALESCE(quantite, 1)), 0) AS total
+                FROM materielroulants GROUP BY label ORDER BY total DESC");
+            $vehiculesParEnergie = DB::select("SELECT COALESCE(NULLIF(energie, ''), 'Non renseignée') AS label,
+                COALESCE(SUM(COALESCE(quantite, 1)), 0) AS total
+                FROM materielroulants GROUP BY label ORDER BY total DESC");
+
+            $patients = DB::selectOne("SELECT COALESCE(SUM(nombre_patients_totaux), 0) AS total,
+                COALESCE(SUM(nombre_patients_ambulants), 0) AS ambulants FROM parametres");
+
+            $int = fn ($rows) => array_map(function ($row) {
+                return array_map(fn ($v) => is_numeric($v) ? (int) $v : $v, (array) $row);
+            }, $rows);
+
+            return [
+                'fosas' => array_map('intval', (array) $f),
+                'parRegion' => $int($parRegion),
+                'parCategorie' => $int($parCategorie),
+                'parStatut' => $int($parStatut),
+                'parType' => $int($parType),
+                'personnel' => [
+                    'total' => (int) $personnel->total,
+                    'fosasDotees' => (int) $personnel->fosas_dotees,
+                    'parCategorie' => $int($personnelParCategorie),
+                ],
+                'batiments' => [
+                    'total' => (int) $batiments->total,
+                    'superficie' => (float) $batiments->superficie,
+                    'parEtat' => $int($batimentsParEtat),
+                ],
+                'equipements' => [
+                    'biomedicaux' => (int) $equipebios->total,
+                    'autres' => (int) $equipements->total,
+                ],
+                'vehicules' => [
+                    'total' => (int) $vehicules->total,
+                    'parEtat' => $int($vehiculesParEtat),
+                    'parEnergie' => $int($vehiculesParEnergie),
+                ],
+                'patients' => [
+                    'total' => (int) $patients->total,
+                    'ambulants' => (int) $patients->ambulants,
+                ],
+                'genereLe' => now()->toIso8601String(),
+            ];
+        });
     }
 }

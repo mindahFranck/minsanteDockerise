@@ -24,17 +24,17 @@ export default function Modal({ isOpen, onClose, title, children, size = "medium
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={onClose} />
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-[1px] transition-opacity" onClick={onClose} />
 
-        <div className={`inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle ${sizeClasses[size]} sm:w-full`}>
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-gray-900">{title}</h3>
-              <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
-                <X className="w-6 h-6" />
+        <div className={`relative inline-block w-full transform rounded-2xl bg-white text-left align-bottom shadow-lg transition-all sm:my-8 sm:align-middle ${sizeClasses[size]}`}>
+          <div>
+            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+              <button onClick={onClose} className="btn-icon" aria-label="Fermer">
+                <X className="size-5" />
               </button>
             </div>
-            {children}
+            <div className="px-6 py-5">{children}</div>
           </div>
         </div>
       </div>

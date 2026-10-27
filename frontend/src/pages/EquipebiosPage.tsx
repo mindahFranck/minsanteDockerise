@@ -2,29 +2,65 @@
 
 import type React from "react"
 import { useEffect, useState } from "react"
-import { Plus, Search } from "lucide-react"
+import { Loader2, Plus, Stethoscope } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
 import ConfirmDialog from "../components/ConfirmDialog"
 import ExportButtons from "../components/ExportButtons"
 import { equipebioService } from "../services/equipebioService"
-import api from "../services/api"
-import type { Equipebio, Service } from "../types"
+import type { Equipebio } from "../types"
 import { usePermissions } from "../hooks/usePermissions"
+import { useFosaServices, useServicesForFosa } from "../hooks/useFosaServices"
+import SearchableSelect from "../components/SearchableSelect"
 import { exportGenericToPDF, exportGenericToExcel } from "../utils/exportUtils"
+import { PageHeader, StatCard, FilterBar, SearchInput, Badge, formatNumber } from "../components/ui"
+import type { BadgeVariant } from "../components/ui"
+
+/** Couleur du badge selon l'état de l'équipement. */
+function etatVariant(etat?: string): BadgeVariant {
+  switch (etat) {
+    case "Bon":
+      return "success"
+    case "Moyen":
+      return "warning"
+    case "Mauvais":
+    case "Hors service":
+      return "danger"
+    default:
+      return "neutral"
+  }
+}
+
+/** Squelette du tableau pendant le chargement. */
+function TableSkeleton() {
+  return (
+    <div className="card animate-pulse overflow-hidden">
+      <div className="h-11 bg-table-head" />
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="flex gap-4 border-b border-gray-100 px-4 py-3.5">
+          <div className="h-3 w-1/6 rounded bg-gray-200" />
+          <div className="h-3 w-1/4 rounded bg-gray-100" />
+          <div className="h-3 w-1/5 rounded bg-gray-100" />
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export default function EquipebiosPage() {
   const permissions = usePermissions()
 
   const [equipebios, setEquipebios] = useState<Equipebio[]>([])
-  const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingEquipebio, setEditingEquipebio] = useState<Equipebio | null>(null)
   const [search, setSearch] = useState("")
+  const [filterFosaId, setFilterFosaId] = useState<number | null>(null)
   const [filterServiceId, setFilterServiceId] = useState<number | null>(null)
   const [filterEtat, setFilterEtat] = useState<string>("")
+  // Services de la FOSA sélectionnée dans le filtre (cascade)
+  const { services: filterServices, loadServicesForFosa: loadFilterServices } = useServicesForFosa()
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -32,8 +68,12 @@ export default function EquipebiosPage() {
     equipebio: Equipebio | null
   }>({ isOpen: false, equipebio: null })
 
+  // Cascade FOSA -> Services pour le formulaire
+  const { fosas, services: formServices, loadServicesForFosa } = useFosaServices()
+
   const [formData, setFormData] = useState({
     nom: "",
+    fosaId: 0,
     serviceId: 0,
     type: "",
     quantite: 1,
@@ -43,13 +83,23 @@ export default function EquipebiosPage() {
 
   useEffect(() => {
     loadEquipebios()
-    loadServices()
-  }, [page, search, filterServiceId, filterEtat])
+  }, [page, search, filterFosaId, filterServiceId, filterEtat])
+
+  // Recharge les services quand la FOSA du formulaire change
+  useEffect(() => {
+    loadServicesForFosa(formData.fosaId)
+  }, [formData.fosaId, loadServicesForFosa])
+
+  // Recharge les services du filtre quand la FOSA du filtre change
+  useEffect(() => {
+    loadFilterServices(filterFosaId)
+  }, [filterFosaId, loadFilterServices])
 
   const loadEquipebios = async () => {
     try {
       setLoading(true)
       const params: any = { page, limit: 10 }
+      if (filterFosaId) params.fosaId = filterFosaId
       if (filterServiceId) params.serviceId = filterServiceId
       if (filterEtat) params.etat = filterEtat
 
@@ -63,17 +113,16 @@ export default function EquipebiosPage() {
     }
   }
 
-  const loadServices = async () => {
-    try {
-      const response = await api.get("/services?limit=1000")
-      setServices(response.data.data)
-    } catch (error) {
-      console.error("Error loading services:", error)
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!formData.fosaId) {
+      alert("Veuillez d'abord sélectionner une FOSA.")
+      return
+    }
+    if (!formData.serviceId) {
+      alert("Veuillez sélectionner un service.")
+      return
+    }
     setSubmitting(true)
     try {
       if (editingEquipebio) {
@@ -85,8 +134,15 @@ export default function EquipebiosPage() {
       setEditingEquipebio(null)
       resetForm()
       loadEquipebios()
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving equipebio:", error)
+      const msg =
+        error?.response?.data?.message ||
+        (error?.response?.data?.errors
+          ? Object.values(error.response.data.errors).flat().join("\n")
+          : error?.message) ||
+        "Erreur lors de l'enregistrement"
+      alert(msg)
     } finally {
       setSubmitting(false)
     }
@@ -95,6 +151,7 @@ export default function EquipebiosPage() {
   const resetForm = () => {
     setFormData({
       nom: "",
+      fosaId: 0,
       serviceId: 0,
       type: "",
       quantite: 1,
@@ -105,8 +162,11 @@ export default function EquipebiosPage() {
 
   const handleEdit = (equipebio: Equipebio) => {
     setEditingEquipebio(equipebio)
+    const svc = (equipebio as any).service
+    const fosaId = svc?.fosaId ?? svc?.fosa_id ?? 0
     setFormData({
       nom: equipebio.nom || "",
+      fosaId,
       serviceId: equipebio.serviceId,
       type: equipebio.type || "",
       quantite: equipebio.quantite || 1,
@@ -137,25 +197,21 @@ export default function EquipebiosPage() {
 
   const columns = [
     { key: "id", label: "ID" },
-    { key: "nom", label: "Nom" },
+    { key: "nom", label: "Nom", render: (e: Equipebio) => <span className="font-medium text-gray-900">{e.nom || "-"}</span> },
     { key: "type", label: "Type" },
     { key: "service", label: "Service", render: (e: Equipebio) => e.service?.nom || "N/A" },
-    { key: "quantite", label: "Quantité" },
+    { key: "quantite", label: "Quantité", render: (e: Equipebio) => <span className="tabular-nums">{e.quantite ?? "-"}</span> },
     {
       key: "etat",
       label: "État",
       render: (e: Equipebio) => (
-        <span className={`px-2 py-1 rounded text-xs ${
-          e.etat === "Bon" ? "bg-green-100 text-green-800" :
-          e.etat === "Moyen" ? "bg-yellow-100 text-yellow-800" :
-          e.etat === "Mauvais" ? "bg-orange-100 text-orange-800" :
-          "bg-red-100 text-red-800"
-        }`}>
+        <Badge variant={etatVariant(e.etat)} withDot>
           {e.etat}
-        </span>
+        </Badge>
       )
     },
   ]
+
 
   const handleExportPDF = () => {
     exportGenericToPDF(
@@ -193,57 +249,71 @@ export default function EquipebiosPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Équipements Biomédicaux</h1>
-        <div className="flex gap-3">
-          <ExportButtons
-            onExportPDF={handleExportPDF}
-            onExportExcel={handleExportExcel}
-            disabled={equipebios.length === 0}
-          />
-          {permissions.canCreate && permissions.canManageEquipments && (
+      <PageHeader
+        kicker="Équipements"
+        title="Équipements biomédicaux"
+        description="Parc biomédical des services : type, quantité et état de fonctionnement."
+        actions={
+          permissions.canCreate && permissions.canManageEquipments ? (
             <button
               onClick={() => {
                 setEditingEquipebio(null)
                 resetForm()
                 setIsModalOpen(true)
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="btn btn-primary"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="size-4" />
               Ajouter
             </button>
-          )}
-        </div>
+          ) : undefined
+        }
+      />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Total"
+          value={formatNumber(pagination.total)}
+          hint="équipements selon les filtres"
+          tone="brand"
+          icon={<Stethoscope />}
+        />
       </div>
 
-      <div className="flex gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Rechercher..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      <FilterBar
+        actions={
+          <ExportButtons
+            onExportPDF={handleExportPDF}
+            onExportExcel={handleExportExcel}
+            disabled={equipebios.length === 0}
+          />
+        }
+      >
+        <SearchInput value={search} onChange={setSearch} className="w-full sm:w-64" />
+        <div className="w-full sm:w-52">
+          <SearchableSelect
+            options={fosas.map((f) => ({ id: f.id, label: f.nom }))}
+            value={filterFosaId}
+            onChange={(v) => {
+              setFilterFosaId(v ? Number(v) : null)
+              setFilterServiceId(null)
+            }}
+            placeholder="Toutes les FOSA"
+          />
+        </div>
+        <div className="w-full sm:w-52">
+          <SearchableSelect
+            options={filterServices.map((s) => ({ id: s.id, label: s.nom }))}
+            value={filterServiceId}
+            onChange={(v) => setFilterServiceId(v ? Number(v) : null)}
+            placeholder={filterFosaId ? "Tous les services" : "Choisir une FOSA d'abord"}
+            disabled={!filterFosaId}
           />
         </div>
         <select
-          value={filterServiceId || ""}
-          onChange={(e) => setFilterServiceId(e.target.value ? Number(e.target.value) : null)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Tous les services</option>
-          {services.map((service) => (
-            <option key={service.id} value={service.id}>
-              {service.nom}
-            </option>
-          ))}
-        </select>
-        <select
           value={filterEtat}
           onChange={(e) => setFilterEtat(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="input w-auto"
         >
           <option value="">Tous les états</option>
           <option value="Bon">Bon</option>
@@ -251,114 +321,128 @@ export default function EquipebiosPage() {
           <option value="Mauvais">Mauvais</option>
           <option value="Hors service">Hors service</option>
         </select>
-      </div>
+      </FilterBar>
 
-      <DataTable
-        data={equipebios}
-        columns={columns}
-        onEdit={permissions.canEdit && permissions.canManageEquipments ? handleEdit : undefined}
-        onDelete={permissions.canDelete && permissions.canManageEquipments ? handleDelete : undefined}
-        loading={loading}
-        pagination={pagination}
-        onPageChange={setPage}
-      />
+      {loading ? (
+        <TableSkeleton />
+      ) : (
+        <DataTable
+          data={equipebios}
+          columns={columns}
+          onEdit={permissions.canEdit && permissions.canManageEquipments ? handleEdit : undefined}
+          onDelete={permissions.canDelete && permissions.canManageEquipments ? handleDelete : undefined}
+          pagination={pagination}
+          onPageChange={setPage}
+        />
+      )}
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingEquipebio ? "Modifier l'équipement biomédical" : "Ajouter un équipement biomédical"}>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="label">Nom *</label>
+              <input
+                type="text"
+                required
+                value={formData.nom}
+                onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                className="input"
+              />
+            </div>
+
+            <div>
+              <label className="label">Type</label>
+              <input
+                type="text"
+                value={formData.type}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                className="input"
+                placeholder="Ex: Scanner, IRM, Échographe..."
+              />
+            </div>
+          </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
-            <input
-              type="text"
+            <label className="label">FOSA *</label>
+            <SearchableSelect
+              options={fosas.map((f) => ({ id: f.id, label: f.nom }))}
+              value={formData.fosaId || null}
+              onChange={(v) =>
+                setFormData({ ...formData, fosaId: v ? Number(v) : 0, serviceId: 0 })
+              }
+              placeholder="Rechercher et sélectionner une FOSA"
               required
-              value={formData.nom}
-              onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Service *</label>
-            <select
+            <label className="label">Service *</label>
+            <SearchableSelect
+              options={formServices.map((s) => ({ id: s.id, label: s.nom }))}
+              value={formData.serviceId || null}
+              onChange={(v) => setFormData({ ...formData, serviceId: v ? Number(v) : 0 })}
+              placeholder={
+                formData.fosaId
+                  ? formServices.length
+                    ? "Sélectionner un service"
+                    : "Aucun service pour cette FOSA"
+                  : "Choisissez d'abord une FOSA"
+              }
+              disabled={!formData.fosaId}
               required
-              value={formData.serviceId}
-              onChange={(e) => setFormData({ ...formData, serviceId: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value={0}>Sélectionner un service</option>
-              {services.map((service) => (
-                <option key={service.id} value={service.id}>
-                  {service.nom}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-            <input
-              type="text"
-              value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              placeholder="Ex: Scanner, IRM, Échographe..."
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Quantité</label>
-            <input
-              type="number"
-              min="1"
-              value={formData.quantite}
-              onChange={(e) => setFormData({ ...formData, quantite: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <label className="label">Quantité</label>
+              <input
+                type="number"
+                min="1"
+                value={formData.quantite}
+                onChange={(e) => setFormData({ ...formData, quantite: Number(e.target.value) })}
+                className="input"
+              />
+            </div>
+
+            <div>
+              <label className="label">État</label>
+              <select
+                value={formData.etat}
+                onChange={(e) => setFormData({ ...formData, etat: e.target.value })}
+                className="input"
+              >
+                <option value="Bon">Bon</option>
+                <option value="Moyen">Moyen</option>
+                <option value="Mauvais">Mauvais</option>
+                <option value="Hors service">Hors service</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="label">Date d'acquisition</label>
+              <input
+                type="date"
+                value={formData.dateAcquisition}
+                onChange={(e) => setFormData({ ...formData, dateAcquisition: e.target.value })}
+                className="input"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">État</label>
-            <select
-              value={formData.etat}
-              onChange={(e) => setFormData({ ...formData, etat: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="Bon">Bon</option>
-              <option value="Moyen">Moyen</option>
-              <option value="Mauvais">Mauvais</option>
-              <option value="Hors service">Hors service</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Date d'acquisition</label>
-            <input
-              type="date"
-              value={formData.dateAcquisition}
-              onChange={(e) => setFormData({ ...formData, dateAcquisition: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div className="flex gap-2 justify-end">
+          <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
               disabled={submitting}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn btn-outline"
             >
               Annuler
             </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
+            <button type="submit" disabled={submitting} className="btn btn-primary">
               {submitting ? (
                 <>
-                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                  </svg>
+                  <Loader2 className="size-4 animate-spin" />
                   <span>Enregistrement...</span>
                 </>
               ) : (

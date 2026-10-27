@@ -1,5 +1,6 @@
 const API_URL =
-  import.meta.env.VITE_API_URL || "https://apiminsante.it-grafik.com/api/v1";
+  import.meta.env.VITE_API_URL ||
+  "https://api-minsante-stg.it-grafik.com/api/v1";
 
 export const config = {
   apiUrl: API_URL,

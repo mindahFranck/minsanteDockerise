@@ -1,528 +1,486 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { statisticsService } from "../services/statisticsService"
-import type { Statistics } from "../types"
-import { apiService } from "../services/apiService"
-import { Building2, Users, Package, Activity, MapPin, HeartPulse, AlertCircle, CheckCircle } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { Link } from "react-router-dom"
+import { AlertCircle, Map, RefreshCw } from "lucide-react"
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts"
+import api from "../services/api"
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-} from "recharts"
-import Loader, { CardSkeleton } from "../components/common/Loader"
+  PageHeader, StatCard, SectionCard, Segmented, SearchInput, RankBars, EmptyState, Badge,
+  formatNumber, formatPercent, percent, cn,
+} from "../components/ui"
+
+/* --- Forme de GET /statistics/dashboard ------------------------------------ */
+
+interface Breakdown {
+  label: string
+  total: number
+  ouvertes?: number
+}
+
+interface RegionRow {
+  region: string
+  total: number
+  ouvertes: number
+  electrifiees: number
+  securisees: number
+  lits: number
+}
+
+interface DashboardData {
+  fosas: {
+    total: number
+    ouvertes: number
+    fermees: number
+    fonctionnelles: number
+    electrifiees: number
+    titre_foncier: number
+    cloturees: number
+    securisees: number
+    geolocalisees: number
+    lits: number
+    maintenance_urgente: number
+    maintenance_haute: number
+    inspections_en_retard: number
+  }
+  parRegion: RegionRow[]
+  parCategorie: Breakdown[]
+  parStatut: Breakdown[]
+  parType: Breakdown[]
+  personnel: { total: number; fosasDotees: number; parCategorie: Breakdown[] }
+  batiments: { total: number; superficie: number; parEtat: Breakdown[] }
+  equipements: { biomedicaux: number; autres: number }
+  vehicules: { total: number; parEtat: Breakdown[]; parEnergie: Breakdown[] }
+  patients: { total: number; ambulants: number }
+  genereLe: string
+}
+
+type Dimension = "categorie" | "statut" | "type" | "region"
+
+const DIMENSIONS: { value: Dimension; label: string }[] = [
+  { value: "categorie", label: "Catégorie" },
+  { value: "statut", label: "Statut" },
+  { value: "type", label: "Type" },
+  { value: "region", label: "Région" },
+]
+
+/** Couleurs des séries, dans l'ordre de la palette BAOBAB. */
+const CHART_COLORS = ["#007ac3", "#00a832", "#f6821f", "#00395a", "#e5484d", "#e8ebee"]
+
+const TOOLTIP_STYLE = {
+  borderRadius: 8,
+  border: "1px solid #e5e7eb",
+  backgroundColor: "#ffffff",
+  fontSize: 12,
+} as const
+
+/* --- Briques locales --------------------------------------------------------- */
+
+/** Barre de proportion + pourcentage, pour les colonnes du tableau régional. */
+function RateCell({ value, total, tone = "brand" }: { value: number; total: number; tone?: "brand" | "success" | "warning" }) {
+  const rate = percent(value, total)
+  const bar = { brand: "bg-brand-500", success: "bg-success", warning: "bg-warning" }[tone]
+  return (
+    <div className="flex items-center gap-3">
+      <div className="h-1.5 w-20 overflow-hidden rounded-full bg-track">
+        <div className={cn("h-full rounded-full", bar)} style={{ width: `${rate}%` }} />
+      </div>
+      <span className="w-14 text-right text-sm font-semibold tabular-nums">{formatPercent(rate)}</span>
+    </div>
+  )
+}
+
+/** Anneau + légende chiffrée. */
+function Donut({ slices, centerLabel, centerValue }: { slices: { label: string; value: number }[]; centerLabel: string; centerValue: string }) {
+  const total = slices.reduce((acc, slice) => acc + slice.value, 0)
+  return (
+    <div className="flex flex-col items-center gap-6 sm:flex-row">
+      <div className="relative size-44 shrink-0">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie data={slices} dataKey="value" nameKey="label" innerRadius="68%" outerRadius="100%" paddingAngle={1} stroke="none">
+              {slices.map((slice, index) => (
+                <Cell key={slice.label} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(value: number) => formatNumber(value)} />
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-2xl font-bold tabular-nums">{centerValue}</span>
+          <span className="kicker">{centerLabel}</span>
+        </div>
+      </div>
+      <ul className="w-full space-y-2.5">
+        {slices.map((slice, index) => (
+          <li key={slice.label} className="flex items-center gap-3 text-sm">
+            <span className="size-2.5 shrink-0 rounded-sm" style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }} />
+            <span className="flex-1 text-gray-700">{slice.label}</span>
+            <span className="font-semibold tabular-nums">{formatNumber(slice.value)}</span>
+            <span className="w-14 text-right font-mono text-xs text-gray-500">{formatPercent(percent(slice.value, total))}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="animate-pulse space-y-6">
+      <div className="h-14 w-72 rounded-xl bg-gray-200" />
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="card h-32" />
+        ))}
+      </div>
+      <div className="card h-96" />
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="card h-72" />
+        <div className="card h-72" />
+      </div>
+    </div>
+  )
+}
+
+/* --- Page ---------------------------------------------------------------------- */
 
 export default function Dashboard() {
-  const [stats, setStats] = useState<Statistics | null>(null)
-  const [additionalStats, setAdditionalStats] = useState<any>(null)
-  const [comparativeStats, setComparativeStats] = useState<any>(null)
+  const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [dimension, setDimension] = useState<Dimension>("categorie")
+  const [query, setQuery] = useState("")
+  const [showAll, setShowAll] = useState(false)
 
-  useEffect(() => {
-    loadStatistics()
-  }, [])
-
-  const loadStatistics = async () => {
+  const load = async () => {
     try {
       setLoading(true)
       setError(null)
-
-      // Charger les statistiques de l'API
-      const response = await statisticsService.getOverview()
-      setStats(response.data)
-
-      // Charger les statistiques comparatives
-      const comparativeResponse = await statisticsService.getComparativeStats()
-      setComparativeStats(comparativeResponse.data)
-
-      // Charger des statistiques additionnelles
-      const [regions, fosas, districts, airesantes] = await Promise.all([
-        apiService.getRegions(),
-        apiService.getFosas(),
-        apiService.getDistricts(),
-        apiService.getAiresantes(),
-      ])
-
-      // Calculer des statistiques supplémentaires
-      const fosasOperational = fosas.filter(f => !f.estFerme).length
-      const fosasClosed = fosas.filter(f => f.estFerme).length
-
-      // Grouper les FOSA par type
-      const fosasByType = fosas.reduce((acc: any, fosa) => {
-        const type = fosa.type || 'Non spécifié'
-        acc[type] = (acc[type] || 0) + 1
-        return acc
-      }, {})
-
-      setAdditionalStats({
-        totalRegions: regions.length,
-        totalDistricts: districts.length,
-        totalAiresantes: airesantes.length,
-        fosasOperational,
-        fosasClosed,
-        fosasByTypeData: Object.entries(fosasByType).map(([type, count]) => ({
-          type,
-          count
-        })),
-      })
-    } catch (error: any) {
-      console.error("Error loading statistics:", error)
-      setError(error.message || "Erreur lors du chargement des statistiques")
+      const response = await api.get("/statistics/dashboard")
+      setData(response.data.data)
+    } catch (err: any) {
+      console.error("Error loading dashboard:", err)
+      setError(err?.response?.data?.message || err?.message || "Erreur lors du chargement des indicateurs")
     } finally {
       setLoading(false)
     }
   }
 
-  if (loading) {
+  useEffect(() => {
+    load()
+  }, [])
+
+  const breakdown = useMemo(() => {
+    if (!data) return []
+    const rows: Breakdown[] =
+      dimension === "region"
+        ? data.parRegion.map((row) => ({ label: row.region, total: row.total, ouvertes: row.ouvertes }))
+        : dimension === "statut"
+          ? data.parStatut
+          : dimension === "type"
+            ? data.parType
+            : data.parCategorie
+    const needle = query.trim().toLowerCase()
+    return rows
+      .filter((row) => !needle || row.label.toLowerCase().includes(needle))
+      .map((row) => ({
+        label: row.label,
+        value: row.total,
+        sub: row.ouvertes != null ? `${formatNumber(row.ouvertes)} ouvertes · ${formatPercent(percent(row.ouvertes, row.total))}` : undefined,
+      }))
+  }, [data, dimension, query])
+
+  if (loading && !data) return <DashboardSkeleton />
+
+  if (error || !data) {
     return (
-      <div className="space-y-6">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="bg-gray-200 h-8 w-48 rounded animate-pulse mb-4"></div>
-        </div>
-        <CardSkeleton count={4} />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow h-96 animate-pulse">
-            <div className="bg-gray-200 h-6 w-32 rounded mb-4"></div>
-            <div className="bg-gray-100 h-full rounded"></div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow h-96 animate-pulse">
-            <div className="bg-gray-200 h-6 w-32 rounded mb-4"></div>
-            <div className="bg-gray-100 h-full rounded"></div>
-          </div>
-        </div>
+      <div className="card">
+        <EmptyState
+          icon={<AlertCircle />}
+          title="Impossible de charger les indicateurs"
+          description={error ?? "Aucune donnée disponible"}
+          action={
+            <button onClick={load} className="btn btn-primary">
+              <RefreshCw className="size-4" />
+              Réessayer
+            </button>
+          }
+        />
       </div>
     )
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={loadStatistics}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            Réessayer
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  if (!stats && !additionalStats) {
-    return <div className="text-center text-gray-600">Aucune donnée disponible</div>
-  }
-
-  const COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899"]
+  const f = data.fosas
+  const tauxOuverture = percent(f.ouvertes, f.total)
+  const tfSeul = Math.max(0, f.titre_foncier - f.securisees)
+  const clotureSeule = Math.max(0, f.cloturees - f.securisees)
+  const aucune = Math.max(0, f.total - (f.titre_foncier + f.cloturees - f.securisees))
+  const maintenance = f.maintenance_urgente + f.maintenance_haute
+  const litsParFosa = f.ouvertes > 0 ? Math.round((f.lits / f.ouvertes) * 10) / 10 : 0
+  const half = Math.ceil(Math.min(breakdown.length, showAll ? breakdown.length : 20) / 2)
+  const visible = showAll ? breakdown : breakdown.slice(0, 20)
+  const breakdownTotal = breakdown.reduce((acc, row) => acc + row.value, 0)
+  const generatedAt = new Date(data.genereLe).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" })
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Tableau de bord</h1>
-        <button
-          onClick={loadStatistics}
-          className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-2 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg flex items-center gap-2"
-        >
-          <Activity className="w-4 h-4" />
-          Actualiser
-        </button>
+      <PageHeader
+        kicker="Vue nationale"
+        title="Tableau de bord"
+        description={`Parc des formations sanitaires du Cameroun · indicateurs calculés le ${generatedAt}`}
+        actions={
+          <>
+            <button onClick={load} disabled={loading} className="btn btn-outline">
+              <RefreshCw className={cn("size-4", loading && "animate-spin")} />
+              Actualiser
+            </button>
+            <Link to="/" className="btn btn-primary">
+              <Map className="size-4" />
+              Ouvrir la carte
+            </Link>
+          </>
+        }
+      />
+
+      {/* KPI principaux */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
+        <StatCard
+          label="FOSA recensées"
+          value={formatNumber(f.total)}
+          hint={`${formatNumber(f.ouvertes)} ouvertes · ${formatNumber(f.fermees)} fermées`}
+        />
+        <StatCard
+          label="Taux d'ouverture"
+          value={formatPercent(tauxOuverture)}
+          tone="brand"
+          hint={`${formatNumber(f.fermees)} FOSA fermées`}
+          hintTone={f.fermees > 0 ? "danger" : "muted"}
+        />
+        <StatCard
+          label="FOSA électrifiées"
+          value={formatPercent(percent(f.electrifiees, f.total))}
+          hint={`${formatNumber(f.electrifiees)} raccordées au réseau`}
+        />
+        <StatCard
+          label="Sécurisation foncière"
+          value={formatPercent(percent(f.securisees, f.total))}
+          hint={`titre foncier + clôture · ${formatNumber(f.securisees)}`}
+        />
+        <StatCard
+          label="Capacité litière"
+          value={formatNumber(f.lits)}
+          hint={`${litsParFosa.toLocaleString("fr-FR")} lits / FOSA ouverte`}
+        />
+        <StatCard
+          label="Géolocalisation"
+          value={formatPercent(percent(f.geolocalisees, f.total))}
+          hint={`${formatNumber(f.total - f.geolocalisees)} sans coordonnées`}
+          hintTone={f.total - f.geolocalisees > 0 ? "warning" : "muted"}
+        />
       </div>
 
-      {/* Stats Cards - Ligne 1 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-lg p-6 border border-blue-200 hover:shadow-xl transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-blue-700 font-medium">Total FOSA</p>
-              <p className="text-3xl font-bold text-blue-900">{stats?.totalFosas || additionalStats?.fosasOperational + additionalStats?.fosasClosed || 0}</p>
-              <p className="text-xs text-blue-600 mt-1">Formations sanitaires</p>
-            </div>
-            <Building2 className="w-12 h-12 text-blue-600" />
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-lg p-6 border border-green-200 hover:shadow-xl transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-green-700 font-medium">FOSA Opérationnelles</p>
-              <p className="text-3xl font-bold text-green-900">{additionalStats?.fosasOperational || 0}</p>
-              <p className="text-xs text-green-600 mt-1">En activité</p>
-            </div>
-            <CheckCircle className="w-12 h-12 text-green-600" />
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl shadow-lg p-6 border border-red-200 hover:shadow-xl transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-red-700 font-medium">FOSA Fermées</p>
-              <p className="text-3xl font-bold text-red-900">{additionalStats?.fosasClosed || 0}</p>
-              <p className="text-xs text-red-600 mt-1">Non opérationnelles</p>
-            </div>
-            <AlertCircle className="w-12 h-12 text-red-600" />
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-lg p-6 border border-purple-200 hover:shadow-xl transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-purple-700 font-medium">Régions</p>
-              <p className="text-3xl font-bold text-purple-900">{additionalStats?.totalRegions || 0}</p>
-              <p className="text-xs text-purple-600 mt-1">Couverture nationale</p>
-            </div>
-            <MapPin className="w-12 h-12 text-purple-600" />
-          </div>
-        </div>
+      {/* Ressources et alertes */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          label="Personnel"
+          value={formatNumber(data.personnel.total)}
+          hint={`${formatNumber(data.personnel.fosasDotees)} FOSA dotées · ${formatPercent(percent(data.personnel.fosasDotees, f.total))}`}
+        />
+        <StatCard
+          label="Équipements biomédicaux"
+          value={formatNumber(data.equipements.biomedicaux)}
+          hint={`${formatNumber(data.equipements.autres)} autres équipements`}
+        />
+        <StatCard
+          label="Matériel roulant"
+          value={formatNumber(data.vehicules.total)}
+          hint={data.vehicules.parEtat[0] ? `principal état : ${data.vehicules.parEtat[0].label.toLowerCase()}` : "aucun véhicule"}
+        />
+        <StatCard
+          label="Maintenance prioritaire"
+          value={formatNumber(maintenance)}
+          tone={maintenance > 0 ? "danger" : "success"}
+          hint={`${formatNumber(f.maintenance_urgente)} urgentes · ${formatNumber(f.inspections_en_retard)} inspections en retard`}
+          hintTone={f.inspections_en_retard > 0 ? "warning" : "muted"}
+        />
       </div>
 
-      {/* Stats Cards - Ligne 2 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl shadow-lg p-6 border border-teal-200 hover:shadow-xl transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-teal-700 font-medium">Districts Sanitaires</p>
-              <p className="text-3xl font-bold text-teal-900">{additionalStats?.totalDistricts || 0}</p>
-              <p className="text-xs text-teal-600 mt-1">Districts de santé</p>
+      {/* Explorateur de répartition */}
+      <SectionCard
+        title="Répartition des FOSA"
+        subtitle="Classement par effectif, avec la part de structures ouvertes"
+        actions={
+          <Segmented
+            options={DIMENSIONS}
+            value={dimension}
+            onChange={(value) => {
+              setDimension(value)
+              setShowAll(false)
+              setQuery("")
+            }}
+          />
+        }
+      >
+        <div className="grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
+          <div className="space-y-5">
+            <div className="rounded-2xl border border-brand-100 bg-brand-50/60 p-5">
+              <p className="kicker">Taux d'ouverture global</p>
+              <p className="mt-2 text-4xl font-bold tracking-tight tabular-nums">{formatPercent(tauxOuverture)}</p>
+              <div className="mt-5 grid grid-cols-2 gap-4 border-t border-brand-100 pt-4">
+                <div>
+                  <p className="text-xl font-bold tabular-nums">{formatNumber(breakdown.length)}</p>
+                  <p className="text-xs text-gray-500">{DIMENSIONS.find((d) => d.value === dimension)?.label.toLowerCase()}s</p>
+                </div>
+                <div>
+                  <p className="text-xl font-bold tabular-nums">{formatNumber(f.fonctionnelles)}</p>
+                  <p className="text-xs text-gray-500">déclarées fonctionnelles</p>
+                </div>
+              </div>
             </div>
-            <HeartPulse className="w-12 h-12 text-teal-600" />
-          </div>
-        </div>
 
-        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl shadow-lg p-6 border border-orange-200 hover:shadow-xl transition-shadow">
-          <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-orange-700 font-medium">Aires de Santé</p>
-              <p className="text-3xl font-bold text-orange-900">{additionalStats?.totalAiresantes || 0}</p>
-              <p className="text-xs text-orange-600 mt-1">Zones de couverture</p>
-            </div>
-            <MapPin className="w-12 h-12 text-orange-600" />
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl shadow-lg p-6 border border-pink-200 hover:shadow-xl transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-pink-700 font-medium">Taux d'Opérationnalité</p>
-              <p className="text-3xl font-bold text-pink-900">
-                {additionalStats ? Math.round((additionalStats.fosasOperational / (additionalStats.fosasOperational + additionalStats.fosasClosed)) * 100) : 0}%
-              </p>
-              <p className="text-xs text-pink-600 mt-1">FOSA actives</p>
-            </div>
-            <Activity className="w-12 h-12 text-pink-600" />
-          </div>
-        </div>
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-blue-600" />
-            FOSA par Type
-          </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={additionalStats?.fosasByTypeData || stats?.fosasByType || []}
-                dataKey="count"
-                nameKey="type"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label={(entry) => `${entry.type}: ${entry.count}`}
-              >
-                {(additionalStats?.fosasByTypeData || stats?.fosasByType || []).map((entry: any, index: number) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              <p className="mb-3 text-sm font-semibold text-gray-900">FOSA par statut</p>
+              <ul className="space-y-3">
+                {data.parStatut.slice(0, 5).map((row) => (
+                  <li key={row.label} className="grid grid-cols-[minmax(0,1fr)_6rem_2.5rem] items-center gap-3 text-sm">
+                    <span className="truncate text-gray-700" title={row.label}>{row.label}</span>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-track">
+                      <div className="h-full rounded-full bg-brand-500" style={{ width: `${percent(row.total, f.total)}%` }} />
+                    </div>
+                    <span className="text-right font-semibold tabular-nums">{formatNumber(row.total)}</span>
+                  </li>
                 ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-indigo-600" />
-            Top 5 FOSA par Nombre de Bâtiments
-          </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              data={(comparativeStats?.buildingsByFosa || []).slice(0, 5)}
-              layout="horizontal"
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="fosaName"
-                angle={-30}
-                textAnchor="end"
-                height={80}
-                tick={{ fontSize: 11 }}
-              />
-              <YAxis />
-              <Tooltip
-                formatter={(value: number) => [`${value} bâtiment${value > 1 ? 's' : ''}`, 'Nombre']}
-                labelFormatter={(label) => `FOSA: ${label}`}
-              />
-              <Bar
-                dataKey="buildingCount"
-                fill="#6366F1"
-                name="Nombre de bâtiments"
-                radius={[8, 8, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {stats?.fosasByRegion && stats.fosasByRegion.length > 0 && (
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-purple-600" />
-            FOSA par Région
-          </h2>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={stats.fosasByRegion}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="region" angle={-45} textAnchor="end" height={100} />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="count" fill="#8B5CF6" name="Nombre de FOSA" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
-      {stats?.personnelByCategory && stats.personnelByCategory.length > 0 && (
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
-            <Users className="w-5 h-5 text-teal-600" />
-            Personnel par Catégorie
-          </h2>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={stats.personnelByCategory}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="category" angle={-45} textAnchor="end" height={100} />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="count" fill="#14B8A6" name="Nombre de personnel" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
-      {/* STATISTIQUES COMPARATIVES */}
-      {comparativeStats && (
-        <>
-          {/* Titre Section */}
-          <div className="col-span-full">
-            <h2 className="text-2xl font-bold text-gray-900 border-b-2 border-blue-600 pb-2">
-              Analyses Comparatives
-            </h2>
+              </ul>
+            </div>
           </div>
 
-          {/* Tableau: FOSA par Catégorie avec TF/Clôture */}
-          {comparativeStats.fosasByCategory && comparativeStats.fosasByCategory.length > 0 && (
-            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 lg:col-span-2">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-blue-600" />
-                FOSA par Catégorie (avec sécurisation)
-              </h3>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Catégorie</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Avec TF</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Avec Clôture</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Opérationnelles</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {comparativeStats.fosasByCategory.map((item: any, idx: number) => (
-                      <tr key={idx} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.category}</td>
-                        <td className="px-4 py-3 text-sm text-center text-gray-700">{item.total}</td>
-                        <td className="px-4 py-3 text-sm text-center">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded">{item.withTF}</span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-center">
-                          <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded">{item.withCloture}</span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-center">
-                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded">{item.operational}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          <div className="min-w-0">
+            <SearchInput
+              value={query}
+              onChange={setQuery}
+              placeholder={`Rechercher une ${DIMENSIONS.find((d) => d.value === dimension)?.label.toLowerCase()}…`}
+              className="mb-4"
+            />
+            {breakdown.length === 0 ? (
+              <EmptyState title="Aucun résultat" description="Modifiez la recherche pour élargir la liste." />
+            ) : (
+              <div className="grid gap-x-8 xl:grid-cols-2">
+                <RankBars items={visible.slice(0, half)} total={breakdownTotal} maxValue={visible[0]?.value} />
+                {visible.length > half && (
+                  <RankBars items={visible.slice(half)} total={breakdownTotal} maxValue={visible[0]?.value} offset={half} />
+                )}
+              </div>
+            )}
+            <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-4">
+              <p className="font-mono text-xs text-gray-500">
+                {formatNumber(visible.length)} sur {formatNumber(breakdown.length)} · triés par effectif décroissant
+              </p>
+              {breakdown.length > 20 && (
+                <button onClick={() => setShowAll((v) => !v)} className="btn btn-outline btn-sm">
+                  {showAll ? "Afficher le top 20" : "Tout afficher"}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* Couverture régionale */}
+      <SectionCard title="Couverture régionale" subtitle="Ouverture, électrification et sécurisation par région" flush>
+        <div className="overflow-x-auto">
+          <table className="min-w-full border-collapse">
+            <thead className="table-head">
+              <tr>
+                <th>Région</th>
+                <th className="!text-right">FOSA</th>
+                <th>Ouvertes</th>
+                <th>Électrifiées</th>
+                <th>Sécurisées</th>
+                <th className="!text-right">Lits</th>
+              </tr>
+            </thead>
+            <tbody className="table-body">
+              {data.parRegion.map((row) => (
+                <tr key={row.region}>
+                  <td className="font-medium">{row.region}</td>
+                  <td className="text-right font-semibold tabular-nums">{formatNumber(row.total)}</td>
+                  <td><RateCell value={row.ouvertes} total={row.total} /></td>
+                  <td><RateCell value={row.electrifiees} total={row.total} tone="warning" /></td>
+                  <td><RateCell value={row.securisees} total={row.total} tone="success" /></td>
+                  <td className="text-right tabular-nums">{formatNumber(row.lits)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </SectionCard>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <SectionCard title="Sécurisation foncière" subtitle="Titre foncier et clôture des FOSA">
+          <Donut
+            centerLabel="sécurisées"
+            centerValue={formatPercent(percent(f.securisees, f.total))}
+            slices={[
+              { label: "Titre foncier et clôture", value: f.securisees },
+              { label: "Titre foncier seul", value: tfSeul },
+              { label: "Clôture seule", value: clotureSeule },
+              { label: "Ni l'un ni l'autre", value: aucune },
+            ]}
+          />
+        </SectionCard>
+
+        <SectionCard
+          title="Patrimoine bâti"
+          subtitle={`${formatNumber(data.batiments.total)} bâtiments · ${formatNumber(data.batiments.superficie)} m² recensés`}
+        >
+          {data.batiments.total === 0 ? (
+            <EmptyState title="Aucun bâtiment recensé" description="Les bâtiments ajoutés aux FOSA apparaîtront ici, par état." />
+          ) : (
+            <Donut
+              centerLabel="bâtiments"
+              centerValue={formatNumber(data.batiments.total)}
+              slices={data.batiments.parEtat.map((row) => ({ label: row.label, value: row.total }))}
+            />
+          )}
+        </SectionCard>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <SectionCard
+          title="Personnel par catégorie"
+          subtitle={`${formatNumber(data.personnel.total)} agents dans ${formatNumber(data.personnel.fosasDotees)} FOSA`}
+        >
+          {data.personnel.total === 0 ? (
+            <EmptyState title="Aucun personnel enregistré" />
+          ) : (
+            <RankBars items={data.personnel.parCategorie.map((row) => ({ label: row.label, value: row.total }))} limit={10} />
+          )}
+        </SectionCard>
+
+        <SectionCard title="Matériel roulant" subtitle={`${formatNumber(data.vehicules.total)} véhicules`}>
+          {data.vehicules.total === 0 ? (
+            <EmptyState title="Aucun véhicule enregistré" />
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div>
+                <p className="mb-2 text-sm font-semibold text-gray-900">Par état</p>
+                <div className="flex flex-wrap gap-2">
+                  {data.vehicules.parEtat.map((row) => (
+                    <Badge key={row.label} variant={/bon|neuf/i.test(row.label) ? "success" : /panne|hors|mauvais/i.test(row.label) ? "danger" : "neutral"} withDot>
+                      {row.label} · {formatNumber(row.total)}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="mb-2 text-sm font-semibold text-gray-900">Par énergie</p>
+                <RankBars items={data.vehicules.parEnergie.map((row) => ({ label: row.label, value: row.total }))} showPercent limit={5} />
               </div>
             </div>
           )}
-
-          {/* Graphique: Sécurité des FOSA (TF/Clôture) */}
-          {comparativeStats.securityStats && (
-            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
-                <Activity className="w-5 h-5 text-orange-600" />
-                Sécurisation des FOSA
-              </h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={[
-                      { name: 'TF + Clôture', value: Number(comparativeStats.securityStats.both) || 0 },
-                      { name: 'TF seulement', value: Number(comparativeStats.securityStats.tfOnly) || 0 },
-                      { name: 'Clôture seulement', value: Number(comparativeStats.securityStats.clotureOnly) || 0 },
-                      { name: 'Aucune', value: Number(comparativeStats.securityStats.neither) || 0 }
-                    ]}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    label={(entry) => `${entry.name}: ${entry.value}`}
-                  >
-                    <Cell fill="#10B981" />
-                    <Cell fill="#3B82F6" />
-                    <Cell fill="#8B5CF6" />
-                    <Cell fill="#EF4444" />
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          {/* Tableau: FOSA par Statut */}
-          {comparativeStats.fosasByStatus && comparativeStats.fosasByStatus.length > 0 && (
-            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
-                <HeartPulse className="w-5 h-5 text-pink-600" />
-                FOSA par Statut
-              </h3>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Avec TF</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Avec Clôture</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {comparativeStats.fosasByStatus.map((item: any, idx: number) => (
-                      <tr key={idx} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.status}</td>
-                        <td className="px-4 py-3 text-sm text-center text-gray-700">{item.total}</td>
-                        <td className="px-4 py-3 text-sm text-center">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded">{item.withTF}</span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-center">
-                          <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded">{item.withCloture}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* Graphique: Top 10 FOSA par Nombre de Bâtiments */}
-          {comparativeStats.buildingsByFosa && comparativeStats.buildingsByFosa.length > 0 && (
-            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 lg:col-span-2">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-indigo-600" />
-                Top 10 FOSA par Nombre de Bâtiments
-              </h3>
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={comparativeStats.buildingsByFosa}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="fosaName" angle={-45} textAnchor="end" height={120} />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="buildingCount" fill="#6366F1" name="Nombre de bâtiments" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          {/* Graphique: Véhicules par Type et Énergie */}
-          {comparativeStats.vehiclesByTypeEnergy && comparativeStats.vehiclesByTypeEnergy.length > 0 && (
-            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 lg:col-span-2">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
-                <Package className="w-5 h-5 text-cyan-600" />
-                Véhicules par Type et Source d'Énergie
-              </h3>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type Véhicule</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Énergie</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Quantité Totale</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {comparativeStats.vehiclesByTypeEnergy.map((item: any, idx: number) => (
-                      <tr key={idx} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.vehicleType}</td>
-                        <td className="px-4 py-3 text-sm text-gray-700">{item.energy}</td>
-                        <td className="px-4 py-3 text-sm text-center">
-                          <span className="px-2 py-1 bg-cyan-100 text-cyan-800 rounded">{item.count}</span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-center text-gray-700">{item.totalQuantity || item.count}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* Graphique: Distribution du Personnel */}
-          {comparativeStats.personnelDistribution && comparativeStats.personnelDistribution.length > 0 && (
-            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
-                <Users className="w-5 h-5 text-teal-600" />
-                Distribution du Personnel
-              </h3>
-              <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={comparativeStats.personnelDistribution}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="category" angle={-45} textAnchor="end" height={100} />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="count" fill="#14B8A6" name="Nombre total" />
-                  <Bar dataKey="fosasCount" fill="#F59E0B" name="Nombre de FOSA" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </>
-      )}
+        </SectionCard>
+      </div>
     </div>
   )
 }

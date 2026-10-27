@@ -271,47 +271,49 @@ const ThematicAnalysis: React.FC<ThematicAnalysisProps> = ({
   const selectedThemeObj = themes.find(t => t.id === selectedTheme);
 
   return (
-    <div className="bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-xl border border-emerald-200 max-w-sm w-full">
-      <div className="flex items-center space-x-2 mb-4">
-        <Layers className="w-5 h-5 text-emerald-600" />
-        <h3 className="font-semibold text-gray-800 text-sm">Analyse Thématique</h3>
-        <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full capitalize">
+    <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-lg backdrop-blur-sm">
+      <div className="mb-4 flex items-center gap-2">
+        <span className="flex size-8 items-center justify-center rounded-lg bg-brand-50 text-brand-500">
+          <Layers className="size-4" />
+        </span>
+        <h3 className="text-sm font-semibold text-gray-900">Analyse Thématique</h3>
+        <span className="ml-auto rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold capitalize text-brand-600">
           {entityType}
         </span>
       </div>
 
-      <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+      <div className="max-h-[500px] space-y-2 overflow-y-auto pr-1">
         {themes.map(theme => (
-          <div key={theme.id} className="border border-gray-200 rounded-lg overflow-hidden">
+          <div key={theme.id} className="overflow-hidden rounded-xl border border-gray-200">
             <button
               onClick={() => handleThemeChange(theme.id)}
               className={`w-full p-3 text-left transition-colors ${selectedTheme === theme.id
-                  ? 'bg-emerald-50 border-emerald-200'
+                  ? 'bg-brand-50'
                   : 'bg-white hover:bg-gray-50'
                 } border-b border-gray-200`}
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className={`p-1 rounded ${selectedTheme === theme.id
-                      ? 'bg-emerald-100 text-emerald-600'
-                      : 'bg-gray-100 text-gray-600'
+                <div className="flex items-center gap-2">
+                  <div className={`rounded-lg p-1.5 ${selectedTheme === theme.id
+                      ? 'bg-white text-brand-500'
+                      : 'bg-gray-100 text-gray-500'
                     }`}>
                     {theme.icon}
                   </div>
                   <div>
-                    <div className="font-medium text-sm text-gray-900">{theme.name}</div>
+                    <div className="text-sm font-semibold text-gray-900">{theme.name}</div>
                     <div className="text-xs text-gray-500">{theme.description}</div>
                   </div>
                 </div>
                 <div className={`w-3 h-3 rounded-full border-2 ${selectedTheme === theme.id
-                    ? 'bg-emerald-500 border-emerald-500'
+                    ? 'bg-brand-500 border-brand-500'
                     : 'bg-white border-gray-300'
                   }`} />
               </div>
             </button>
 
             {selectedTheme === theme.id && (
-              <div className="p-3 bg-gray-50 max-h-48 overflow-y-auto">
+              <div className="max-h-48 overflow-y-auto bg-surface p-3">
                 <div className="space-y-2 text-xs">
                   {entitiesData.map(entity => {
                     const stats = theme.getValue(entity, entityType, getEntityName);
@@ -321,8 +323,8 @@ const ThematicAnalysis: React.FC<ThematicAnalysisProps> = ({
                         <span className="font-medium text-gray-700 truncate flex-1 mr-2 group-hover:text-gray-900">
                           {getEntityName(entity, entityType)}
                         </span>
-                        <div className="flex items-center space-x-2 flex-shrink-0">
-                          <span className="text-gray-900 font-bold text-xs bg-white px-1.5 py-0.5 rounded border border-gray-200 shadow-sm">
+                        <div className="flex flex-shrink-0 items-center gap-2">
+                          <span className="rounded-md border border-gray-200 bg-white px-1.5 py-0.5 font-mono text-xs font-semibold tabular-nums text-gray-900">
                             {theme.formatValue(stats)}
                           </span>
                           <div
@@ -347,10 +349,10 @@ const ThematicAnalysis: React.FC<ThematicAnalysisProps> = ({
       </div>
 
       {selectedTheme && selectedThemeObj && (
-        <div className="mt-3 p-2 bg-emerald-50 rounded-lg border border-emerald-200">
+        <div className="mt-3 rounded-xl border border-gray-200 bg-surface p-3">
           <div className="flex items-center justify-between text-xs mb-2">
-            <span className="text-emerald-700 font-medium">Légende (Proportion):</span>
-            <span className="text-emerald-600 font-bold">{selectedThemeObj.name}</span>
+            <span className="font-medium text-gray-500">Légende (Proportion):</span>
+            <span className="font-semibold text-gray-900">{selectedThemeObj.name}</span>
           </div>
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center space-x-2">
@@ -367,7 +369,7 @@ const ThematicAnalysis: React.FC<ThematicAnalysisProps> = ({
                 <span className="text-[10px] text-gray-600">Faible</span>
               </div>
             </div>
-            <div className="text-emerald-600 text-[10px]">
+            <div className="text-[10px] font-medium text-gray-500">
               {Object.keys(currentStats).length} {entityType}s
             </div>
           </div>

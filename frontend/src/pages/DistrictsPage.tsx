@@ -3,12 +3,44 @@
 import type React from "react"
 
 import { useEffect, useState } from "react"
-import { Plus, Search } from "lucide-react"
+import { MapPin, Loader2, Plus } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
 import ConfirmDialog from "../components/ConfirmDialog"
+import { PageHeader, StatCard, FilterBar, SearchInput, EmptyState, formatNumber } from "../components/ui"
 import { districtService } from "../services/districtService"
 import type { District } from "../types"
+
+/* --- Briques locales de présentation ---------------------------------------- */
+
+/** Squelette du tableau pendant le chargement. */
+function TableSkeleton() {
+  return (
+    <div className="card animate-pulse overflow-hidden" aria-busy="true">
+      <div className="h-11 bg-table-head" />
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="flex items-center gap-6 border-t border-gray-100 px-4 py-4">
+          <div className="h-3 w-10 rounded bg-gray-200" />
+          <div className="h-3 flex-1 rounded bg-gray-200" />
+          <div className="h-3 w-28 rounded bg-gray-200" />
+          <div className="h-3 w-16 rounded bg-gray-200" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** Libellé du bouton d'enregistrement, avec indicateur pendant l'envoi. */
+function SubmitLabel({ submitting, label }: { submitting: boolean; label: string }) {
+  return submitting ? (
+    <>
+      <Loader2 className="size-4 animate-spin" />
+      <span>Enregistrement...</span>
+    </>
+  ) : (
+    <>{label}</>
+  )
+}
 
 export default function DistrictsPage() {
   const [districts, setDistricts] = useState<District[]>([])
@@ -114,44 +146,62 @@ export default function DistrictsPage() {
     { key: "area", label: "Superficie (km²)" },
   ]
 
+  const openCreate = () => {
+    setEditingItem(null)
+    setFormData({
+      region: "",
+      nom_ds: "",
+      code_ds: 0,
+      area: 0,
+      regionId: 0
+    })
+    setIsModalOpen(true)
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Districts</h1>
-        <button
-          onClick={() => {
-            setEditingItem(null)
-            setFormData({
-              region: "",
-              nom_ds: "",
-              code_ds: 0,
-              area: 0,
-              regionId: 0
-            })
-            setIsModalOpen(true)
-          }}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          <Plus className="w-5 h-5" />
-          Ajouter
-        </button>
+      <PageHeader
+        kicker="Géographie"
+        title="Districts"
+        description="Districts de santé, leur région et leur superficie."
+        actions={
+          <button onClick={openCreate} className="btn btn-primary">
+            <Plus className="size-4" />
+            Ajouter
+          </button>
+        }
+      />
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard
+          label="Districts"
+          value={loading && (pagination?.total ?? 0) === 0 ? "…" : formatNumber((pagination?.total ?? 0))}
+          hint={search ? `Pour « ${search} »` : "Enregistrés"}
+          icon={<MapPin />}
+        />
       </div>
 
-      <div className="flex gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Rechercher..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-      </div>
+      <FilterBar>
+        <SearchInput value={search} onChange={setSearch} placeholder="Rechercher..." className="w-full sm:w-72" />
+      </FilterBar>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64">Chargement...</div>
+        <TableSkeleton />
+      ) : districts.length === 0 && (pagination?.total ?? 0) === 0 ? (
+        <div className="card">
+          <EmptyState
+            icon={<MapPin />}
+            title={search ? "Aucun district trouvé" : "Aucun district enregistré"}
+            description={search ? "Aucun résultat ne correspond à votre recherche." : "Ajoutez un premier district pour commencer."}
+            action={
+              search ? (
+                <button onClick={() => setSearch("")} className="btn btn-outline">Effacer la recherche</button>
+              ) : (
+                <button onClick={openCreate} className="btn btn-primary"><Plus className="size-4" />Ajouter</button>
+              )
+            }
+          />
+        </div>
       ) : (
         <DataTable
           data={districts}
@@ -165,82 +215,63 @@ export default function DistrictsPage() {
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingItem ? "Modifier" : "Ajouter"}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Nom du District</label>
-            <input
-              type="text"
-              value={formData.nom_ds}
-              onChange={(e) => setFormData({ ...formData, nom_ds: e.target.value })}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Région</label>
-            <input
-              type="text"
-              value={formData.region}
-              onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Code District</label>
+              <label className="label">Nom du District</label>
+              <input
+                type="text"
+                value={formData.nom_ds}
+                onChange={(e) => setFormData({ ...formData, nom_ds: e.target.value })}
+                required
+                className="input"
+              />
+            </div>
+            <div>
+              <label className="label">Région</label>
+              <input
+                type="text"
+                value={formData.region}
+                onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+                required
+                className="input"
+              />
+            </div>
+            <div>
+              <label className="label">Code District</label>
               <input
                 type="number"
                 value={formData.code_ds}
                 onChange={(e) => setFormData({ ...formData, code_ds: Number.parseInt(e.target.value) || 0 })}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input tabular-nums"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Superficie (km²)</label>
+              <label className="label">Superficie (km²)</label>
               <input
                 type="number"
                 value={formData.area}
                 onChange={(e) => setFormData({ ...formData, area: Number.parseFloat(e.target.value) || 0 })}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input tabular-nums"
+              />
+            </div>
+            <div>
+              <label className="label">ID de la Région</label>
+              <input
+                type="number"
+                value={formData.regionId}
+                onChange={(e) => setFormData({ ...formData, regionId: Number.parseInt(e.target.value) || 0 })}
+                className="input tabular-nums"
               />
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">ID de la Région</label>
-            <input
-              type="number"
-              value={formData.regionId}
-              onChange={(e) => setFormData({ ...formData, regionId: Number.parseInt(e.target.value) || 0 })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="flex gap-2 justify-end">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              disabled={submitting}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+          <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
+            <button type="button" onClick={() => setIsModalOpen(false)} disabled={submitting} className="btn btn-outline">
               Annuler
             </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {submitting ? (
-                <>
-                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                  </svg>
-                  <span>Enregistrement...</span>
-                </>
-              ) : (
-                editingItem ? "Modifier" : "Créer"
-              )}
+            <button type="submit" disabled={submitting} className="btn btn-primary">
+              <SubmitLabel submitting={submitting} label={editingItem ? "Modifier" : "Créer"} />
             </button>
           </div>
         </form>

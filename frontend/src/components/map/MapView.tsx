@@ -25,6 +25,7 @@ import { districtService } from "../../services/districtService";
 import { airesanteService } from "../../services/airesanteService";
 import ThematicAnalysis, { ThematicTheme } from "./ThematicAnalysis";
 import MapLegend from "./MapLegend";
+import TilePreloader from "./TilePreloader";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -65,6 +66,7 @@ interface Hospital {
   id: string;
   name: string;
   type: 'public' | 'parapublic' | 'prive_laic' | 'prive_confessionnel';
+  fosaType?: string;
   category: string;
   status: 'operational' | 'maintenance' | 'construction' | 'closed';
   coordinates: [number, number];
@@ -102,6 +104,12 @@ interface Hospital {
     email: string;
   };
 }
+
+const MapRefBridge: React.FC<{ onReady: (m: L.Map) => void }> = ({ onReady }) => {
+  const map = useMap();
+  useEffect(() => { onReady(map); }, [map, onReady]);
+  return null;
+};
 
 const MapController: React.FC<{
   selectedRegion: string;
@@ -246,6 +254,8 @@ const MapView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedHospital, setSelectedHospital] = useState<Hospital | null>(null);
 
+  const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
+
   const [cameroonPolygon, setCameroonPolygon] = useState<[number, number][]>([]);
   const [regionsPolygons, setRegionsPolygons] = useState<{ [key: string]: [number, number][] }>({});
   const [departementsPolygons, setDepartementsPolygons] = useState<{ [key: string]: [number, number][] }>({});
@@ -345,6 +355,7 @@ const MapView: React.FC = () => {
           return 'public'; // Par défaut
         })(),
         category: fosa.catRec || fosa.statutRec || 'FOSA',
+        fosaType: fosa.type || '',
         status: fosa.estFerme ? 'closed' :
           fosa.situation?.toLowerCase().includes('maintenance') ? 'maintenance' :
             fosa.situation?.toLowerCase().includes('construction') ? 'construction' : 'operational',
@@ -352,7 +363,12 @@ const MapView: React.FC = () => {
         address: arrond?.nom || 'Non spécifié',
         city: arrond?.nom || 'Non spécifié',
         region: region?.nom || 'Non spécifié',
-        image: fosa.image || null,
+        image: fosa.image ? (() => {
+          const img = fosa.image;
+          if (img.startsWith('http')) return img;
+          const base = (import.meta as any).env?.VITE_API_URL?.replace(/\/api\/v1\/?$/, '').replace(/\/api\/?$/, '') || '';
+          return img.startsWith('/') ? `${base}${img}` : `${base}/storage/${img}`;
+        })() : null,
         aTitreFoncier: fosa.aTitreFoncier === true || fosa.aTitreFoncier === 1,
         aCloture: fosa.aCloture === true || fosa.aCloture === 1,
         batimentsCount: fosa.batiments?.length || 0,
@@ -388,9 +404,10 @@ const MapView: React.FC = () => {
           issues: ['Équipement vieillissant', 'Besoin de maintenance préventive', 'Matériel obsolète'].slice(0, Math.floor(Math.random() * 2) + 1),
         },
         contact: {
-          phone: `+237 6${Math.floor(Math.random() * 90) + 10} ${Math.floor(Math.random() * 1000)} ${Math.floor(Math.random() * 1000)}`,
-          email: `${fosa.nom.toLowerCase().replace(/\s+/g, '.')}@sante.cm`,
+          phone: fosa.telephone || fosa.responsableTelephone || '',
+          email: '',
         },
+        responsableNom: fosa.responsableNom || '',
         budget: {
           annual: 0,
           personnel: 0,
@@ -883,7 +900,20 @@ const MapView: React.FC = () => {
     let filtered = hospitals;
 
     if (selectedType !== 'all') filtered = filtered.filter(h => h.type === selectedType);
-    if (selectedCategory !== 'all') filtered = filtered.filter(h => h.category === selectedCategory);
+    if (selectedCategory !== 'all') {
+      const target = selectedCategory.toUpperCase().trim();
+      filtered = filtered.filter(h => {
+        const fosaType = (h.fosaType || '').toUpperCase().trim();
+        const cat = (h.category || '').toUpperCase().trim();
+        // Matching sur fosaType (le type de la FOSA: CSI, HD, CMA, SSD, EF...)
+        if (fosaType === target) return true;
+        if (cat === target) return true;
+        // Matching partiel
+        if (fosaType.includes(target) || target.includes(fosaType)) return true;
+        if (cat.includes(target) || target.includes(cat)) return true;
+        return false;
+      });
+    }
 
     // Filtre sur le titre foncier
     if (selectedTitreFoncier !== 'all') {
@@ -946,13 +976,34 @@ const MapView: React.FC = () => {
   };
 
   const getHospitalIcon = (hospital: Hospital) => {
-    const colors = { operational: '#10B981', maintenance: '#F59E0B', construction: '#3B82F6', closed: '#6B7280' };
-    const icons: any = { CHU: '🏥', CHR: '🏥', CHD: '🏥', CMA: '⚕️', CSI: '⚕️', dispensaire: '💊', HR: '🏥', HD: '🏥', HC: '⚕️' };
+    // Symbologie MINSANTE par catégorie
+    const fosaType = (hospital.fosaType || hospital.category || '').toUpperCase().trim();
+    let color = '#FFFFFF'; // blanc par défaut (autres)
+    let borderColor = '#374151';
+    if (['HD', 'CMA', 'CSI', 'HR', 'HC', 'HG', 'CHU', 'CHR', 'CHD'].includes(fosaType)) {
+      color = '#EF4444'; // rouge
+      borderColor = '#FFFFFF';
+    } else if (fosaType === 'SSD') {
+      color = '#10B981'; // vert
+      borderColor = '#FFFFFF';
+    } else if (fosaType === 'EF') {
+      color = '#3B82F6'; // bleu
+      borderColor = '#FFFFFF';
+    } else if (fosaType === 'PRG') {
+      color = '#000000'; // noir
+      borderColor = '#FFFFFF';
+    } else if (fosaType === 'DRS') {
+      color = '#FACC15'; // jaune
+      borderColor = '#FFFFFF';
+    } else if (fosaType.includes('CENTRE DE SANTÉ') || fosaType.includes('CENTRE DE SANTE')) {
+      color = '#EF4444'; // rouge (catégorie hospitalière)
+      borderColor = '#FFFFFF';
+    }
     return L.divIcon({
-      html: `<div style="background-color: ${colors[hospital.status]}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 12px;">${icons[hospital.category] || '🏥'}</div>`,
+      html: `<div style="background-color: ${color}; width: 18px; height: 18px; border-radius: 50%; border: 2px solid ${borderColor}; box-shadow: 0 2px 6px rgba(0,0,0,0.4);"></div>`,
       className: 'custom-marker',
-      iconSize: [20, 20],
-      iconAnchor: [10, 10]
+      iconSize: [18, 18],
+      iconAnchor: [9, 9]
     });
   };
 
@@ -968,15 +1019,17 @@ const MapView: React.FC = () => {
   const CollapsibleSection = ({ id, title, icon: Icon, children, defaultExpanded = false }: any) => {
     const isExpanded = expandedSections[id] ?? defaultExpanded;
     return (
-      <div className="border border-emerald-100 rounded-lg overflow-hidden shadow-sm">
-        <button onClick={(e) => toggleSection(id, e)} className="w-full px-4 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 flex items-center justify-between text-left transition-colors">
-          <div className="flex items-center space-x-2">
-            <Icon className="w-5 h-5 text-emerald-600" />
-            <span className="font-semibold text-gray-700">{title}</span>
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+        <button onClick={(e) => toggleSection(id, e)} className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-gray-50">
+          <div className="flex items-center gap-2">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-brand-50 text-brand-500">
+              <Icon className="size-4" />
+            </span>
+            <span className="text-sm font-semibold text-gray-900">{title}</span>
           </div>
-          {isExpanded ? <ChevronUp className="w-5 h-5 text-emerald-600" /> : <ChevronDown className="w-5 h-5 text-emerald-600" />}
+          {isExpanded ? <ChevronUp className="size-4 text-gray-400" /> : <ChevronDown className="size-4 text-gray-400" />}
         </button>
-        {isExpanded && <div className="p-4 bg-white">{children}</div>}
+        {isExpanded && <div className="border-t border-gray-100 p-4">{children}</div>}
       </div>
     );
   };
@@ -1001,13 +1054,13 @@ const MapView: React.FC = () => {
     isLoading: boolean;
     isLoaded: boolean
   }) => (
-    <div className="flex items-center space-x-2">
-      <div className={`w-2 h-2 rounded-full ${isLoading ? 'bg-yellow-500 animate-pulse' :
-        isLoaded ? 'bg-green-500' : 'bg-gray-300'
+    <div className="flex items-center gap-2">
+      <div className={`size-2 rounded-full ${isLoading ? 'bg-warning animate-pulse' :
+        isLoaded ? 'bg-success' : 'bg-gray-300'
         }`}></div>
       <span className="text-xs text-gray-500">{label}</span>
       {isLoading && (
-        <svg className="animate-spin h-3 w-3 text-emerald-600 ml-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <svg className="animate-spin size-3 text-brand-500 ml-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
@@ -1025,26 +1078,26 @@ const MapView: React.FC = () => {
 
   const FosaLoader = () => (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]">
-      <div className="text-center bg-white p-8 rounded-2xl shadow-2xl border border-emerald-200 max-w-md w-full mx-4">
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-4 rounded-2xl inline-block mb-6 shadow-lg">
-          <Activity className="w-12 h-12 text-white animate-spin" />
+      <div className="card mx-4 w-full max-w-md p-8 text-center shadow-lg">
+        <div className="mb-5 inline-flex size-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-500">
+          <Activity className="size-7 animate-spin" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Chargement des FOSA</h2>
-        <p className="text-gray-600 mb-6">Filtrage des formations sanitaires...</p>
-        <div className="w-full bg-gray-200 rounded-full h-3 mb-4 overflow-hidden">
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 h-3 rounded-full animate-pulse"></div>
+        <h2 className="mb-1 text-xl font-bold tracking-tight text-gray-900">Chargement des FOSA</h2>
+        <p className="mb-6 text-sm text-gray-500">Filtrage des formations sanitaires...</p>
+        <div className="mb-4 h-2 w-full overflow-hidden rounded-full bg-track">
+          <div className="h-2 rounded-full bg-brand-500 animate-pulse"></div>
         </div>
         <div className="space-y-2 text-left">
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+          <div className="flex items-center gap-2">
+            <div className="size-2 rounded-full bg-brand-500 animate-pulse"></div>
             <span className="text-xs text-gray-500">Récupération des données</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+          <div className="flex items-center gap-2">
+            <div className="size-2 rounded-full bg-brand-500 animate-pulse"></div>
             <span className="text-xs text-gray-500">Filtrage spatial</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+          <div className="flex items-center gap-2">
+            <div className="size-2 rounded-full bg-brand-500 animate-pulse"></div>
             <span className="text-xs text-gray-500">Affichage sur la carte</span>
           </div>
         </div>
@@ -1054,23 +1107,23 @@ const MapView: React.FC = () => {
 
   if (loading && !allDataLoaded) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 flex items-center justify-center">
-        <div className="text-center bg-white p-8 rounded-2xl shadow-2xl border border-emerald-200 max-w-md w-full mx-4">
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-4 rounded-2xl inline-block mb-6 shadow-lg">
-            <Activity className="w-12 h-12 text-white animate-spin" />
+      <div className="flex min-h-screen items-center justify-center bg-surface">
+        <div className="card mx-4 w-full max-w-md p-8 text-center">
+          <div className="mb-5 inline-flex size-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-500">
+            <Activity className="size-7 animate-spin" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Chargement des données</h2>
-          <p className="text-gray-600 mb-6">Préparation de la cartographie...</p>
+          <h2 className="mb-1 text-xl font-bold tracking-tight text-gray-900">Chargement des données</h2>
+          <p className="mb-6 text-sm text-gray-500">Préparation de la cartographie...</p>
 
           {progressMessage && (
-            <p className="text-sm text-emerald-600 font-semibold mb-4 animate-pulse">
+            <p className="mb-4 text-sm font-semibold text-brand-500 animate-pulse">
               {progressMessage}
             </p>
           )}
 
-          <div className="w-full bg-gray-200 rounded-full h-3 mb-4 overflow-hidden">
+          <div className="mb-4 h-2 w-full overflow-hidden rounded-full bg-track">
             <div
-              className="bg-gradient-to-r from-emerald-600 to-teal-600 h-3 rounded-full transition-all duration-500"
+              className="h-2 rounded-full bg-brand-500 transition-all duration-500"
               style={{
                 width: `${calculateLoadingProgress()}%`
               }}
@@ -1101,7 +1154,7 @@ const MapView: React.FC = () => {
             {/* FOSA ne sont plus chargées au démarrage */}
           </div>
 
-          <div className="mt-4 text-xs text-gray-500">
+          <div className="mt-4 font-mono text-xs text-gray-500">
             {getLoadingDetails()}
           </div>
         </div>
@@ -1111,34 +1164,38 @@ const MapView: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 flex items-center justify-center">
-        <div className="text-center bg-white p-8 rounded-xl shadow-lg border border-emerald-200">
-          <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Erreur de chargement</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button onClick={() => window.location.reload()} className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-2 rounded-lg hover:from-emerald-700 hover:to-teal-700">Réessayer</button>
+      <div className="flex min-h-screen items-center justify-center bg-surface">
+        <div className="card mx-4 max-w-md p-8 text-center">
+          <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-danger-soft text-danger">
+            <AlertTriangle className="size-7" />
+          </div>
+          <h2 className="mb-1 text-xl font-bold tracking-tight text-gray-900">Erreur de chargement</h2>
+          <p className="mb-5 text-sm text-gray-500">{error}</p>
+          <button onClick={() => window.location.reload()} className="btn btn-primary">Réessayer</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 overflow-hidden">
+    <div className="h-screen overflow-hidden bg-surface">
       {showFosaLoader && <FosaLoader />}
 
-      <header className="bg-white/80 backdrop-blur-lg shadow-lg border-b border-emerald-200 z-50">
-        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-14">
-            <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-2 rounded-xl shadow-lg">
-                <Activity className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-gray-900">MAP</h1>
-                <p className="text-xs text-gray-500">Cartographie des établissements de santé</p>
+      <header className="relative z-50 bg-header text-white">
+        <div className="mx-auto max-w-full px-4 sm:px-6">
+          <div className="flex h-14 items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <img src="/favicon.svg" alt="" className="size-9 rounded-xl" />
+              <span className="border-l border-white/25 pl-3">
+                <span className="block text-[10px] uppercase tracking-[0.14em] text-white/60">MINSANTÉ</span>
+                <span className="block text-base font-bold leading-tight">IMMOSANTECam</span>
+              </span>
+              <div className="ml-2 hidden border-l border-white/25 pl-4 md:block">
+                <h1 className="text-sm font-semibold leading-tight">MAP</h1>
+                <p className="text-xs text-white/60">Cartographie des établissements de santé</p>
               </div>
             </div>
-            <Link to={"/login"} className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-2 rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all font-medium shadow-lg">
+            <Link to={"/login"} className="inline-flex h-9 shrink-0 items-center rounded-lg bg-white px-4 text-sm font-semibold text-brand-900 transition-colors hover:bg-white/90">
               Connexion
             </Link>
           </div>
@@ -1146,23 +1203,23 @@ const MapView: React.FC = () => {
       </header>
 
       <main className="h-[calc(100vh-56px)] flex flex-col px-3 py-3 gap-3">
-        <div className="bg-white/80 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-emerald-100">
+        <div className="card p-3">
           <div className="flex flex-wrap gap-2 items-center">
             <div className="flex-1 min-w-[250px]">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-400 w-4 h-4" />
-                <input type="text" placeholder="Rechercher..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 text-sm border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 bg-white/70" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+                <input type="text" placeholder="Rechercher..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="input h-9 pl-9" />
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Filter className="w-4 h-4 text-emerald-400" />
+              <span className="kicker flex items-center gap-1.5"><Filter className="size-3.5" />Filtres</span>
               <select value={selectedRegion} onChange={(e) => {
                 setSelectedRegion(e.target.value);
                 setSelectedDepartement('all');
                 setSelectedArrondissement('all');
                 setSelectedDistrict('all');
                 setSelectedAiresante('all');
-              }} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70">
+              }} className="input h-9 w-auto">
                 <option value="all">Toutes régions</option>
                 {regions.map(r => <option key={r} value={r}>{r}</option>)}
               </select>
@@ -1170,12 +1227,12 @@ const MapView: React.FC = () => {
               <select value={selectedDepartement} onChange={(e) => {
                 setSelectedDepartement(e.target.value);
                 setSelectedArrondissement('all');
-              }} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70" disabled={departements.length === 0}>
+              }} className="input h-9 w-auto" disabled={departements.length === 0}>
                 <option value="all">Tous départements</option>
                 {departements.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
 
-              <select value={selectedArrondissement} onChange={(e) => setSelectedArrondissement(e.target.value)} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70" disabled={arrondissements.length === 0}>
+              <select value={selectedArrondissement} onChange={(e) => setSelectedArrondissement(e.target.value)} className="input h-9 w-auto" disabled={arrondissements.length === 0}>
                 <option value="all">Tous arrondissements</option>
                 {arrondissements.map(a => <option key={a} value={a}>{a}</option>)}
               </select>
@@ -1184,13 +1241,13 @@ const MapView: React.FC = () => {
                 <select value={selectedDistrict} onChange={(e) => {
                   setSelectedDistrict(e.target.value);
                   setSelectedAiresante('all');
-                }} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70" disabled={loadingProgress.districtsData || districts.length === 0}>
+                }} className="input h-9 w-auto" disabled={loadingProgress.districtsData || districts.length === 0}>
                   <option value="all">Tous districts</option>
                   {districts.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
                 {loadingProgress.districtsData && (
                   <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                    <svg className="animate-spin h-4 w-4 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin size-4 text-brand-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -1199,13 +1256,13 @@ const MapView: React.FC = () => {
               </div>
 
               <div className="relative">
-                <select value={selectedAiresante} onChange={(e) => setSelectedAiresante(e.target.value)} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70" disabled={loadingProgress.airesantesData || airesantes.length === 0}>
+                <select value={selectedAiresante} onChange={(e) => setSelectedAiresante(e.target.value)} className="input h-9 w-auto" disabled={loadingProgress.airesantesData || airesantes.length === 0}>
                   <option value="all">Toutes aires de santé</option>
                   {airesantes.map(a => <option key={a} value={a}>{a}</option>)}
                 </select>
                 {loadingProgress.airesantesData && (
                   <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                    <svg className="animate-spin h-4 w-4 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin size-4 text-brand-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -1213,16 +1270,25 @@ const MapView: React.FC = () => {
                 )}
               </div>
 
-              <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70">
+              <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="input h-9 w-auto">
                 <option value="all">Toutes catégories</option>
+                <option value="CHU">CHU</option>
+                <option value="CHR">CHR</option>
+                <option value="CHD">CHD</option>
+                <option value="HG">HG</option>
+                <option value="HC">HC</option>
                 <option value="HR">HR</option>
                 <option value="HD">HD</option>
-                <option value="HC">HC</option>
                 <option value="CMA">CMA</option>
                 <option value="CSI">CSI</option>
+                <option value="SSD">SSD</option>
+                <option value="EF">EF</option>
+                <option value="DRS">DRS</option>
+                <option value="PRG">PRG</option>
+                <option value="Centre de santé">Centre de santé</option>
               </select>
 
-              <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70">
+              <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)} className="input h-9 w-auto">
                 <option value="all">Tous types</option>
                 <option value="public">Public</option>
                 <option value="parapublic">Parapublic</option>
@@ -1231,62 +1297,64 @@ const MapView: React.FC = () => {
               </select>
 
               {/* Nouveaux filtres pour titre foncier et clôture */}
-              <select value={selectedTitreFoncier} onChange={(e) => setSelectedTitreFoncier(e.target.value)} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70">
+              <select value={selectedTitreFoncier} onChange={(e) => setSelectedTitreFoncier(e.target.value)} className="input h-9 w-auto">
                 <option value="all">Titre foncier</option>
                 <option value="yes">Avec titre</option>
                 <option value="no">Sans titre</option>
               </select>
 
-              <select value={selectedCloture} onChange={(e) => setSelectedCloture(e.target.value)} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70">
+              <select value={selectedCloture} onChange={(e) => setSelectedCloture(e.target.value)} className="input h-9 w-auto">
                 <option value="all">Clôture</option>
                 <option value="yes">Avec clôture</option>
                 <option value="no">Sans clôture</option>
               </select>
 
-              <div className="flex items-center space-x-2">
-                <Layers className="w-4 h-4 text-emerald-400" />
-                <select value={mapStyle} onChange={(e) => setMapStyle(e.target.value)} className="border border-emerald-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 bg-white/70">
+              <div className="flex items-center gap-2">
+                <Layers className="size-4 text-gray-400" />
+                <select value={mapStyle} onChange={(e) => setMapStyle(e.target.value)} className="input h-9 w-auto">
                   {mapStyles.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </div>
 
-              <div className="flex items-center space-x-2 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-200">
-                <MapPin className="w-4 h-4 text-emerald-600" />
+              <div className="flex h-9 items-center gap-2 rounded-lg border border-brand-500 bg-brand-50 px-3">
+                <MapPin className="size-4 text-brand-500" />
                 {loadingFosas ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600"></div>
+                  <div className="size-4 animate-spin rounded-full border-b-2 border-brand-500"></div>
                 ) : (
-                  <span className="text-emerald-800 font-medium text-sm">{filteredHospitals.length}</span>
+                  <span className="text-sm font-semibold tabular-nums text-brand-600">{filteredHospitals.length}</span>
                 )}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex-1 bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-emerald-100 overflow-hidden">
+        <div className="card flex-1 overflow-hidden">
           <div className="h-full relative flex">
             {selectedHospital && (
-              <div className="w-[420px] h-full bg-white border-r border-emerald-200 overflow-y-auto custom-scrollbar z-[1000]">
-                <div className="sticky top-0 bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-4 z-10">
+              <div className="w-[420px] h-full bg-surface border-r border-gray-200 overflow-y-auto custom-scrollbar z-[1000]">
+                <div className="sticky top-0 z-10 bg-header p-4 text-white">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold mb-2">{selectedHospital.name}</h3>
+                      <p className="mb-1 text-[10px] uppercase tracking-[0.14em] text-white/60">Formation sanitaire</p>
+                      <h3 className="text-lg font-bold leading-tight">{selectedHospital.name}</h3>
                     </div>
-                    <button onClick={() => setSelectedHospital(null)} className="p-1 hover:bg-white/20 rounded-lg transition-colors">
-                      <X className="w-5 h-5" />
+                    <button onClick={() => setSelectedHospital(null)} className="rounded-lg p-1.5 text-white/85 transition-colors hover:bg-white/10" aria-label="Fermer">
+                      <X className="size-4" />
                     </button>
                   </div>
-                  <div className="mt-3 flex gap-3 text-sm flex-wrap">
-                    <span className={`px-3 py-1 rounded-lg font-semibold ${selectedHospital.status === "operational" ? "bg-green-500" : selectedHospital.status === "maintenance" ? "bg-yellow-500" : selectedHospital.status === "construction" ? "bg-blue-500" : "bg-gray-500"}`}>
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold ${selectedHospital.status === "operational" ? "bg-success text-white" : selectedHospital.status === "maintenance" ? "bg-warning text-white" : selectedHospital.status === "construction" ? "bg-brand-500 text-white" : "bg-gray-500 text-white"}`}>
+                      <span className="size-1.5 rounded-full bg-white" />
                       {getStatusText(selectedHospital.status)}
                     </span>
-                    <span className="bg-white/20 px-3 py-1 rounded-lg"><strong>Type:</strong> {getTypeText(selectedHospital.type)}</span>
-                    <span className="bg-white/20 px-3 py-1 rounded-lg"><strong>Catégorie:</strong> {selectedHospital.category}</span>
+                    <span className="rounded-full bg-white/15 px-2.5 py-1"><strong>Type:</strong> {getTypeText(selectedHospital.type)}</span>
+                    <span className="rounded-full bg-white/15 px-2.5 py-1"><strong>Catégorie:</strong> {selectedHospital.category}</span>
                   </div>
                 </div>
 
                 <div className="p-4 space-y-3">
                   {selectedHospital?.image && (
-                    <div className="w-full h-48 bg-gray-100 rounded-lg overflow-hidden border border-emerald-200">
+                    <div className="h-48 w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
                       <img
                         src={selectedHospital.image}
                         alt={selectedHospital.name}
@@ -1298,9 +1366,9 @@ const MapView: React.FC = () => {
                     </div>
                   )}
                   {!selectedHospital.image && (
-                    <div className="w-full h-48 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg flex items-center justify-center border border-emerald-200">
+                    <div className="flex h-48 w-full items-center justify-center rounded-xl border border-gray-200 bg-white">
                       <div className="text-center text-gray-400">
-                        <Building className="w-16 h-16 mx-auto mb-2" />
+                        <Building className="mx-auto mb-2 size-12" />
                         <p className="text-sm">Image non disponible</p>
                       </div>
                     </div>
@@ -1308,21 +1376,21 @@ const MapView: React.FC = () => {
 
                   <CollapsibleSection id={`capacity-${selectedHospital.id}`} title="Capacité" icon={Activity} defaultExpanded={true}>
                     <div className="grid grid-cols-2 gap-2">
-                      <div className="bg-emerald-50 p-3 rounded-lg text-center border border-emerald-200">
-                        <p className="text-2xl font-bold text-emerald-600">{selectedHospital.capacity?.beds || 0}</p>
-                        <p className="text-xs text-gray-600 mt-1">Lits</p>
+                      <div className="rounded-xl border border-gray-200 bg-surface p-3">
+                        <p className="kicker">Lits</p>
+                        <p className="mt-1.5 text-2xl font-bold leading-none tabular-nums text-gray-900">{selectedHospital.capacity?.beds || 0}</p>
                       </div>
-                      <div className="bg-teal-50 p-3 rounded-lg text-center border border-teal-200">
-                        <p className="text-2xl font-bold text-teal-600">{selectedHospital.batimentsCount || 0}</p>
-                        <p className="text-xs text-gray-600 mt-1">Bâtiments</p>
+                      <div className="rounded-xl border border-gray-200 bg-surface p-3">
+                        <p className="kicker">Bâtiments</p>
+                        <p className="mt-1.5 text-2xl font-bold leading-none tabular-nums text-gray-900">{selectedHospital.batimentsCount || 0}</p>
                       </div>
-                      <div className="bg-cyan-50 p-3 rounded-lg text-center border border-cyan-200">
-                        <p className="text-2xl font-bold text-cyan-600">{selectedHospital.vehiculesCount || 0}</p>
-                        <p className="text-xs text-gray-600 mt-1">Véhicules</p>
+                      <div className="rounded-xl border border-gray-200 bg-surface p-3">
+                        <p className="kicker">Véhicules</p>
+                        <p className="mt-1.5 text-2xl font-bold leading-none tabular-nums text-gray-900">{selectedHospital.vehiculesCount || 0}</p>
                       </div>
-                      <div className="bg-blue-50 p-3 rounded-lg text-center border border-blue-200">
-                        <p className="text-2xl font-bold text-blue-600">{selectedHospital.ambulancesCount || 0}</p>
-                        <p className="text-xs text-gray-600 mt-1">Ambulances</p>
+                      <div className="rounded-xl border border-gray-200 bg-surface p-3">
+                        <p className="kicker">Ambulances</p>
+                        <p className="mt-1.5 text-2xl font-bold leading-none tabular-nums text-gray-900">{selectedHospital.ambulancesCount || 0}</p>
                       </div>
                     </div>
                   </CollapsibleSection>
@@ -1331,9 +1399,9 @@ const MapView: React.FC = () => {
                     <div className="space-y-2">
                       {selectedHospital.personnelByCategory && (selectedHospital as any).personnelByCategory?.length > 0 ? (
                         (selectedHospital as any).personnelByCategory?.map((cat: any, idx: number) => (
-                          <div key={idx} className="flex justify-between items-center bg-gray-50 p-2 rounded-lg border border-gray-200">
+                          <div key={idx} className="flex items-center justify-between rounded-lg px-2 py-1.5 even:bg-row-alt">
                             <span className="text-xs text-gray-700">{cat.category}</span>
-                            <span className="text-sm font-bold text-emerald-600">{cat.count}</span>
+                            <span className="text-sm font-bold tabular-nums text-gray-900">{cat.count}</span>
                           </div>
                         ))
                       ) : (
@@ -1346,15 +1414,15 @@ const MapView: React.FC = () => {
 
                   <CollapsibleSection id={`security-${selectedHospital.id}`} title="Sécurité" icon={Shield} defaultExpanded={false}>
                     <div className="grid grid-cols-2 gap-2">
-                      <div className={`p-3 rounded-lg text-center border ${selectedHospital.aTitreFoncier ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                        <p className="text-xs text-gray-600 mb-1">Titre Foncier</p>
-                        <p className={`text-lg font-bold ${selectedHospital.aTitreFoncier ? 'text-green-600' : 'text-red-600'}`}>
+                      <div className={`rounded-xl p-3 ${selectedHospital.aTitreFoncier ? 'bg-success-soft' : 'bg-danger-soft'}`}>
+                        <p className="kicker mb-1">Titre Foncier</p>
+                        <p className={`text-lg font-bold ${selectedHospital.aTitreFoncier ? 'text-success' : 'text-danger'}`}>
                           {selectedHospital.aTitreFoncier ? 'Oui' : 'Non'}
                         </p>
                       </div>
-                      <div className={`p-3 rounded-lg text-center border ${selectedHospital.aCloture ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                        <p className="text-xs text-gray-600 mb-1">Clôture</p>
-                        <p className={`text-lg font-bold ${selectedHospital.aCloture ? 'text-green-600' : 'text-red-600'}`}>
+                      <div className={`rounded-xl p-3 ${selectedHospital.aCloture ? 'bg-success-soft' : 'bg-danger-soft'}`}>
+                        <p className="kicker mb-1">Clôture</p>
+                        <p className={`text-lg font-bold ${selectedHospital.aCloture ? 'text-success' : 'text-danger'}`}>
                           {selectedHospital.aCloture ? 'Oui' : 'Non'}
                         </p>
                       </div>
@@ -1364,7 +1432,7 @@ const MapView: React.FC = () => {
                   <CollapsibleSection id={`services-${selectedHospital.id}`} title="Services Disponibles" icon={Activity} defaultExpanded={false}>
                     <div className="flex flex-wrap gap-2">
                       {selectedHospital.services.map((service, idx) => (
-                        <span key={idx} className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full text-xs font-medium border border-emerald-200">
+                        <span key={idx} className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-600">
                           {service}
                         </span>
                       ))}
@@ -1374,22 +1442,22 @@ const MapView: React.FC = () => {
                   <CollapsibleSection id={`maintenance-${selectedHospital.id}`} title="État de Maintenance" icon={AlertTriangle} defaultExpanded={false}>
                     <div className="space-y-3">
                       <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div className="bg-gray-50 p-2 rounded-lg">
-                          <p className="text-xs text-gray-600 mb-1">Dernière inspection</p>
-                          <p className="font-semibold text-xs">{new Date(selectedHospital.maintenance.lastInspection).toLocaleDateString('fr-FR')}</p>
+                        <div className="rounded-xl bg-surface p-3">
+                          <p className="kicker mb-1">Dernière inspection</p>
+                          <p className="text-xs font-semibold text-gray-900">{new Date(selectedHospital.maintenance.lastInspection).toLocaleDateString('fr-FR')}</p>
                         </div>
-                        <div className="bg-gray-50 p-2 rounded-lg">
-                          <p className="text-xs text-gray-600 mb-1">Prochaine inspection</p>
-                          <p className="font-semibold text-xs">{new Date(selectedHospital.maintenance.nextInspection).toLocaleDateString('fr-FR')}</p>
+                        <div className="rounded-xl bg-surface p-3">
+                          <p className="kicker mb-1">Prochaine inspection</p>
+                          <p className="text-xs font-semibold text-gray-900">{new Date(selectedHospital.maintenance.nextInspection).toLocaleDateString('fr-FR')}</p>
                         </div>
                       </div>
                       {selectedHospital.maintenance.issues.length > 0 && (
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-2">
-                          <p className="text-xs font-semibold text-red-700 mb-2">Problèmes identifiés:</p>
-                          <ul className="space-y-1 text-xs text-red-600">
+                        <div className="rounded-xl border border-danger/20 bg-danger-soft p-3">
+                          <p className="mb-2 text-xs font-semibold text-danger">Problèmes identifiés:</p>
+                          <ul className="space-y-1 text-xs text-danger">
                             {selectedHospital.maintenance.issues.map((issue, idx) => (
                               <li key={idx} className="flex items-start gap-2">
-                                <AlertTriangle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                                <AlertTriangle className="mt-0.5 size-3 flex-shrink-0" />
                                 <span>{issue}</span>
                               </li>
                             ))}
@@ -1399,11 +1467,15 @@ const MapView: React.FC = () => {
                     </div>
                   </CollapsibleSection>
 
-                  <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-3 rounded-lg border border-emerald-200">
-                    <p className="text-sm font-semibold text-gray-700 mb-2">Contact</p>
-                    <div className="space-y-1 text-xs">
-                      <p><strong>Téléphone:</strong> {selectedHospital.contact.phone}</p>
-                      <p><strong>Email:</strong> {selectedHospital.contact.email}</p>
+                  <div className="rounded-xl border border-gray-200 bg-white p-4">
+                    <p className="kicker mb-2">Contact</p>
+                    <div className="space-y-1 text-xs text-gray-700">
+                      {selectedHospital.contact.phone && (
+                        <p><strong>Téléphone:</strong> {selectedHospital.contact.phone}</p>
+                      )}
+                      {(selectedHospital as any).responsableNom && (
+                        <p><strong>Responsable:</strong> {(selectedHospital as any).responsableNom}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1412,6 +1484,7 @@ const MapView: React.FC = () => {
 
             <div className="flex-1 relative">
               <MapContainer center={CAMEROON_CENTER} zoom={6} minZoom={6} maxBounds={createSafeBounds(CAMEROON_BOUNDS_COORDS)} style={{ height: "100%", width: "100%" }} className="rounded-2xl">
+                <MapRefBridge onReady={setMapInstance} />
                 <MapController
                   selectedRegion={selectedRegion}
                   selectedDepartement={selectedDepartement}
@@ -1427,18 +1500,18 @@ const MapView: React.FC = () => {
                 <TileLayer url={mapStyles.find(s => s.id === mapStyle)?.url || mapStyles[0].url} />
 
                 {layersVisibility.cameroon && cameroonPolygon.length > 0 && (
-                  <Polygon positions={cameroonPolygon} pathOptions={{ fillColor: '#10b981', fillOpacity: 0.05, color: '#10b981', weight: 2, opacity: 0.6 }} />
+                  <Polygon positions={cameroonPolygon} pathOptions={{ fillColor: '#007ac3', fillOpacity: 0.05, color: '#007ac3', weight: 2, opacity: 0.6 }} />
                 )}
 
                 {layersVisibility.regions && selectedRegion && regionsPolygons[selectedRegion] && (
                   <Polygon
                     positions={regionsPolygons[selectedRegion]}
                     pathOptions={{
-                      fillColor: '#FBBF24',  // Jaune pour sélection
-                      fillOpacity: 0.65,
-                      color: '#D97706',  // Bordure orange foncé
-                      weight: 3,
-                      opacity: 1
+                      fillColor: '#FBBF24',
+                      fillOpacity: 0.15,
+                      color: '#D97706',
+                      weight: 2,
+                      opacity: 0.6
                     }}
                   />
                 )}
@@ -1447,10 +1520,10 @@ const MapView: React.FC = () => {
                   <Polygon
                     positions={departementsPolygons[selectedDepartement]}
                     pathOptions={{
-                      fillColor: '#EF4444',  // Rouge pour sélection
-                      fillOpacity: 0.65,
-                      color: '#991B1B',  // Bordure rouge foncé
-                      weight: 3,
+                      fillColor: '#EF4444',
+                      fillOpacity: 0.12,
+                      color: '#991B1B',
+                      weight: 2,
                       opacity: 1
                     }}
                   />
@@ -1460,11 +1533,11 @@ const MapView: React.FC = () => {
                   <Polygon
                     positions={arrondissementsPolygons[selectedArrondissement]}
                     pathOptions={{
-                      fillColor: '#F97316',  // Orange pour sélection
-                      fillOpacity: 0.65,
-                      color: '#9A3412',  // Bordure orange foncé
-                      weight: 3,
-                      opacity: 1
+                      fillColor: '#F97316',
+                      fillOpacity: 0.12,
+                      color: '#9A3412',
+                      weight: 2,
+                      opacity: 0.6
                     }}
                   />
                 )}
@@ -1512,6 +1585,13 @@ const MapView: React.FC = () => {
                 ))}
               </MapContainer>
 
+              <TilePreloader
+                map={mapInstance}
+                tileUrlTemplate={mapStyles.find(s => s.id === mapStyle)?.url || mapStyles[0].url}
+                extraZoomLevels={2}
+                className="bottom-8 right-4"
+              />
+
               <div className="absolute bottom-8 left-20 z-[1000] max-w-sm space-y-3">
                 <ThematicAnalysis
                   entitiesData={
@@ -1536,141 +1616,151 @@ const MapView: React.FC = () => {
                 )}
               </div>
 
-              <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-xl border border-emerald-200 z-[1000] max-h-[80vh] overflow-y-auto custom-scrollbar">
-                <h4 className="font-semibold text-gray-800 mb-3 text-sm flex items-center gap-2">
-                  <Layers className="w-4 h-4" />
+              <div className="absolute top-4 right-4 z-[1000] max-h-[80vh] overflow-y-auto rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-lg backdrop-blur-sm custom-scrollbar">
+                <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">
+                  <span className="flex size-7 items-center justify-center rounded-lg bg-brand-50 text-brand-500">
+                    <Layers className="size-4" />
+                  </span>
                   Couches de la carte
                 </h4>
-                <div className="space-y-2 text-xs">
-                  <div className="pb-2 border-b border-emerald-100">
-                    <p className="font-semibold text-gray-700 mb-2">Divisions géographiques</p>
-                    <div className="space-y-2">
-                      <label className="flex items-center space-x-2 cursor-pointer hover:bg-emerald-50 p-1 rounded">
+                <div className="space-y-3 text-xs text-gray-700">
+                  <div className="border-b border-gray-100 pb-3">
+                    <p className="kicker mb-2">Divisions géographiques</p>
+                    <div className="space-y-0.5">
+                      <label className="flex cursor-pointer items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-gray-50">
                         <input
                           type="checkbox"
                           checked={layersVisibility.cameroon}
                           onChange={() => toggleLayer('cameroon')}
-                          className="w-4 h-4 text-emerald-600 rounded"
+                          className="size-4 rounded accent-brand-500"
                         />
-                        <div className="w-4 h-4 border-2 border-emerald-600 bg-emerald-50"></div>
+                        <div className="size-3.5 rounded border-2" style={{ borderColor: '#007ac3', backgroundColor: 'rgba(0,122,195,0.08)' }}></div>
                         <span>Cameroun</span>
                       </label>
-                      <label className="flex items-center space-x-2 cursor-pointer hover:bg-emerald-50 p-1 rounded">
+                      <label className="flex cursor-pointer items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-gray-50">
                         <input
                           type="checkbox"
                           checked={layersVisibility.regions}
                           onChange={() => toggleLayer('regions')}
-                          className="w-4 h-4 text-emerald-600 rounded"
+                          className="size-4 rounded accent-brand-500"
                         />
-                        <div className="w-4 h-4 border-2 border-emerald-600 bg-emerald-100"></div>
+                        <div className="size-3.5 rounded border-2" style={{ borderColor: '#D97706', backgroundColor: 'rgba(251,191,36,0.25)' }}></div>
                         <span>Régions</span>
                       </label>
-                      <label className="flex items-center space-x-2 cursor-pointer hover:bg-cyan-50 p-1 rounded">
+                      <label className="flex cursor-pointer items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-gray-50">
                         <input
                           type="checkbox"
                           checked={layersVisibility.departements}
                           onChange={() => toggleLayer('departements')}
-                          className="w-4 h-4 text-cyan-600 rounded"
+                          className="size-4 rounded accent-brand-500"
                         />
-                        <div className="w-4 h-4 border-2 border-cyan-600 bg-cyan-50"></div>
+                        <div className="size-3.5 rounded border-2" style={{ borderColor: '#991B1B', backgroundColor: 'rgba(239,68,68,0.2)' }}></div>
                         <span>Départements</span>
                       </label>
-                      <label className="flex items-center space-x-2 cursor-pointer hover:bg-blue-50 p-1 rounded">
+                      <label className="flex cursor-pointer items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-gray-50">
                         <input
                           type="checkbox"
                           checked={layersVisibility.arrondissements}
                           onChange={() => toggleLayer('arrondissements')}
-                          className="w-4 h-4 text-blue-600 rounded"
+                          className="size-4 rounded accent-brand-500"
                         />
-                        <div className="w-4 h-4 border-2 border-blue-600 bg-blue-50"></div>
+                        <div className="size-3.5 rounded border-2" style={{ borderColor: '#9A3412', backgroundColor: 'rgba(249,115,22,0.2)' }}></div>
                         <span>Arrondissements</span>
                       </label>
-                      <label className="flex items-center space-x-2 cursor-pointer hover:bg-purple-50 p-1 rounded">
+                      <label className="flex cursor-pointer items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-gray-50">
                         <input
                           type="checkbox"
                           checked={layersVisibility.districts}
                           onChange={() => toggleLayer('districts')}
-                          className="w-4 h-4 text-purple-600 rounded"
+                          className="size-4 rounded accent-brand-500"
                         />
-                        <div className="w-4 h-4 border-2 border-purple-600 bg-purple-50"></div>
+                        <div className="size-3.5 rounded border-2" style={{ borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.15)' }}></div>
                         <span>Districts sanitaires</span>
                       </label>
-                      <label className="flex items-center space-x-2 cursor-pointer hover:bg-pink-50 p-1 rounded">
+                      <label className="flex cursor-pointer items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-gray-50">
                         <input
                           type="checkbox"
                           checked={layersVisibility.airesantes}
                           onChange={() => toggleLayer('airesantes')}
-                          className="w-4 h-4 text-pink-600 rounded"
+                          className="size-4 rounded accent-brand-500"
                         />
-                        <div className="w-4 h-4 border-2 border-pink-600 bg-pink-50"></div>
+                        <div className="size-3.5 rounded border-2" style={{ borderColor: '#ec4899', backgroundColor: 'rgba(236,72,153,0.12)' }}></div>
                         <span>Aires de santé</span>
                       </label>
                     </div>
                   </div>
 
-                  <div className="pb-2 border-b border-emerald-100">
-                    <p className="font-semibold text-gray-700 mb-2">Formations sanitaires</p>
-                    <label className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-1 rounded mb-2">
+                  <div className="border-b border-gray-100 pb-3">
+                    <p className="kicker mb-2">Formations sanitaires</p>
+                    <label className="flex cursor-pointer items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-gray-50 mb-1.5">
                       <input
                         type="checkbox"
                         checked={layersVisibility.hospitals}
                         onChange={() => toggleLayer('hospitals')}
-                        className="w-4 h-4 text-emerald-600 rounded"
+                        className="size-4 rounded accent-brand-500"
                       />
-                      <span className="font-medium">Afficher les FOSA</span>
+                      <span className="font-semibold text-gray-900">Afficher les FOSA</span>
                     </label>
-                    <div className="space-y-1 ml-6">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-4 h-4 bg-green-500 rounded-full shadow"></div>
-                        <span>Opérationnel</span>
+                    <div className="ml-7 space-y-1.5 text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <div className="size-3.5 shrink-0 rounded-full border-2 border-white shadow" style={{ backgroundColor: '#EF4444' }}></div>
+                        <span>HD, CMA, CSI, HR, HC, HG, CHU, CHR, CHD</span>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-4 h-4 bg-yellow-500 rounded-full shadow"></div>
-                        <span>Maintenance</span>
+                      <div className="flex items-center gap-2">
+                        <div className="size-3.5 shrink-0 rounded-full border-2 border-white shadow" style={{ backgroundColor: '#10B981' }}></div>
+                        <span>SSD</span>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-4 h-4 bg-blue-500 rounded-full shadow"></div>
-                        <span>Construction</span>
+                      <div className="flex items-center gap-2">
+                        <div className="size-3.5 shrink-0 rounded-full border-2 border-white shadow" style={{ backgroundColor: '#3B82F6' }}></div>
+                        <span>EF</span>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-4 h-4 bg-gray-500 rounded-full shadow"></div>
-                        <span>Fermé</span>
+                      <div className="flex items-center gap-2">
+                        <div className="size-3.5 shrink-0 rounded-full border-2 border-white shadow" style={{ backgroundColor: '#000000' }}></div>
+                        <span>PRG</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="size-3.5 shrink-0 rounded-full border-2 border-white shadow" style={{ backgroundColor: '#FACC15' }}></div>
+                        <span>DRS</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="size-3.5 shrink-0 rounded-full border-2 border-gray-700 shadow" style={{ backgroundColor: '#FFFFFF' }}></div>
+                        <span>Autre</span>
                       </div>
                     </div>
                   </div>
 
                   {(selectedRegion !== 'all' || selectedDepartement !== 'all' || selectedArrondissement !== 'all' || selectedDistrict !== 'all' || selectedAiresante !== 'all') && (
-                    <div className="pt-2 border-t border-emerald-200">
-                      <p className="font-semibold text-gray-700 mb-2">Sélection active</p>
+                    <div>
+                      <p className="kicker mb-2">Sélection active</p>
                       <div className="space-y-1">
                         {selectedRegion !== 'all' && (
-                          <div className="flex items-center space-x-2">
-                            <div className="w-4 h-4 border-2 border-teal-500 bg-teal-100"></div>
-                            <span className="text-teal-600 font-medium text-xs">{selectedRegion}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="size-3.5 rounded border-2" style={{ borderColor: '#D97706', backgroundColor: 'rgba(251,191,36,0.25)' }}></div>
+                            <span className="text-xs font-semibold text-gray-900">{selectedRegion}</span>
                           </div>
                         )}
                         {selectedDepartement !== 'all' && (
-                          <div className="flex items-center space-x-2">
-                            <div className="w-4 h-4 border-2 border-cyan-600 bg-cyan-100"></div>
-                            <span className="text-cyan-700 font-medium text-xs">{selectedDepartement}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="size-3.5 rounded border-2" style={{ borderColor: '#991B1B', backgroundColor: 'rgba(239,68,68,0.2)' }}></div>
+                            <span className="text-xs font-semibold text-gray-900">{selectedDepartement}</span>
                           </div>
                         )}
                         {selectedArrondissement !== 'all' && (
-                          <div className="flex items-center space-x-2">
-                            <div className="w-4 h-4 border-2 border-blue-600 bg-blue-100"></div>
-                            <span className="text-blue-700 font-medium text-xs">{selectedArrondissement}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="size-3.5 rounded border-2" style={{ borderColor: '#9A3412', backgroundColor: 'rgba(249,115,22,0.2)' }}></div>
+                            <span className="text-xs font-semibold text-gray-900">{selectedArrondissement}</span>
                           </div>
                         )}
                         {selectedDistrict !== 'all' && (
-                          <div className="flex items-center space-x-2">
-                            <div className="w-4 h-4 border-2 border-purple-600 bg-purple-100"></div>
-                            <span className="text-purple-700 font-medium text-xs">{selectedDistrict}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="size-3.5 rounded border-2" style={{ borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.15)' }}></div>
+                            <span className="text-xs font-semibold text-gray-900">{selectedDistrict}</span>
                           </div>
                         )}
                         {selectedAiresante !== 'all' && (
-                          <div className="flex items-center space-x-2">
-                            <div className="w-4 h-4 border-2 border-pink-600 bg-pink-100"></div>
-                            <span className="text-pink-700 font-medium text-xs">{selectedAiresante}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="size-3.5 rounded border-2" style={{ borderColor: '#ec4899', backgroundColor: 'rgba(236,72,153,0.12)' }}></div>
+                            <span className="text-xs font-semibold text-gray-900">{selectedAiresante}</span>
                           </div>
                         )}
                       </div>
@@ -1687,9 +1777,9 @@ const MapView: React.FC = () => {
         .custom-popup .leaflet-popup-content-wrapper {
           padding: 0;
           border-radius: 16px;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+          box-shadow: 0 10px 30px -8px rgba(0, 55, 88, 0.25);
           overflow: hidden;
-          border: 2px solid rgba(16, 185, 129, 0.2);
+          border: 1px solid #e5e7eb;
         }
         
         .custom-popup .leaflet-popup-content {
@@ -1708,17 +1798,17 @@ const MapView: React.FC = () => {
         }
         
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f0fdf4;
+          background: #f3f4f6;
           border-radius: 4px;
         }
         
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, #10b981, #14b8a6);
+          background: #c7d2dc;
           border-radius: 4px;
         }
         
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to bottom, #059669, #0d9488);
+          background: #007ac3;
         }
       `}</style>
     </div>

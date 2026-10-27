@@ -137,36 +137,36 @@ export interface Fosa {
 }
 
 export const apiService = {
-  // Regions
-  async getRegions(): Promise<Region[]> {
+  // Regions (include_geom pour la carte)
+  async getRegions(includeGeom = true): Promise<Region[]> {
     return cacheService.getOrFetch(
-      CacheKeys.regions(),
+      CacheKeys.regions() + (includeGeom ? ':geom' : ''),
       async () => {
-        const response = await apiClient.get("/regions");
+        const response = await apiClient.get("/regions", { params: includeGeom ? { include_geom: true } : {} });
         return response.data.data;
       },
       CacheTTL.REGIONS
     );
   },
 
-  // Departements
-  async getDepartements(): Promise<Departement[]> {
+  // Departements (include_geom pour la carte)
+  async getDepartements(includeGeom = true): Promise<Departement[]> {
     return cacheService.getOrFetch(
-      CacheKeys.departements(),
+      CacheKeys.departements() + (includeGeom ? ':geom' : ''),
       async () => {
-        const response = await apiClient.get("/departements");
+        const response = await apiClient.get("/departements", { params: includeGeom ? { include_geom: true } : {} });
         return response.data.data;
       },
       CacheTTL.DEPARTEMENTS
     );
   },
 
-  // Arrondissements
-  async getArrondissements(): Promise<Arrondissement[]> {
+  // Arrondissements (sans geom par défaut - trop lourd)
+  async getArrondissements(includeGeom = true): Promise<Arrondissement[]> {
     return cacheService.getOrFetch(
-      CacheKeys.arrondissements(),
+      CacheKeys.arrondissements() + (includeGeom ? ':geom' : ''),
       async () => {
-        const response = await apiClient.get("/arrondissements");
+        const response = await apiClient.get("/arrondissements", { params: includeGeom ? { include_geom: true } : {} });
         return response.data.data;
       },
       CacheTTL.ARRONDISSEMENTS
@@ -221,11 +221,11 @@ export const apiService = {
   },
 
   // Districts
-  async getDistricts(): Promise<District[]> {
+  async getDistricts(includeGeom = false): Promise<District[]> {
     return cacheService.getOrFetch(
-      CacheKeys.districts(),
+      CacheKeys.districts() + (includeGeom ? ':geom' : ''),
       async () => {
-        const response = await apiClient.get("/districts");
+        const response = await apiClient.get("/districts", { params: includeGeom ? { include_geom: true } : {} });
         return response.data.data;
       },
       CacheTTL.DISTRICTS

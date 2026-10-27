@@ -36,6 +36,7 @@ COPY --from=vendor --chown=www-data:www-data /app /var/www/html
 
 RUN mkdir -p storage/app/public storage/framework/cache storage/framework/sessions \
       storage/framework/views storage/logs bootstrap/cache \
+    && find app routes config bootstrap -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null \
     && php artisan package:discover --ansi \
     && chown -R www-data:www-data storage bootstrap/cache
 

@@ -1,7 +1,6 @@
 import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestConfig } from "axios"
 import config from "../config/api"
 
-// Create axios instance
 const api: AxiosInstance = axios.create({
   baseURL: config.apiUrl,
   timeout: config.timeout,
@@ -24,36 +23,33 @@ api.interceptors.request.use(
   },
 )
 
-// Flag to prevent multiple redirects
 let isRedirecting = false
 
-// Response interceptor - Handle errors
+// Response interceptor - Handle 401
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
-      const isLoginRequest = error.config?.url?.includes('/auth/login')
+      const url = error.config?.url || ''
+      const isLoginRequest = url.includes('/auth/login')
       const currentPath = window.location.pathname
 
-      // Only handle 401 if:
-      // 1. It's not a login request (avoid clearing on failed login)
-      // 2. We're not already on login/home page
-      // 3. We're not already redirecting
+      // Ne déconnecter que sur les requêtes auth explicites (pas les requêtes de données)
+      // Quand une requête de données retourne 401, c'est normal si le token a expiré
+      // mais on ne force pas la déconnexion immédiate
+      const isAuthRoute = url.includes('/auth/me') || url.includes('/auth/refresh')
+
       if (!isLoginRequest && currentPath !== '/login' && currentPath !== '/' && !isRedirecting) {
-        isRedirecting = true
-
-        // Token expired or invalid
-        localStorage.removeItem("token")
-        localStorage.removeItem("user")
-        localStorage.removeItem("refreshToken")
-
-        // Redirect to login
-        window.location.href = "/login"
-
-        // Reset flag after redirect
-        setTimeout(() => {
-          isRedirecting = false
-        }, 1000)
+        if (isAuthRoute) {
+          // Token vraiment expiré - déconnecter
+          isRedirecting = true
+          localStorage.removeItem("token")
+          localStorage.removeItem("user")
+          localStorage.removeItem("refreshToken")
+          window.location.href = "/login"
+          setTimeout(() => { isRedirecting = false }, 1000)
+        }
+        // Pour les autres requêtes, juste propager l'erreur sans déconnecter
       }
     }
     return Promise.reject(error)

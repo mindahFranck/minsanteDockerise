@@ -2,20 +2,109 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+/*
+  Système de design repris de BAOBAB : surface d'application gris très clair,
+  cartes blanches à coins arrondis et ombre douce, bandeau bleu marine.
+*/
+@layer base {
+  :root {
+    font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+    color: #111827;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: #f8f8f8;
+  }
 }
 
-body {
-  margin: 0;
-  min-height: 100vh;
+@layer components {
+  /* --- Surfaces ---------------------------------------------------------- */
+  .card {
+    @apply rounded-2xl border border-gray-200 bg-white shadow-sm;
+  }
+  .card-header {
+    @apply flex flex-wrap items-center justify-between gap-3 px-6 pt-5 pb-4;
+  }
+  .card-title {
+    @apply text-base font-semibold text-gray-900;
+  }
+  .card-subtitle {
+    @apply text-sm text-gray-500;
+  }
+
+  /* --- Libellés de KPI : petites capitales espacées ---------------------- */
+  .kicker {
+    @apply text-[11px] font-medium uppercase tracking-[0.12em] text-gray-500;
+  }
+
+  /* --- Boutons ----------------------------------------------------------- */
+  .btn {
+    @apply inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-sm {
+    @apply h-8 rounded-lg px-3 text-xs;
+  }
+  .btn-primary {
+    @apply bg-brand-500 text-white shadow-sm hover:bg-brand-600;
+  }
+  .btn-outline {
+    @apply border border-gray-200 bg-white text-gray-900 hover:bg-gray-50;
+  }
+  .btn-soft {
+    @apply bg-brand-50 text-brand-500 hover:bg-brand-100;
+  }
+  .btn-ghost {
+    @apply text-gray-700 hover:bg-gray-100;
+  }
+  .btn-danger {
+    @apply bg-danger text-white shadow-sm hover:bg-danger/90;
+  }
+  .btn-success {
+    @apply bg-success text-white shadow-sm hover:bg-success/90;
+  }
+  .btn-icon {
+    @apply inline-flex size-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900;
+  }
+
+  /* --- Champs ------------------------------------------------------------ */
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-gray-700;
+  }
+  .input {
+    @apply h-10 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:bg-gray-50 disabled:text-gray-500;
+  }
+  textarea.input {
+    @apply h-auto py-2;
+  }
+
+  /* --- Pastilles de filtre (barre sous le bandeau) ----------------------- */
+  .chip {
+    @apply inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 transition-colors hover:bg-gray-50;
+  }
+  .chip-active {
+    @apply border-brand-500 bg-brand-50 text-brand-600;
+  }
+
+  /* --- Tableaux ---------------------------------------------------------- */
+  .table-head th {
+    @apply bg-table-head px-4 py-3 text-left font-table text-[11px] font-semibold uppercase tracking-[0.08em] text-table-head-foreground;
+  }
+  .table-body tr {
+    @apply border-b border-gray-100 transition-colors even:bg-row-alt hover:bg-row-hover;
+  }
+  .table-body td {
+    @apply px-4 py-3 text-sm text-gray-900;
+  }
 }
 
 /* Tooltip permanent pour FOSA sélectionnée */
 .permanent-tooltip.leaflet-tooltip {
-  background-color: rgba(16, 185, 129, 0.95);
+  background-color: rgba(0, 122, 195, 0.95);
   color: white;
   border: 2px solid white;
   border-radius: 8px;
@@ -27,5 +116,5 @@ body {
 }
 
 .permanent-tooltip.leaflet-tooltip::before {
-  border-top-color: rgba(16, 185, 129, 0.95);
+  border-top-color: rgba(0, 122, 195, 0.95);
 }

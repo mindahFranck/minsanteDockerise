@@ -39,23 +39,24 @@ const MapLegend: React.FC<MapLegendProps> = ({ theme }) => {
   };
 
   return (
-    <div className="bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-xl border border-emerald-200 max-w-xs">
-      <h4 className="font-semibold text-gray-800 text-sm mb-3 flex items-center gap-2">
+    <div className="max-w-xs rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-lg backdrop-blur-sm">
+      <p className="kicker mb-1">Légende</p>
+      <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900 [&_svg]:text-brand-500">
         {theme.icon}
         Légende: {theme.name}
       </h4>
       <div className="space-y-2 text-xs">
         {getLegendItems().map((item, index) => (
-          <div key={index} className="flex items-center space-x-2">
+          <div key={index} className="flex items-center gap-2">
             <div
-              className="w-4 h-4 rounded border border-gray-300"
+              className="size-3.5 shrink-0 rounded border border-black/10"
               style={{ backgroundColor: item.color }}
             />
             <span className="text-gray-700">{item.label}</span>
           </div>
         ))}
       </div>
-      <div className="mt-3 pt-2 border-t border-gray-200">
+      <div className="mt-3 border-t border-gray-100 pt-3">
         <p className="text-xs text-gray-500">
           {theme.description}
         </p>

@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { AuthProvider } from "./contexts/AuthContext"
 import Login from "./pages/Login"
 import Dashboard from "./pages/Dashboard"
@@ -26,14 +26,13 @@ import ParametresPage from "./pages/ParametresPage"
 import UsersPage from "./pages/UsersPage"
 import MapView from "./components/map/MapView"
 import ImportExcelPage from "./pages/ImportExcelPage"
+import OfflinePage from "./pages/OfflinePage"
+import OfflineIndicator from "./components/OfflineIndicator"
+import PWAInstallPrompt from "./components/PWAInstallPrompt"
+import ServiceWorkerUpdate from "./components/ServiceWorkerUpdate"
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-
-  useEffect(() => {
-    const token = localStorage.getItem("token")
-    setIsAuthenticated(!!token)
-  }, [])
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem("token"))
 
   const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return isAuthenticated ? <>{children}</> : <Navigate to="/login" />
@@ -42,6 +41,9 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+      <OfflineIndicator />
+      <PWAInstallPrompt />
+      <ServiceWorkerUpdate />
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<MapView />} />
@@ -83,6 +85,7 @@ function App() {
           <Route path="parametres" element={<ParametresPage />} />
           <Route path="degradations" element={<DegradationsPage />} />
           <Route path="import" element={<ImportExcelPage />} />
+          <Route path="hors-ligne" element={<OfflinePage />} />
 
           {/* Visualisation */}
         </Route>

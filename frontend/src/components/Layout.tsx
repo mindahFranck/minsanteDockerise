@@ -2,36 +2,147 @@
 
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom"
 import {
-  LayoutDashboard, Map, Building2, Users, Package, Truck, MapPin, LogOut, Menu, X,
-  Building, Wrench, Activity, Tag, AlertTriangle, Settings, UserCircle, Stethoscope,
-  ChevronDown, ChevronRight, FileSpreadsheet
+  Map, LogOut, Menu, X, ChevronDown, LayoutDashboard, MapPin, Building2, Building, Activity,
+  Users, Tag, Package, Stethoscope, Truck, UserCircle, FileSpreadsheet, Settings, WifiOff, AlertTriangle,
 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useRef, useState, type ComponentType } from "react"
 import { usePermissions } from "../hooks/usePermissions"
+import { useAuth } from "../contexts/AuthContext"
+import { cn } from "./ui"
 
 interface LayoutProps {
   onLogout: () => void
 }
 
+type PermissionKey = keyof ReturnType<typeof usePermissions>
+
 interface NavItem {
   name: string
   href: string
-  icon: any
-  requiresPermission?: keyof ReturnType<typeof usePermissions>
+  icon: ComponentType<{ className?: string }>
+  requiresPermission?: PermissionKey
 }
 
 interface NavSection {
   title: string
+  /** Lien direct (pas de menu déroulant). */
+  href?: string
   items: NavItem[]
-  collapsible?: boolean
 }
 
+const ROLE_LABELS: Record<string, string> = {
+  super_admin: "Super administrateur",
+  admin: "Administrateur",
+  manager: "Gestionnaire",
+  user: "Utilisateur",
+}
+
+const NAVIGATION: NavSection[] = [
+  {
+    title: "Tableau de bord",
+    href: "/dashboard",
+    items: [{ name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard, requiresPermission: "canView" }],
+  },
+  {
+    title: "Géographie",
+    items: [
+      { name: "Régions", href: "/dashboard/regions", icon: MapPin, requiresPermission: "canViewAllRegions" },
+      { name: "Départements", href: "/dashboard/departements", icon: MapPin, requiresPermission: "canViewAllRegions" },
+      { name: "Arrondissements", href: "/dashboard/arrondissements", icon: MapPin, requiresPermission: "canViewAllRegions" },
+      { name: "Districts", href: "/dashboard/districts", icon: MapPin, requiresPermission: "canViewAllRegions" },
+      { name: "Aires de santé", href: "/dashboard/airesantes", icon: MapPin, requiresPermission: "canViewAllRegions" },
+    ],
+  },
+  {
+    title: "Infrastructures",
+    items: [
+      { name: "FOSA", href: "/dashboard/fosas", icon: Building2, requiresPermission: "canView" },
+      { name: "Bâtiments", href: "/dashboard/batiments", icon: Building, requiresPermission: "canView" },
+      { name: "Services", href: "/dashboard/services", icon: Activity, requiresPermission: "canView" },
+    ],
+  },
+  {
+    title: "Personnel",
+    items: [
+      { name: "Personnel", href: "/dashboard/personnels", icon: Users, requiresPermission: "canView" },
+      { name: "Catégories", href: "/dashboard/categories", icon: Tag, requiresPermission: "canView" },
+    ],
+  },
+  {
+    title: "Équipements",
+    items: [
+      { name: "Équipements", href: "/dashboard/equipements", icon: Package, requiresPermission: "canView" },
+      { name: "Équipements biomédicaux", href: "/dashboard/equipebios", icon: Stethoscope, requiresPermission: "canView" },
+      { name: "Matériel roulant", href: "/dashboard/materielroulants", icon: Truck, requiresPermission: "canView" },
+    ],
+  },
+  {
+    title: "Administration",
+    items: [
+      { name: "Utilisateurs", href: "/dashboard/users", icon: UserCircle, requiresPermission: "canManageUsers" },
+      { name: "Import Excel", href: "/dashboard/import", icon: FileSpreadsheet, requiresPermission: "canImportData" },
+      { name: "Paramètres", href: "/dashboard/parametres", icon: Settings, requiresPermission: "canManageSettings" },
+      { name: "Dégradations", href: "/dashboard/degradations", icon: AlertTriangle, requiresPermission: "canManageDegradations" },
+      { name: "Mode hors ligne", href: "/dashboard/hors-ligne", icon: WifiOff },
+    ],
+  },
+]
+
+function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  return (parts[0]?.[0] ?? "?").concat(parts[1]?.[0] ?? "").toUpperCase()
+}
+
+/**
+ * Cadre des écrans authentifiés, sur le modèle BAOBAB : bandeau bleu marine
+ * (marque, onglets, profil) au-dessus d'une surface gris clair.
+ */
 export default function Layout({ onLogout }: LayoutProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const permissions = usePermissions()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [expandedSections, setExpandedSections] = useState<string[]>(['Principal', 'Géographie', 'Infrastructures'])
+  const { user } = useAuth()
+  const [openMenu, setOpenMenu] = useState<string | null>(null)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const navRef = useRef<HTMLElement>(null)
+
+  const stored = user ?? JSON.parse(localStorage.getItem("user") || "null")
+  const displayName =
+    [stored?.firstName ?? stored?.prenom, stored?.lastName ?? stored?.nom].filter(Boolean).join(" ") ||
+    stored?.name ||
+    stored?.email ||
+    "Utilisateur"
+  const roleLabel = ROLE_LABELS[stored?.role ?? ""] ?? ""
+
+  const sections = NAVIGATION.map((section) => ({
+    ...section,
+    items: section.items.filter((item) => !item.requiresPermission || permissions[item.requiresPermission] === true),
+  })).filter((section) => section.items.length > 0)
+
+  const isActive = (href: string) => location.pathname === href
+  const sectionActive = (section: NavSection) =>
+    section.href ? location.pathname === section.href : section.items.some((item) => isActive(item.href))
+
+  // Ferme les menus à chaque changement de page et au clic hors du bandeau.
+  useEffect(() => {
+    setOpenMenu(null)
+    setMobileOpen(false)
+  }, [location.pathname])
+
+  useEffect(() => {
+    const onClick = (event: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(event.target as Node)) setOpenMenu(null)
+    }
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpenMenu(null)
+    }
+    document.addEventListener("mousedown", onClick)
+    document.addEventListener("keydown", onKey)
+    return () => {
+      document.removeEventListener("mousedown", onClick)
+      document.removeEventListener("keydown", onKey)
+    }
+  }, [])
 
   const handleLogout = () => {
     localStorage.removeItem("token")
@@ -40,203 +151,157 @@ export default function Layout({ onLogout }: LayoutProps) {
     navigate("/")
   }
 
-  const toggleSection = (title: string) => {
-    setExpandedSections(prev =>
-      prev.includes(title)
-        ? prev.filter(t => t !== title)
-        : [...prev, title]
-    )
-  }
-
-  const navigationSections: NavSection[] = [
-    {
-      title: "Principal",
-      collapsible: false,
-      items: [
-        { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard, requiresPermission: "canView" },
-      ]
-    },
-    {
-      title: "Géographie",
-      collapsible: true,
-      items: [
-        { name: "Régions", href: "/dashboard/regions", icon: MapPin, requiresPermission: "canViewAllRegions" },
-        { name: "Départements", href: "/dashboard/departements", icon: MapPin, requiresPermission: "canViewAllRegions" },
-        { name: "Arrondissements", href: "/dashboard/arrondissements", icon: MapPin, requiresPermission: "canViewAllRegions" },
-        { name: "Districts", href: "/dashboard/districts", icon: MapPin, requiresPermission: "canViewAllRegions" },
-        { name: "Aires de Santé", href: "/dashboard/airesantes", icon: MapPin, requiresPermission: "canViewAllRegions" },
-      ]
-    },
-    {
-      title: "Infrastructures",
-      collapsible: true,
-      items: [
-        { name: "FOSA", href: "/dashboard/fosas", icon: Building2, requiresPermission: "canView" },
-        { name: "Bâtiments", href: "/dashboard/batiments", icon: Building, requiresPermission: "canView" },
-        { name: "Services", href: "/dashboard/services", icon: Activity, requiresPermission: "canView" },
-      ]
-    },
-    {
-      title: "Personnel",
-      collapsible: true,
-      items: [
-        { name: "Personnel", href: "/dashboard/personnels", icon: Users, requiresPermission: "canView" },
-        { name: "Catégories", href: "/dashboard/categories", icon: Tag, requiresPermission: "canView" },
-      ]
-    },
-    {
-      title: "Équipements",
-      collapsible: true,
-      items: [
-        { name: "Équipements", href: "/dashboard/equipements", icon: Package, requiresPermission: "canView" },
-        { name: "Équipements Bio", href: "/dashboard/equipebios", icon: Stethoscope, requiresPermission: "canView" },
-        { name: "Matériel Roulant", href: "/dashboard/materielroulants", icon: Truck, requiresPermission: "canView" },
-      ]
-    },
-    {
-      title: "Administration",
-      collapsible: true,
-      items: [
-        { name: "Utilisateurs", href: "/dashboard/users", icon: UserCircle, requiresPermission: "canManageUsers" },
-        { name: "Import Excel", href: "/dashboard/import", icon: FileSpreadsheet, requiresPermission: "canImportData" },
-        { name: "Paramètres", href: "/dashboard/parametres", icon: Settings, requiresPermission: "canManageSettings" },
-        { name: "Dégradations", href: "/dashboard/degradations", icon: AlertTriangle, requiresPermission: "canManageDegradations" },
-      ]
-    },
-  ]
-
-  // Filtrer les sections et items selon les permissions
-  const filteredNavigationSections = navigationSections
-    .map(section => ({
-      ...section,
-      items: section.items.filter(item => {
-        // Si pas de permission requise, afficher l'item
-        if (!item.requiresPermission) return true
-        // Sinon, vérifier si l'utilisateur a la permission
-        return permissions[item.requiresPermission] === true
-      })
-    }))
-    .filter(section => section.items.length > 0) // Supprimer les sections vides
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Mobile sidebar backdrop */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
-      >
-        <div className="flex items-center justify-between h-16 px-6 border-b flex-shrink-0">
-          <h1 className="text-xl font-bold text-gray-800"> IMMOSANTECam - G1 </h1>
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-gray-500 hover:text-gray-700">
-            <X className="w-6 h-6" />
+    <div className="min-h-screen bg-surface">
+      <header className="sticky top-0 z-40 bg-header text-white">
+        <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-4 px-4 sm:px-6 lg:h-20">
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="rounded-lg p-2 text-white/85 hover:bg-white/10 lg:hidden"
+            aria-label="Ouvrir le menu"
+          >
+            <Menu className="size-5" />
           </button>
-        </div>
-        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          {filteredNavigationSections.map((section) => {
-            const isExpanded = expandedSections.includes(section.title)
-            const hasActiveItem = section.items.some(item => location.pathname === item.href)
 
-            return (
-              <div key={section.title}>
-                {section.collapsible ? (
-                  <div>
-                    <button
-                      onClick={() => toggleSection(section.title)}
-                      className={`flex items-center justify-between w-full px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors ${hasActiveItem ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
-                        }`}
-                    >
-                      <span>{section.title}</span>
-                      {isExpanded ? (
-                        <ChevronDown className="w-4 h-4" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4" />
-                      )}
-                    </button>
-                    {isExpanded && (
-                      <div className="mt-1 ml-4 space-y-1">
-                        {section.items.map((item) => {
-                          const Icon = item.icon
-                          const isActive = location.pathname === item.href
-                          return (
-                            <Link
-                              key={item.name}
-                              to={item.href}
-                              onClick={() => setSidebarOpen(false)}
-                              className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors ${isActive ? "bg-blue-50 text-blue-700" : "text-gray-600 hover:bg-gray-100"
-                                }`}
-                            >
-                              <Icon className="w-4 h-4 mr-3" />
-                              {item.name}
-                            </Link>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div>
-                    <h3 className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                      {section.title}
-                    </h3>
-                    <div className="space-y-1">
+          <Link to="/dashboard" className="flex shrink-0 items-center gap-3">
+            <img src="/favicon.svg" alt="" className="size-10 rounded-xl" />
+            <span className="border-l border-white/25 pl-3">
+              <span className="block text-[10px] uppercase tracking-[0.14em] text-white/60">MINSANTÉ</span>
+              <span className="block text-lg font-bold leading-tight">IMMOSANTECam</span>
+            </span>
+          </Link>
+
+          <nav ref={navRef} className="hidden flex-1 items-center justify-center gap-1 lg:flex">
+            {sections.map((section) => {
+              const active = sectionActive(section)
+              const pill = cn(
+                "inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors xl:px-4",
+                active ? "bg-white text-header" : "text-white/85 hover:bg-white/10",
+              )
+
+              if (section.href) {
+                return (
+                  <Link key={section.title} to={section.href} className={pill} aria-current={active ? "page" : undefined}>
+                    {section.title}
+                  </Link>
+                )
+              }
+
+              const open = openMenu === section.title
+              return (
+                <div key={section.title} className="relative">
+                  <button
+                    type="button"
+                    className={pill}
+                    aria-expanded={open}
+                    onClick={() => setOpenMenu(open ? null : section.title)}
+                  >
+                    {section.title}
+                    <ChevronDown className={cn("size-4 transition-transform", open && "rotate-180")} />
+                  </button>
+                  {open && (
+                    <div className="absolute left-1/2 top-full z-50 mt-2 w-64 -translate-x-1/2 rounded-2xl border border-gray-200 bg-white p-2 text-gray-900 shadow-lg">
                       {section.items.map((item) => {
                         const Icon = item.icon
-                        const isActive = location.pathname === item.href
                         return (
                           <Link
-                            key={item.name}
+                            key={item.href}
                             to={item.href}
-                            onClick={() => setSidebarOpen(false)}
-                            className={`flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${isActive ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"
-                              }`}
+                            className={cn(
+                              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                              isActive(item.href) ? "bg-brand-50 text-brand-600" : "hover:bg-gray-50",
+                            )}
                           >
-                            <Icon className="w-4 h-4 mr-3" />
+                            <span className="flex size-8 items-center justify-center rounded-lg bg-brand-50 text-brand-500">
+                              <Icon className="size-4" />
+                            </span>
                             {item.name}
                           </Link>
                         )
                       })}
                     </div>
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </nav>
-        <div className="p-4 border-t flex-shrink-0">
-          <button
-            onClick={handleLogout}
-            className="flex items-center w-full px-4 py-3 text-sm font-medium text-red-700 rounded-lg hover:bg-red-50 transition-colors"
-          >
-            <LogOut className="w-5 h-5 mr-3" />
-            Déconnexion
-          </button>
-        </div>
-      </aside>
+                  )}
+                </div>
+              )
+            })}
+          </nav>
 
-      {/* Main content */}
-      <div className="lg:pl-64">
-        {/* Top bar */}
-        <header className="bg-white shadow-sm">
-          <div className="flex items-center justify-between h-16 px-6">
-            <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-gray-500 hover:text-gray-700">
-              <Menu className="w-6 h-6" />
-            </button>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">{JSON.parse(localStorage.getItem("user") || "{}").name}</span>
+          <div className="ml-auto flex shrink-0 items-center gap-3 lg:ml-0">
+            <Link
+              to="/"
+              className="hidden h-10 items-center gap-2 rounded-lg bg-white px-4 text-sm font-semibold text-brand-900 transition-colors hover:bg-white/90 md:inline-flex"
+            >
+              <Map className="size-4" />
+              Carte
+            </Link>
+
+            <div className="hidden text-right leading-tight sm:block">
+              <p className="text-sm font-bold">{displayName}</p>
+              {roleLabel && <p className="text-xs text-white/60">{roleLabel}</p>}
             </div>
+            <span className="flex size-10 items-center justify-center rounded-full bg-white/15 text-sm font-bold">
+              {initialsOf(displayName)}
+            </span>
+            <button
+              type="button"
+              onClick={handleLogout}
+              aria-label="Déconnexion"
+              title="Déconnexion"
+              className="flex size-10 items-center justify-center rounded-full border-2 border-danger text-danger transition-colors hover:bg-danger hover:text-white"
+            >
+              <LogOut className="size-4" />
+            </button>
           </div>
-        </header>
+        </div>
+      </header>
 
-        {/* Page content */}
-        <main className="p-6">
-          <Outlet />
-        </main>
-      </div>
+      {/* Menu mobile */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="absolute inset-0 bg-gray-900/50" onClick={() => setMobileOpen(false)} />
+          <aside className="absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col bg-white shadow-lg">
+            <div className="flex h-16 items-center justify-between bg-header px-4 text-white">
+              <span className="font-bold">IMMOSANTECam</span>
+              <button onClick={() => setMobileOpen(false)} className="rounded-lg p-2 hover:bg-white/10" aria-label="Fermer le menu">
+                <X className="size-5" />
+              </button>
+            </div>
+            <nav className="flex-1 space-y-5 overflow-y-auto p-4">
+              {sections.map((section) => (
+                <div key={section.title}>
+                  <p className="kicker mb-2 px-3">{section.title}</p>
+                  <div className="space-y-1">
+                    {section.items.map((item) => {
+                      const Icon = item.icon
+                      return (
+                        <Link
+                          key={item.href}
+                          to={item.href}
+                          className={cn(
+                            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium",
+                            isActive(item.href) ? "bg-brand-50 text-brand-600" : "text-gray-700 hover:bg-gray-50",
+                          )}
+                        >
+                          <Icon className="size-4" />
+                          {item.name}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+              <Link to="/" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <Map className="size-4" />
+                Carte publique
+              </Link>
+            </nav>
+          </aside>
+        </div>
+      )}
+
+      <main className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:py-8">
+        <Outlet />
+      </main>
     </div>
   )
 }

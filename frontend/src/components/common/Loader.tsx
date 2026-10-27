@@ -21,8 +21,8 @@ export default function Loader({
   };
 
   const colorClasses = {
-    primary: 'text-blue-600',
-    secondary: 'text-emerald-600',
+    primary: 'text-brand-500',
+    secondary: 'text-brand-300',
     white: 'text-white',
   };
 
@@ -51,9 +51,9 @@ export default function Loader({
 
   if (fullScreen) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 flex items-center justify-center">
-        <div className="text-center bg-white p-8 rounded-2xl shadow-2xl border border-emerald-200 max-w-md w-full mx-4">
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-4 rounded-2xl inline-block mb-6 shadow-lg">
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="card mx-4 w-full max-w-md p-8 text-center">
+          <div className="mb-6 inline-block rounded-2xl bg-brand-50 p-4">
             <div className="relative">
               {spinner}
             </div>
@@ -76,7 +76,7 @@ export default function Loader({
 export function TableSkeleton({ rows = 5, columns = 4 }: { rows?: number; columns?: number }) {
   return (
     <div className="animate-pulse">
-      <div className="bg-gray-200 h-10 mb-4 rounded"></div>
+      <div className="bg-table-head h-10 mb-4 rounded-lg"></div>
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="grid gap-4 mb-3" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
           {Array.from({ length: columns }).map((_, j) => (
@@ -93,7 +93,7 @@ export function CardSkeleton({ count = 4 }: { count?: number }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+        <div key={i} className="card p-5">
           <div className="bg-gray-200 h-4 w-20 mb-4 rounded"></div>
           <div className="bg-gray-300 h-8 w-16 mb-2 rounded"></div>
           <div className="bg-gray-100 h-3 w-24 rounded"></div>

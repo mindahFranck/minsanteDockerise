@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useEffect, useState } from "react"
-import { Plus, Search, Shield, Users, Key, UserCog } from "lucide-react"
+import { Info, Key, Loader2, Plus, Shield, UserCog, Users } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
 import ConfirmDialog from "../components/ConfirmDialog"
@@ -12,6 +12,29 @@ import type { User, Region, Departement, Arrondissement } from "../types"
 import api from "../services/api"
 import { usePermissions } from "../hooks/usePermissions"
 import { exportUsersToPDF, exportUsersToExcel } from "../utils/exportUtils"
+import { PageHeader, FilterBar, SearchInput, Badge } from "../components/ui"
+import type { BadgeVariant } from "../components/ui"
+
+/** Initiales pour l'avatar de la liste. */
+function initials(firstName?: string, lastName?: string) {
+  return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}` || "?"
+}
+
+/** Squelette du tableau pendant le chargement. */
+function TableSkeleton() {
+  return (
+    <div className="card animate-pulse overflow-hidden">
+      <div className="h-11 bg-table-head" />
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="flex gap-4 border-b border-gray-100 px-4 py-3.5">
+          <div className="h-3 w-1/6 rounded bg-gray-200" />
+          <div className="h-3 w-1/4 rounded bg-gray-100" />
+          <div className="h-3 w-1/5 rounded bg-gray-100" />
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export default function UsersPage() {
   // Permissions
@@ -59,11 +82,11 @@ export default function UsersPage() {
     arrondissementId: undefined,
   })
 
-  const roles = [
-    { value: "user", label: "Utilisateur", color: "bg-gray-100 text-gray-800", icon: Users },
-    { value: "manager", label: "Gestionnaire", color: "bg-blue-100 text-blue-800", icon: UserCog },
-    { value: "admin", label: "Administrateur", color: "bg-purple-100 text-purple-800", icon: Shield },
-    { value: "super_admin", label: "Super Admin", color: "bg-red-100 text-red-800", icon: Key },
+  const roles: { value: string; label: string; variant: BadgeVariant; icon: typeof Users; description: string }[] = [
+    { value: "user", label: "Utilisateur", variant: "neutral", icon: Users, description: "Accès en lecture seule aux données" },
+    { value: "manager", label: "Gestionnaire", variant: "info", icon: UserCog, description: "Peut gérer les données de sa FOSA" },
+    { value: "admin", label: "Administrateur", variant: "warning", icon: Shield, description: "Peut gérer toutes les données du système" },
+    { value: "super_admin", label: "Super Admin", variant: "danger", icon: Key, description: "Accès complet incluant la gestion des utilisateurs" },
   ]
 
   useEffect(() => {
@@ -228,13 +251,13 @@ export default function UsersPage() {
     return roles.find(r => r.value === role)?.label || role
   }
 
-  const getRoleColor = (role: string) => {
-    return roles.find(r => r.value === role)?.color || "bg-gray-100 text-gray-800"
+  const getRoleVariant = (role: string): BadgeVariant => {
+    return roles.find(r => r.value === role)?.variant || "neutral"
   }
 
   const getRoleIcon = (role: string) => {
     const RoleIcon = roles.find(r => r.value === role)?.icon || Users
-    return <RoleIcon className="w-4 h-4" />
+    return <RoleIcon className="size-3.5" />
   }
 
   const columns = [
@@ -243,38 +266,42 @@ export default function UsersPage() {
       key: "name",
       label: "Nom complet",
       render: (u: User) => (
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-            <Users className="w-4 h-4 text-blue-600" />
+        <div className="flex items-center gap-3">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-semibold uppercase text-brand-600">
+            {initials(u.firstName, u.lastName)}
           </div>
-          <span className="font-medium">{u.firstName} {u.lastName}</span>
+          <span className="font-medium text-gray-900">{u.firstName} {u.lastName}</span>
         </div>
       )
     },
-    { key: "email", label: "Email" },
+    { key: "email", label: "Email", render: (u: User) => <span className="text-gray-500">{u.email || "-"}</span> },
     {
       key: "role",
       label: "Rôle",
       render: (u: User) => (
-        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs ${getRoleColor(u.role)}`}>
+        <Badge variant={getRoleVariant(u.role)}>
           {getRoleIcon(u.role)}
           {getRoleLabel(u.role)}
-        </span>
+        </Badge>
       )
     },
     {
       key: "isActive",
       label: "Statut",
       render: (u: User) => (
-        <span className={`px-2 py-1 rounded text-xs ${u.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+        <Badge variant={u.isActive ? "success" : "danger"} withDot>
           {u.isActive ? 'Actif' : 'Inactif'}
-        </span>
+        </Badge>
       )
     },
     {
       key: "lastLogin",
       label: "Dernière connexion",
-      render: (u: User) => u.lastLogin ? new Date(u.lastLogin).toLocaleString('fr-FR') : 'Jamais'
+      render: (u: User) => (
+        <span className={u.lastLogin ? "font-mono text-xs text-gray-500" : "text-gray-400"}>
+          {u.lastLogin ? new Date(u.lastLogin).toLocaleString('fr-FR') : 'Jamais'}
+        </span>
+      )
     },
   ]
 
@@ -289,72 +316,68 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Shield className="w-8 h-8 text-gray-700" />
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
-            <p className="text-sm text-gray-500 mt-1">{pagination.total} utilisateur{pagination.total > 1 ? 's' : ''} au total</p>
-          </div>
-        </div>
-        <div className="flex gap-3">
-          <ExportButtons
-            onExportPDF={handleExportPDF}
-            onExportExcel={handleExportExcel}
-            disabled={users.length === 0}
-          />
-          {permissions.canManageUsers && (
+      <PageHeader
+        kicker="Administration"
+        title="Gestion des utilisateurs"
+        description={`${pagination.total} utilisateur${pagination.total > 1 ? 's' : ''} au total`}
+        actions={
+          permissions.canManageUsers ? (
             <button
               onClick={() => {
                 setEditingUser(null)
                 resetForm()
                 setIsModalOpen(true)
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="btn btn-primary"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="size-4" />
               Nouvel utilisateur
             </button>
-          )}
-        </div>
-      </div>
+          ) : undefined
+        }
+      />
 
-      <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-            </svg>
+      <section className="card px-6 py-5">
+        <div className="flex items-start gap-3">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-500">
+            <Info className="size-4" />
           </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">Gestion des comptes utilisateurs</h3>
-            <div className="mt-2 text-sm text-blue-700">
-              <ul className="list-disc list-inside space-y-1">
-                <li><strong>Utilisateur</strong> : Accès en lecture seule aux données</li>
-                <li><strong>Gestionnaire</strong> : Peut gérer les données de sa FOSA</li>
-                <li><strong>Administrateur</strong> : Peut gérer toutes les données du système</li>
-                <li><strong>Super Admin</strong> : Accès complet incluant la gestion des utilisateurs</li>
-              </ul>
-            </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="card-title">Gestion des comptes utilisateurs</h3>
+            <ul className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {roles.map((role) => (
+                <li key={role.value} className="space-y-1.5">
+                  <Badge variant={role.variant}>
+                    {getRoleIcon(role.value)}
+                    {role.label}
+                  </Badge>
+                  <p className="text-sm text-gray-500">{role.description}</p>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="flex gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Rechercher par nom ou email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      <FilterBar
+        actions={
+          <ExportButtons
+            onExportPDF={handleExportPDF}
+            onExportExcel={handleExportExcel}
+            disabled={users.length === 0}
           />
-        </div>
+        }
+      >
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Rechercher par nom ou email..."
+          className="w-full sm:w-80"
+        />
         <select
           value={filterRole}
           onChange={(e) => setFilterRole(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="input w-auto"
         >
           <option value="">Tous les rôles</option>
           {roles.map((role) => (
@@ -363,60 +386,63 @@ export default function UsersPage() {
             </option>
           ))}
         </select>
-      </div>
+      </FilterBar>
 
-      <DataTable
-        data={users}
-        columns={columns}
-        onEdit={permissions.canManageUsers ? handleEdit : undefined}
-        onDelete={permissions.canManageUsers ? handleDelete : undefined}
-        loading={loading}
-        pagination={pagination}
-        onPageChange={setPage}
-      />
+      {loading ? (
+        <TableSkeleton />
+      ) : (
+        <DataTable
+          data={users}
+          columns={columns}
+          onEdit={permissions.canManageUsers ? handleEdit : undefined}
+          onDelete={permissions.canManageUsers ? handleDelete : undefined}
+          pagination={pagination}
+          onPageChange={setPage}
+        />
+      )}
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingUser ? "Modifier l'utilisateur" : "Nouvel utilisateur"}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Prénom *</label>
+              <label className="label">Prénom *</label>
               <input
                 type="text"
                 required
                 value={formData.firstName}
                 onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
                 placeholder="Jean"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
+              <label className="label">Nom *</label>
               <input
                 type="text"
                 required
                 value={formData.lastName}
                 onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="input"
                 placeholder="Dupont"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+            <label className="label">Email *</label>
             <input
               type="email"
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="input"
               placeholder="jean.dupont@health.cm"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="label">
               Mot de passe {editingUser ? "(laisser vide pour ne pas modifier)" : "*"}
             </label>
             <input
@@ -424,24 +450,24 @@ export default function UsersPage() {
               required={!editingUser}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="input"
               minLength={6}
               placeholder={editingUser ? "Nouveau mot de passe (optionnel)" : "Minimum 6 caractères"}
             />
             {!editingUser && (
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1.5 text-xs text-gray-500">
                 Le mot de passe doit contenir au moins 6 caractères
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Rôle *</label>
+            <label className="label">Rôle *</label>
             <select
               required
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="input"
             >
               {roles.map((role) => (
                 <option key={role.value} value={role.value}>
@@ -449,7 +475,7 @@ export default function UsersPage() {
                 </option>
               ))}
             </select>
-            <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+            <div className="mt-2 rounded-xl bg-surface px-3 py-2.5">
               <p className="text-xs text-gray-600">
                 {formData.role === "user" && "✓ Accès en lecture seule aux données"}
                 {formData.role === "manager" && "✓ Peut créer et modifier les données de sa FOSA"}
@@ -459,17 +485,17 @@ export default function UsersPage() {
             </div>
           </div>
 
-          <div className="border-t pt-4">
-            <h3 className="text-sm font-medium text-gray-900 mb-3">Portée géographique</h3>
+          <div className="border-t border-gray-100 pt-4">
+            <p className="kicker mb-3">Portée géographique</p>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type de portée *</label>
+                <label className="label">Type de portée *</label>
                 <select
                   required
                   value={formData.scopeType}
                   onChange={(e) => handleScopeTypeChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="input"
                 >
                   <option value="national">National (toutes les données)</option>
                   <option value="regional">Régional</option>
@@ -480,12 +506,12 @@ export default function UsersPage() {
 
               {formData.scopeType === "regional" && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Région *</label>
+                  <label className="label">Région *</label>
                   <select
                     required
                     value={formData.regionId || ""}
                     onChange={(e) => handleRegionChange(Number(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="input"
                   >
                     <option value="">Sélectionner une région</option>
                     {regions.map((region) => (
@@ -498,14 +524,14 @@ export default function UsersPage() {
               )}
 
               {formData.scopeType === "departemental" && (
-                <>
+                <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Région *</label>
+                    <label className="label">Région *</label>
                     <select
                       required
                       value={formData.regionId || ""}
                       onChange={(e) => handleRegionChange(Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="input"
                     >
                       <option value="">Sélectionner une région</option>
                       {regions.map((region) => (
@@ -516,12 +542,12 @@ export default function UsersPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Département *</label>
+                    <label className="label">Département *</label>
                     <select
                       required
                       value={formData.departementId || ""}
                       onChange={(e) => handleDepartementChange(Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="input"
                       disabled={!formData.regionId}
                     >
                       <option value="">Sélectionner un département</option>
@@ -532,18 +558,18 @@ export default function UsersPage() {
                       ))}
                     </select>
                   </div>
-                </>
+                </div>
               )}
 
               {formData.scopeType === "arrondissement" && (
-                <>
+                <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Région *</label>
+                    <label className="label">Région *</label>
                     <select
                       required
                       value={formData.regionId || ""}
                       onChange={(e) => handleRegionChange(Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="input"
                     >
                       <option value="">Sélectionner une région</option>
                       {regions.map((region) => (
@@ -554,12 +580,12 @@ export default function UsersPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Département *</label>
+                    <label className="label">Département *</label>
                     <select
                       required
                       value={formData.departementId || ""}
                       onChange={(e) => handleDepartementChange(Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="input"
                       disabled={!formData.regionId}
                     >
                       <option value="">Sélectionner un département</option>
@@ -570,13 +596,13 @@ export default function UsersPage() {
                       ))}
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Arrondissement *</label>
+                  <div className="sm:col-span-2">
+                    <label className="label">Arrondissement *</label>
                     <select
                       required
                       value={formData.arrondissementId || ""}
                       onChange={(e) => setFormData({ ...formData, arrondissementId: Number(e.target.value) })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="input"
                       disabled={!formData.departementId}
                     >
                       <option value="">Sélectionner un arrondissement</option>
@@ -587,21 +613,22 @@ export default function UsersPage() {
                       ))}
                     </select>
                   </div>
-                </>
+                </div>
               )}
 
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <p className="text-xs text-blue-800">
-                  {formData.scopeType === "national" && "ℹ️ Cet utilisateur aura accès à toutes les données du système"}
-                  {formData.scopeType === "regional" && "ℹ️ Cet utilisateur aura accès uniquement aux données de la région sélectionnée"}
-                  {formData.scopeType === "departemental" && "ℹ️ Cet utilisateur aura accès uniquement aux données du département sélectionné"}
-                  {formData.scopeType === "arrondissement" && "ℹ️ Cet utilisateur aura accès uniquement aux données de l'arrondissement sélectionné"}
+              <div className="flex items-start gap-2 rounded-xl bg-brand-50 px-3 py-2.5 text-brand-600">
+                <Info className="mt-px size-4 shrink-0" />
+                <p className="text-xs">
+                  {formData.scopeType === "national" && "Cet utilisateur aura accès à toutes les données du système"}
+                  {formData.scopeType === "regional" && "Cet utilisateur aura accès uniquement aux données de la région sélectionnée"}
+                  {formData.scopeType === "departemental" && "Cet utilisateur aura accès uniquement aux données du département sélectionné"}
+                  {formData.scopeType === "arrondissement" && "Cet utilisateur aura accès uniquement aux données de l'arrondissement sélectionné"}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex gap-2 justify-end pt-4 border-t">
+          <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
             <button
               type="button"
               onClick={() => {
@@ -609,21 +636,14 @@ export default function UsersPage() {
                 resetForm()
               }}
               disabled={submitting}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn btn-outline"
             >
               Annuler
             </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
+            <button type="submit" disabled={submitting} className="btn btn-primary">
               {submitting ? (
                 <>
-                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                  </svg>
+                  <Loader2 className="size-4 animate-spin" />
                   <span>Enregistrement...</span>
                 </>
               ) : (

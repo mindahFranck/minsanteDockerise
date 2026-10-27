@@ -2,16 +2,25 @@
 
 import type React from "react"
 import { useEffect, useState } from "react"
-import { Plus, Search } from "lucide-react"
+import { Plus, Loader2 } from "lucide-react"
 import DataTable from "../components/DataTable"
 import Modal from "../components/Modal"
 import ConfirmDialog from "../components/ConfirmDialog"
 import ExportButtons from "../components/ExportButtons"
 import { batimentService } from "../services/batimentService"
 import { fosaService } from "../services/fosaService"
+import SearchableSelect from "../components/SearchableSelect"
 import type { Batiment, Fosa } from "../types"
 import { usePermissions } from "../hooks/usePermissions"
 import { exportBatimentsToPDF, exportBatimentsToExcel } from "../utils/pageExports"
+import { PageHeader, StatCard, Badge, SearchInput, FilterBar, formatNumber, type BadgeVariant } from "../components/ui"
+
+/** Couleur de la pastille selon l'état du bâtiment. */
+function etatVariant(etat?: string): BadgeVariant {
+  if (etat === "Bon") return "success"
+  if (etat === "Moyen") return "warning"
+  return "danger"
+}
 
 export default function BatimentsPage() {
   const permissions = usePermissions()
@@ -74,6 +83,10 @@ export default function BatimentsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!formData.fosaId) {
+      alert("Veuillez sélectionner une FOSA.")
+      return
+    }
     setSubmitting(true)
     try {
       if (editingBatiment) {
@@ -85,8 +98,15 @@ export default function BatimentsPage() {
       setEditingBatiment(null)
       resetForm()
       loadBatiments()
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving batiment:", error)
+      const msg =
+        error?.response?.data?.message ||
+        (error?.response?.data?.errors
+          ? Object.values(error.response.data.errors).flat().join("\n")
+          : error?.message) ||
+        "Erreur lors de l'enregistrement du bâtiment"
+      alert(msg)
     } finally {
       setSubmitting(false)
     }
@@ -108,9 +128,9 @@ export default function BatimentsPage() {
     setFormData({
       nom: batiment.nom,
       fosaId: batiment.fosaId,
-      superficie: batiment.superficie || 0,
+      superficie: Number(batiment.superficie) || 0,
       etat: batiment.etat || "Bon",
-      anneConstruction: batiment.anneConstruction || new Date().getFullYear(),
+      anneConstruction: Number(batiment.anneConstruction) || new Date().getFullYear(),
       description: batiment.description || "",
     })
     setIsModalOpen(true)
@@ -136,21 +156,27 @@ export default function BatimentsPage() {
   }
 
   const columns = [
-    { key: "id", label: "ID" },
-    { key: "nom", label: "Nom du bâtiment" },
-    { key: "fosa", label: "FOSA", render: (b: Batiment) => b.fosa?.nom || "N/A" },
-    { key: "superficie", label: "Superficie (m²)", render: (b: Batiment) => b.superficie?.toFixed(2) || "N/A" },
+    { key: "id", label: "ID", render: (b: Batiment) => <span className="font-mono text-xs text-gray-500">{b.id}</span> },
+    { key: "nom", label: "Nom du bâtiment", render: (b: Batiment) => <span className="font-semibold text-gray-900">{b.nom || "-"}</span> },
+    { key: "fosa", label: "FOSA", render: (b: Batiment) => <span className="text-gray-700">{b.fosa?.nom || "N/A"}</span> },
+    {
+      key: "superficie",
+      label: "Superficie (m²)",
+      // L'API renvoie les DECIMAL en chaîne ("2000.00") : on convertit avant toFixed
+      render: (b: Batiment) => {
+        const n = Number(b.superficie)
+        return b.superficie != null && b.superficie !== ("" as any) && !Number.isNaN(n)
+          ? n.toFixed(2)
+          : "N/A"
+      },
+    },
     {
       key: "etat",
       label: "État",
       render: (b: Batiment) => (
-        <span className={`px-2 py-1 rounded text-xs ${b.etat === "Bon" ? "bg-green-100 text-green-800" :
-            b.etat === "Moyen" ? "bg-yellow-100 text-yellow-800" :
-              b.etat === "Mauvais" ? "bg-orange-100 text-orange-800" :
-                "bg-red-100 text-red-800"
-          }`}>
+        <Badge variant={etatVariant(b.etat)} withDot>
           {b.etat}
-        </span>
+        </Badge>
       )
     },
     { key: "anneConstruction", label: "Année" },
@@ -165,27 +191,21 @@ export default function BatimentsPage() {
     exportBatimentsToExcel(batiments)
   }
 
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Bâtiments</h1>
-        <div className="flex gap-3">
-          <ExportButtons
-            onExportPDF={handleExportPDF}
-            onExportExcel={handleExportExcel}
-            disabled={batiments.length === 0}
-          />
-          {permissions.canCreate && permissions.canManageBuildings && (
+      <PageHeader
+        kicker="Infrastructures"
+        title="Bâtiments"
+        description="Bâtiments des formations sanitaires : superficie, état et année de construction."
+        actions={
+          permissions.canCreate && permissions.canManageBuildings ? (
             <button
               onClick={() => {
-                if (!filterFosaId) {
-                  alert("Veuillez d'abord sélectionner une FOSA dans le filtre pour ajouter un bâtiment")
-                  return
-                }
                 setEditingBatiment(null)
                 setFormData({
                   nom: "",
-                  fosaId: filterFosaId,
+                  fosaId: filterFosaId ?? 0,
                   superficie: 0,
                   etat: "Bon",
                   anneConstruction: new Date().getFullYear(),
@@ -193,44 +213,40 @@ export default function BatimentsPage() {
                 })
                 setIsModalOpen(true)
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={!filterFosaId}
-              title={!filterFosaId ? "Sélectionnez d'abord une FOSA dans le filtre" : ""}
+              className="btn btn-primary"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="size-4" />
               Ajouter
             </button>
-          )}
-        </div>
+          ) : undefined
+        }
+      />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Bâtiments" value={formatNumber(pagination.total)} hint="selon les filtres actifs" />
       </div>
 
-      <div className="flex gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Rechercher..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      <FilterBar
+        actions={
+          <ExportButtons
+            onExportPDF={handleExportPDF}
+            onExportExcel={handleExportExcel}
+            disabled={batiments.length === 0}
           />
-        </div>
-        <select
-          value={filterFosaId || ""}
-          onChange={(e) => setFilterFosaId(e.target.value ? Number(e.target.value) : null)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Toutes les FOSA</option>
-          {fosas.map((fosa) => (
-            <option key={fosa.id} value={fosa.id}>
-              {fosa.nom}
-            </option>
-          ))}
-        </select>
+        }
+      >
+        <SearchInput value={search} onChange={setSearch} placeholder="Rechercher..." className="w-full sm:w-72" />
+        <SearchableSelect
+          options={fosas.map(f => ({ id: f.id, label: f.nom }))}
+          value={filterFosaId}
+          onChange={(v) => setFilterFosaId(v ? Number(v) : null)}
+          placeholder="Toutes les FOSA"
+          className="w-full sm:w-auto sm:min-w-[250px]"
+        />
         <select
           value={filterEtat}
           onChange={(e) => setFilterEtat(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="input w-full sm:w-auto"
         >
           <option value="">Tous les états</option>
           <option value="Bon">Bon</option>
@@ -238,7 +254,7 @@ export default function BatimentsPage() {
           <option value="Mauvais">Mauvais</option>
           <option value="En ruine">En ruine</option>
         </select>
-      </div>
+      </FilterBar>
 
       <DataTable
         data={batiments}
@@ -252,101 +268,90 @@ export default function BatimentsPage() {
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingBatiment ? "Modifier le bâtiment" : "Ajouter un bâtiment"}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nom du bâtiment *</label>
-            <input
-              type="text"
-              required
-              value={formData.nom}
-              onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label className="label">Nom du bâtiment *</label>
+              <input
+                type="text"
+                required
+                value={formData.nom}
+                onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                className="input"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="label">FOSA *</label>
+              <SearchableSelect
+                options={fosas.map(f => ({ id: f.id, label: f.nom }))}
+                value={formData.fosaId || null}
+                onChange={(v) => setFormData({ ...formData, fosaId: v ? Number(v) : 0 })}
+                placeholder="Rechercher et sélectionner une FOSA"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="label">Superficie (m²)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.superficie}
+                onChange={(e) => setFormData({ ...formData, superficie: Number(e.target.value) })}
+                className="input"
+              />
+            </div>
+
+            <div>
+              <label className="label">État</label>
+              <select
+                value={formData.etat}
+                onChange={(e) => setFormData({ ...formData, etat: e.target.value })}
+                className="input"
+              >
+                <option value="Bon">Bon</option>
+                <option value="Moyen">Moyen</option>
+                <option value="Mauvais">Mauvais</option>
+                <option value="En ruine">En ruine</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="label">Année de construction</label>
+              <input
+                type="number"
+                min="1800"
+                max="2100"
+                value={formData.anneConstruction}
+                onChange={(e) => setFormData({ ...formData, anneConstruction: Number(e.target.value) })}
+                className="input"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="label">Description</label>
+              <textarea
+                rows={3}
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="input"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">FOSA *</label>
-            <select
-              required
-              value={formData.fosaId}
-              onChange={(e) => setFormData({ ...formData, fosaId: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value={0}>Sélectionner une FOSA</option>
-              {fosas.map((fosa) => (
-                <option key={fosa.id} value={fosa.id}>
-                  {fosa.nom}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Superficie (m²)</label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.superficie}
-              onChange={(e) => setFormData({ ...formData, superficie: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">État</label>
-            <select
-              value={formData.etat}
-              onChange={(e) => setFormData({ ...formData, etat: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="Bon">Bon</option>
-              <option value="Moyen">Moyen</option>
-              <option value="Mauvais">Mauvais</option>
-              <option value="En ruine">En ruine</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Année de construction</label>
-            <input
-              type="number"
-              min="1800"
-              max="2100"
-              value={formData.anneConstruction}
-              onChange={(e) => setFormData({ ...formData, anneConstruction: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea
-              rows={3}
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div className="flex gap-2 justify-end">
+          <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
               disabled={submitting}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn btn-outline"
             >
               Annuler
             </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
+            <button type="submit" disabled={submitting} className="btn btn-primary">
               {submitting ? (
                 <>
-                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                  </svg>
+                  <Loader2 className="size-4 animate-spin" />
                   <span>Enregistrement...</span>
                 </>
               ) : (

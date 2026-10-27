@@ -96,4 +96,10 @@ class StatisticsController extends Controller
     {
         return $this->successResponse($this->statisticsService->getComparativeStatistics());
     }
+
+    /** @OA\Get(path="/statistics/dashboard", tags={"Statistiques"}, summary="Indicateurs du tableau de bord", security={{"bearerAuth":{}}}, @OA\Response(response=200, description="OK")) */
+    public function dashboard(): JsonResponse
+    {
+        return $this->successResponse($this->statisticsService->getDashboard());
+    }
 }
