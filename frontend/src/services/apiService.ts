@@ -140,6 +140,96 @@ export interface Fosa {
   };
 }
 
+/* --- Carte : fiche FOSA et analyse thématique ------------------------------ */
+
+export interface GeoRef {
+  id: number;
+  nom: string;
+  code?: string | null;
+}
+
+export interface LabelTotal {
+  label: string;
+  total: number;
+}
+
+export interface FosaDetails {
+  id: number;
+  nom: string;
+  type: string | null;
+  categorie: string | null;
+  statut: string | null;
+  estFerme: boolean;
+  fonctionnelle: boolean | null;
+  situation: string | null;
+  orgUnit: string | null;
+  image: string | null;
+  localisation: {
+    region: GeoRef | null;
+    departement: GeoRef | null;
+    arrondissement: GeoRef | null;
+    district: GeoRef | null;
+    airesante: GeoRef | null;
+    latitude: number | null;
+    longitude: number | null;
+    geolocalisee: boolean;
+  };
+  capaciteLits: number | null;
+  securite: { titreFoncier: boolean | null; cloture: boolean | null };
+  energie: { connecteeElectricite: boolean | null; typeCourant: string | null };
+  contact: {
+    telephone: string | null;
+    email: string | null;
+    responsableNom: string | null;
+    responsableTelephone: string | null;
+    nomDirecteur: string | null;
+  };
+  maintenance: {
+    derniereInspection: string | null;
+    prochaineInspection: string | null;
+    priorite: string | null;
+    problemes: string[] | null;
+  };
+  batiments: { total: number; superficie: number; parEtat: LabelTotal[] };
+  services: {
+    total: number;
+    liste: { id: number; nom: string; responsable: string | null; capacite: number | null; equipementsBiomedicaux: number }[];
+  };
+  personnel: { total: number; parCategorie: LabelTotal[] };
+  equipements: { biomedicaux: number; biomedicauxParEtat: LabelTotal[]; autres: number };
+  vehicules: { total: number; ambulances: number };
+  patients: { total: number | null; ambulants: number | null; date: string | null } | null;
+}
+
+export type ThematicLevel = "region" | "departement" | "arrondissement" | "district" | "airesante";
+
+export interface ThematicIndicator {
+  oui: number;
+  non: number;
+  nonRenseigne: number;
+  /** Part des FOSA de l'entité avec « oui », en % ; null si l'entité n'a aucune FOSA. */
+  taux: number | null;
+}
+
+export interface ThematicEntity {
+  id: number;
+  nom: string;
+  total: number;
+  ouvertes: number;
+  titreFoncier: ThematicIndicator;
+  cloture: ThematicIndicator;
+  electricite: ThematicIndicator;
+}
+
+export interface ThematicData {
+  level: ThematicLevel;
+  parentId: number | null;
+  entities: ThematicEntity[];
+  totals: { total: number; ouvertes: number; titreFoncier: ThematicIndicator; cloture: ThematicIndicator; electricite: ThematicIndicator };
+  source: string;
+  genereLe: string;
+}
+
 export const apiService = {
   // Regions (include_geom pour la carte)
   async getRegions(includeGeom = true): Promise<Region[]> {
@@ -198,6 +288,20 @@ export const apiService = {
       },
       CacheTTL.FOSAS
     );
+  },
+
+  /** Fiche détaillée d'une FOSA pour la carte (GET /fosas/{id}/details). */
+  async getFosaDetails(id: number | string): Promise<FosaDetails> {
+    const response = await apiClient.get(`/fosas/${id}/details`);
+    return response.data.data;
+  },
+
+  /** Analyse thématique de la carte (GET /fosas/thematic), calculée en base. */
+  async getThematic(level: ThematicLevel, parent?: { param: string; id: number }): Promise<ThematicData> {
+    const params: Record<string, string | number> = { level };
+    if (parent) params[parent.param] = parent.id;
+    const response = await apiClient.get("/fosas/thematic", { params });
+    return response.data.data;
   },
 
   // Communes

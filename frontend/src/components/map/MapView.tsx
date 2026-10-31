@@ -7,14 +7,8 @@ import {
   Layers,
   Search,
   MapPin,
-  X,
   AlertTriangle,
   Activity,
-  ChevronDown,
-  ChevronUp,
-  Shield,
-  Users,
-  Building,
 } from "lucide-react";
 import axios from "axios";
 import "leaflet/dist/leaflet.css";
@@ -24,6 +18,7 @@ import { apiService } from "../../services/apiService";
 import { districtService } from "../../services/districtService";
 import { airesanteService } from "../../services/airesanteService";
 import ThematicAnalysis, { ThematicTheme } from "./ThematicAnalysis";
+import FosaDetailsPanel from "./FosaDetailsPanel";
 import MapLegend from "./MapLegend";
 import TilePreloader from "./TilePreloader";
 
@@ -55,54 +50,21 @@ const createSafeBounds = (coords: [[number, number], [number, number]]) => {
   );
 };
 
+/** Marqueur de FOSA : uniquement des champs issus de la base. */
 interface Hospital {
-  image: any;
-  batimentsCount: number;
-  vehiculesCount: number;
-  ambulancesCount: number;
-  personnelByCategory: Array<{ category: string; count: number }>;
-  aTitreFoncier: any;
-  aCloture: any;
   id: string;
   name: string;
-  type: 'public' | 'parapublic' | 'prive_laic' | 'prive_confessionnel';
+  type: 'public' | 'parapublic' | 'prive_laic' | 'prive_confessionnel' | 'non_renseigne';
   fosaType?: string;
   category: string;
-  status: 'operational' | 'maintenance' | 'construction' | 'closed';
+  status: 'operational' | 'closed';
   coordinates: [number, number];
   address: string;
   city: string;
+  district: string;
   region: string;
-  budget: {
-    annual: number;
-    personnel: number;
-    equipment: number;
-    maintenance: number;
-  };
-  capacity: {
-    beds: number;
-    staff: number;
-    doctors: number;
-  };
-  services: string[];
-  equipment: Array<{
-    category: string;
-    items: Array<{
-      name: string;
-      quantity: number;
-      condition: string;
-    }>;
-  }>;
-  maintenance: {
-    lastInspection: string;
-    nextInspection: string;
-    priority: 'low' | 'medium' | 'high' | 'urgent';
-    issues: string[];
-  };
-  contact: {
-    phone: string;
-    email: string;
-  };
+  aTitreFoncier: boolean;
+  aCloture: boolean;
 }
 
 const MapRefBridge: React.FC<{ onReady: (m: L.Map) => void }> = ({ onReady }) => {
@@ -247,7 +209,6 @@ const MapView: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [mapStyle, setMapStyle] = useState("osm");
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({});
   const [allDataLoaded, setAllDataLoaded] = useState(false);
 
   const [loading, setLoading] = useState(true);
@@ -277,7 +238,6 @@ const MapView: React.FC = () => {
   const [arrondissementsData, setArrondissementsData] = useState<any[]>([]);
   const [districtsData, setDistrictsData] = useState<any[]>([]);
   const [airesantesData, setAiresantesData] = useState<any[]>([]);
-  const [fosasData, setFosasData] = useState<any[]>([]);
 
   const [loadingProgress, setLoadingProgress] = useState({
     cameroonPolygon: false,
@@ -317,104 +277,54 @@ const MapView: React.FC = () => {
     setLoadingProgress(prev => ({ ...prev, [key]: value }));
   };
 
-  // Fonction pour transformer les FOSA en format Hospital
+  // Transforme les FOSA de l'API en marqueurs. Seuls des champs de la base sont
+  // repris ; la fiche complète est chargée au clic (GET /fosas/{id}/details).
   const transformFosasToHospitals = async (fosas: any[]): Promise<Hospital[]> => {
     const arrondissements = allArrondissementsData.length > 0 ? allArrondissementsData : await apiService.getArrondissements();
     const departements = allDepartementsData.length > 0 ? allDepartementsData : await apiService.getDepartements();
     const regions = allRegionsData.length > 0 ? allRegionsData : await apiService.getRegions();
 
-    return fosas.map((fosa: any) => {
-      const arrond = arrondissements.find(a => a.id === fosa.arrondissementId);
+    const toNumber = (value: any): number | null => {
+      if (value === undefined || value === null || value === '') return null;
+      const n = typeof value === 'number' ? value : parseFloat(value);
+      return Number.isFinite(n) ? n : null;
+    };
+
+    return fosas.flatMap((fosa: any) => {
+      const lat = toNumber(fosa.latitude);
+      const lng = toNumber(fosa.longitude);
+      // Sans coordonnées réelles, la FOSA ne peut pas être placée : pas de position inventée.
+      if (lat === null || lng === null || (lat === 0 && lng === 0)) return [];
+
+      const arrondId = fosa.arrondissementId ?? fosa.arrondissement?.id;
+      const arrond = arrondissements.find(a => a.id === arrondId);
       const departement = arrond ? departements.find(d => d.id === arrond.departementId) : null;
       const region = departement ? regions.find(r => r.id === departement.regionId) : null;
+      const arrondNom = fosa.arrondissement?.nom || arrond?.nom || '';
 
-      const airesante = fosa.airesante || (fosa.airesanteId ? { id: fosa.airesanteId, nom_as: fosa.airesante?.nom_as || fosa.airesante?.nom } : null);
-      const district = airesante?.district || null;
+      const statut = (fosa.statutRec || '').toLowerCase().trim();
+      const type: Hospital['type'] =
+        statut === 'public' ? 'public'
+          : statut === 'parapublic' ? 'parapublic'
+            : (statut === 'privé laïc' || statut === 'prive laic') ? 'prive_laic'
+              : (statut === 'privé confessionnel' || statut === 'prive confessionnel') ? 'prive_confessionnel'
+                : 'non_renseigne';
 
-      const fosaLat = fosa.latitude !== undefined && fosa.latitude !== null ? parseFloat(fosa.latitude) : null;
-      const fosaLng = fosa.longitude !== undefined && fosa.longitude !== null ? parseFloat(fosa.longitude) : null;
-
-      const coordinates: [number, number] = (fosaLat !== null && fosaLng !== null && !isNaN(fosaLat) && !isNaN(fosaLng))
-        ? [fosaLat, fosaLng]
-        : (arrond && arrond.latitude && arrond.longitude)
-          ? [arrond.latitude, arrond.longitude]
-          : [3.8667, 11.5167];
-
-      return {
+      return [{
         id: fosa.id.toString(),
         name: fosa.nom,
-        _district: district?.nom_ds || district?.nom || null,
-        _airesante: airesante?.nom_as || airesante?.nom || null,
-        // CORRECTION: Normaliser statutRec pour gérer les variations de casse et d'accents
-        type: (() => {
-          const statut = (fosa.statutRec || '').toLowerCase().trim();
-          if (statut === 'public') return 'public';
-          if (statut === 'parapublic') return 'parapublic';
-          if (statut === 'privé laïc' || statut === 'prive laic') return 'prive_laic';
-          if (statut === 'privé confessionnel' || statut === 'prive confessionnel') return 'prive_confessionnel';
-          return 'public'; // Par défaut
-        })(),
-        category: fosa.catRec || fosa.statutRec || 'FOSA',
+        type,
+        category: fosa.catRec || fosa.type || '',
         fosaType: fosa.type || '',
-        status: fosa.estFerme ? 'closed' :
-          fosa.situation?.toLowerCase().includes('maintenance') ? 'maintenance' :
-            fosa.situation?.toLowerCase().includes('construction') ? 'construction' : 'operational',
-        coordinates,
-        address: arrond?.nom || 'Non spécifié',
-        city: arrond?.nom || 'Non spécifié',
-        region: region?.nom || 'Non spécifié',
-        image: fosa.image ? (() => {
-          const img = fosa.image;
-          if (img.startsWith('http')) return img;
-          const base = (import.meta as any).env?.VITE_API_URL?.replace(/\/api\/v1\/?$/, '').replace(/\/api\/?$/, '') || '';
-          return img.startsWith('/') ? `${base}${img}` : `${base}/storage/${img}`;
-        })() : null,
+        status: (fosa.estFerme === true || fosa.estFerme === 1) ? 'closed' : 'operational',
+        coordinates: [lat, lng] as [number, number],
+        address: arrondNom,
+        city: arrondNom,
+        district: fosa.district?.nom || '',
+        region: region?.nom || (selectedRegion !== 'all' ? selectedRegion : ''),
         aTitreFoncier: fosa.aTitreFoncier === true || fosa.aTitreFoncier === 1,
         aCloture: fosa.aCloture === true || fosa.aCloture === 1,
-        batimentsCount: fosa.batiments?.length || 0,
-        vehiculesCount: fosa.materielroulants?.length || 0,
-        ambulancesCount: fosa.materielroulants?.filter((v: any) => v.type?.toLowerCase().includes('ambulance')).length || 0,
-        personnelByCategory: fosa.personnels ?
-          Object.values(fosa.personnels.reduce((acc: any, p: any) => {
-            const cat = p.categorie || 'Autre';
-            if (!acc[cat]) acc[cat] = { category: cat, count: 0 };
-            acc[cat].count++;
-            return acc;
-          }, {})) : [],
-        capacity: {
-          beds: fosa.capaciteLits || 0,
-          staff: 0,
-          doctors: 0
-        },
-        services: ['Urgences', 'Consultation', 'Chirurgie', 'Pédiatrie', 'Maternité', 'Radiologie', 'Laboratoire', 'Pharmacie'].slice(0, Math.floor(Math.random() * 4) + 3),
-        equipment: [
-          {
-            category: 'Imagerie médicale',
-            items: [
-              { name: 'Scanner', quantity: Math.floor(Math.random() * 2) + 1, condition: "excellent" },
-              { name: 'IRM', quantity: Math.floor(Math.random() * 2), condition: "excellent" },
-              { name: 'Échographe', quantity: Math.floor(Math.random() * 3) + 1, condition: "excellent" }
-            ]
-          }
-        ],
-        maintenance: {
-          lastInspection: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
-          nextInspection: new Date(Date.now() + Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString(),
-          priority: ['low', 'medium', 'high', 'urgent'][Math.floor(Math.random() * 4)] as any,
-          issues: ['Équipement vieillissant', 'Besoin de maintenance préventive', 'Matériel obsolète'].slice(0, Math.floor(Math.random() * 2) + 1),
-        },
-        contact: {
-          phone: fosa.telephone || fosa.responsableTelephone || '',
-          email: '',
-        },
-        responsableNom: fosa.responsableNom || '',
-        budget: {
-          annual: 0,
-          personnel: 0,
-          equipment: 0,
-          maintenance: 0
-        }
-      };
+      }];
     });
   };
 
@@ -422,7 +332,6 @@ const MapView: React.FC = () => {
   const clearFosaData = () => {
     setHospitals([]);
     setFilteredHospitals([]);
-    setFosasData([]);
   };
 
   // Fonction pour charger les FOSA avec filtres spatiaux
@@ -473,7 +382,6 @@ const MapView: React.FC = () => {
 
           const transformedHospitals = await transformFosasToHospitals(spatialData);
           setHospitals(transformedHospitals);
-          setFosasData(spatialData);
           // CORRECTION: Initialiser filteredHospitals pour permettre le filtrage local
           // Les filtres locaux (type, catégorie, etc.) seront appliqués par le useEffect qui suit
           setFilteredHospitals(transformedHospitals);
@@ -503,27 +411,14 @@ const MapView: React.FC = () => {
       updateLoadingProgress('hospitalsData', true);
       const fosas = await apiService.getFosas();
       setAllFosasData(fosas);
-      setFosasData(fosas);
       const transformedHospitals = await transformFosasToHospitals(fosas);
       setHospitals(transformedHospitals);
       setFilteredHospitals(transformedHospitals);
       setError(null);
     } catch (err) {
       console.error('❌ Erreur chargement hôpitaux:', err);
-      try {
-        const response = await fetch('/data/hospitals.json');
-        if (response.ok) {
-          const jsonData = await response.json();
-          setHospitals(jsonData);
-          setFilteredHospitals(jsonData);
-          setError(null);
-        } else {
-          setError('Impossible de charger les données');
-        }
-      } catch (fallbackErr) {
-        console.error('❌ Erreur fallback hôpitaux:', fallbackErr);
-        setError('Impossible de charger les données');
-      }
+      // Pas de jeu de données de secours : l'erreur est affichée telle quelle.
+      setError('Impossible de charger les données');
     } finally {
       updateLoadingProgress('hospitalsData', false);
     }
@@ -970,10 +865,15 @@ const MapView: React.FC = () => {
     .filter(a => a && typeof a === 'string' && a.trim().length >= 3)
     .sort();
 
-  const toggleSection = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setExpandedSections(prev => ({ ...prev, [id]: !prev[id] }));
-  };
+  // Périmètre de l'analyse thématique, aligné sur les polygones affichés :
+  // régions (vue nationale), districts de la région, aires de santé du district.
+  const thematicScope = (() => {
+    const district = selectedDistrict !== 'all' ? allDistrictsData.find(d => (d.nom_ds || d.nom) === selectedDistrict) : null;
+    if (district) return { level: 'airesante' as const, parent: { param: 'district_id', id: Number(district.id) } };
+    const region = selectedRegion !== 'all' ? allRegionsData.find(r => r.nom === selectedRegion) : null;
+    if (region) return { level: 'district' as const, parent: { param: 'region_id', id: Number(region.id) } };
+    return { level: 'region' as const, parent: null };
+  })();
 
   const getHospitalIcon = (hospital: Hospital) => {
     // Symbologie MINSANTE par catégorie
@@ -1007,8 +907,6 @@ const MapView: React.FC = () => {
     });
   };
 
-  const getStatusText = (s: string) => ({ operational: 'Opérationnel', maintenance: 'En maintenance', construction: 'En construction', closed: 'Fermé' }[s] || s);
-  const getTypeText = (t: string) => ({ public: 'Public', parapublic: 'Parapublic', prive_laic: 'Privé laïc', prive_confessionnel: 'Privé confessionnel' }[t] || t);
 
   const mapStyles = [
     { id: "osm", name: "Standard", url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" },
@@ -1016,23 +914,6 @@ const MapView: React.FC = () => {
     { id: "cameroon", name: "Cameroun", url: "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png" },
   ];
 
-  const CollapsibleSection = ({ id, title, icon: Icon, children, defaultExpanded = false }: any) => {
-    const isExpanded = expandedSections[id] ?? defaultExpanded;
-    return (
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-        <button onClick={(e) => toggleSection(id, e)} className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-gray-50">
-          <div className="flex items-center gap-2">
-            <span className="flex size-7 items-center justify-center rounded-lg bg-brand-50 text-brand-500">
-              <Icon className="size-4" />
-            </span>
-            <span className="text-sm font-semibold text-gray-900">{title}</span>
-          </div>
-          {isExpanded ? <ChevronUp className="size-4 text-gray-400" /> : <ChevronDown className="size-4 text-gray-400" />}
-        </button>
-        {isExpanded && <div className="border-t border-gray-100 p-4">{children}</div>}
-      </div>
-    );
-  };
 
   // Loader pour le filtrage des FOSA
   // Ajouter ces fonctions utilitaires pour le loader
@@ -1298,6 +1179,7 @@ const MapView: React.FC = () => {
                 <option value="parapublic">Parapublic</option>
                 <option value="prive_laic">Privé laïc</option>
                 <option value="prive_confessionnel">Privé confessionnel</option>
+                <option value="non_renseigne">Statut non renseigné</option>
               </select>
 
               {/* Nouveaux filtres pour titre foncier et clôture */}
@@ -1335,155 +1217,12 @@ const MapView: React.FC = () => {
         <div className="card flex-1 overflow-hidden">
           <div className="h-full relative flex">
             {selectedHospital && (
-              <div className="w-[420px] h-full bg-surface border-r border-gray-200 overflow-y-auto custom-scrollbar z-[1000]">
-                <div className="sticky top-0 z-10 bg-header p-4 text-white">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <p className="mb-1 text-[10px] uppercase tracking-[0.14em] text-white/60">Formation sanitaire</p>
-                      <h3 className="text-lg font-bold leading-tight">{selectedHospital.name}</h3>
-                    </div>
-                    <button onClick={() => setSelectedHospital(null)} className="rounded-lg p-1.5 text-white/85 transition-colors hover:bg-white/10" aria-label="Fermer">
-                      <X className="size-4" />
-                    </button>
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold ${selectedHospital.status === "operational" ? "bg-success text-white" : selectedHospital.status === "maintenance" ? "bg-warning text-white" : selectedHospital.status === "construction" ? "bg-brand-500 text-white" : "bg-gray-500 text-white"}`}>
-                      <span className="size-1.5 rounded-full bg-white" />
-                      {getStatusText(selectedHospital.status)}
-                    </span>
-                    <span className="rounded-full bg-white/15 px-2.5 py-1"><strong>Type:</strong> {getTypeText(selectedHospital.type)}</span>
-                    <span className="rounded-full bg-white/15 px-2.5 py-1"><strong>Catégorie:</strong> {selectedHospital.category}</span>
-                  </div>
-                </div>
-
-                <div className="p-4 space-y-3">
-                  {selectedHospital?.image && (
-                    <div className="h-48 w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
-                      <img
-                        src={selectedHospital.image}
-                        alt={selectedHospital.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = '/placeholder-hospital.jpg';
-                        }}
-                      />
-                    </div>
-                  )}
-                  {!selectedHospital.image && (
-                    <div className="flex h-48 w-full items-center justify-center rounded-xl border border-gray-200 bg-white">
-                      <div className="text-center text-gray-400">
-                        <Building className="mx-auto mb-2 size-12" />
-                        <p className="text-sm">Image non disponible</p>
-                      </div>
-                    </div>
-                  )}
-
-                  <CollapsibleSection id={`capacity-${selectedHospital.id}`} title="Capacité" icon={Activity} defaultExpanded={true}>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="rounded-xl border border-gray-200 bg-surface p-3">
-                        <p className="kicker">Lits</p>
-                        <p className="mt-1.5 text-2xl font-bold leading-none tabular-nums text-gray-900">{selectedHospital.capacity?.beds || 0}</p>
-                      </div>
-                      <div className="rounded-xl border border-gray-200 bg-surface p-3">
-                        <p className="kicker">Bâtiments</p>
-                        <p className="mt-1.5 text-2xl font-bold leading-none tabular-nums text-gray-900">{selectedHospital.batimentsCount || 0}</p>
-                      </div>
-                      <div className="rounded-xl border border-gray-200 bg-surface p-3">
-                        <p className="kicker">Véhicules</p>
-                        <p className="mt-1.5 text-2xl font-bold leading-none tabular-nums text-gray-900">{selectedHospital.vehiculesCount || 0}</p>
-                      </div>
-                      <div className="rounded-xl border border-gray-200 bg-surface p-3">
-                        <p className="kicker">Ambulances</p>
-                        <p className="mt-1.5 text-2xl font-bold leading-none tabular-nums text-gray-900">{selectedHospital.ambulancesCount || 0}</p>
-                      </div>
-                    </div>
-                  </CollapsibleSection>
-
-                  <CollapsibleSection id={`personnel-${selectedHospital.id}`} title="Personnel" icon={Users} defaultExpanded={true}>
-                    <div className="space-y-2">
-                      {selectedHospital.personnelByCategory && (selectedHospital as any).personnelByCategory?.length > 0 ? (
-                        (selectedHospital as any).personnelByCategory?.map((cat: any, idx: number) => (
-                          <div key={idx} className="flex items-center justify-between rounded-lg px-2 py-1.5 even:bg-row-alt">
-                            <span className="text-xs text-gray-700">{cat.category}</span>
-                            <span className="text-sm font-bold tabular-nums text-gray-900">{cat.count}</span>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-center text-gray-400 text-xs py-4">
-                          Aucune donnée de personnel disponible
-                        </div>
-                      )}
-                    </div>
-                  </CollapsibleSection>
-
-                  <CollapsibleSection id={`security-${selectedHospital.id}`} title="Sécurité" icon={Shield} defaultExpanded={false}>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className={`rounded-xl p-3 ${selectedHospital.aTitreFoncier ? 'bg-success-soft' : 'bg-danger-soft'}`}>
-                        <p className="kicker mb-1">Titre Foncier</p>
-                        <p className={`text-lg font-bold ${selectedHospital.aTitreFoncier ? 'text-success' : 'text-danger'}`}>
-                          {selectedHospital.aTitreFoncier ? 'Oui' : 'Non'}
-                        </p>
-                      </div>
-                      <div className={`rounded-xl p-3 ${selectedHospital.aCloture ? 'bg-success-soft' : 'bg-danger-soft'}`}>
-                        <p className="kicker mb-1">Clôture</p>
-                        <p className={`text-lg font-bold ${selectedHospital.aCloture ? 'text-success' : 'text-danger'}`}>
-                          {selectedHospital.aCloture ? 'Oui' : 'Non'}
-                        </p>
-                      </div>
-                    </div>
-                  </CollapsibleSection>
-
-                  <CollapsibleSection id={`services-${selectedHospital.id}`} title="Services Disponibles" icon={Activity} defaultExpanded={false}>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedHospital.services.map((service, idx) => (
-                        <span key={idx} className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-600">
-                          {service}
-                        </span>
-                      ))}
-                    </div>
-                  </CollapsibleSection>
-
-                  <CollapsibleSection id={`maintenance-${selectedHospital.id}`} title="État de Maintenance" icon={AlertTriangle} defaultExpanded={false}>
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div className="rounded-xl bg-surface p-3">
-                          <p className="kicker mb-1">Dernière inspection</p>
-                          <p className="text-xs font-semibold text-gray-900">{new Date(selectedHospital.maintenance.lastInspection).toLocaleDateString('fr-FR')}</p>
-                        </div>
-                        <div className="rounded-xl bg-surface p-3">
-                          <p className="kicker mb-1">Prochaine inspection</p>
-                          <p className="text-xs font-semibold text-gray-900">{new Date(selectedHospital.maintenance.nextInspection).toLocaleDateString('fr-FR')}</p>
-                        </div>
-                      </div>
-                      {selectedHospital.maintenance.issues.length > 0 && (
-                        <div className="rounded-xl border border-danger/20 bg-danger-soft p-3">
-                          <p className="mb-2 text-xs font-semibold text-danger">Problèmes identifiés:</p>
-                          <ul className="space-y-1 text-xs text-danger">
-                            {selectedHospital.maintenance.issues.map((issue, idx) => (
-                              <li key={idx} className="flex items-start gap-2">
-                                <AlertTriangle className="mt-0.5 size-3 flex-shrink-0" />
-                                <span>{issue}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </CollapsibleSection>
-
-                  <div className="rounded-xl border border-gray-200 bg-white p-4">
-                    <p className="kicker mb-2">Contact</p>
-                    <div className="space-y-1 text-xs text-gray-700">
-                      {selectedHospital.contact.phone && (
-                        <p><strong>Téléphone:</strong> {selectedHospital.contact.phone}</p>
-                      )}
-                      {(selectedHospital as any).responsableNom && (
-                        <p><strong>Responsable:</strong> {(selectedHospital as any).responsableNom}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <FosaDetailsPanel
+                key={selectedHospital.id}
+                fosaId={selectedHospital.id}
+                fallbackName={selectedHospital.name}
+                onClose={() => setSelectedHospital(null)}
+              />
             )}
 
             <div className="flex-1 relative">
@@ -1506,6 +1245,16 @@ const MapView: React.FC = () => {
                 {layersVisibility.cameroon && cameroonPolygon.length > 0 && (
                   <Polygon positions={cameroonPolygon} pathOptions={{ fillColor: '#007ac3', fillOpacity: 0.05, color: '#007ac3', weight: 2, opacity: 0.6 }} />
                 )}
+
+                {layersVisibility.regions && activeTheme?.level === 'region' && Object.entries(regionsPolygons).map(([regionName, polygon]) => (
+                  <Polygon
+                    key={`theme-region-${regionName}`}
+                    positions={polygon}
+                    pathOptions={{ fillColor: activeTheme.getColorForName(regionName), fillOpacity: 0.6, color: '#ffffff', weight: 2, opacity: 0.8 }}
+                  >
+                    <Tooltip sticky>{regionName}</Tooltip>
+                  </Polygon>
+                ))}
 
                 {layersVisibility.regions && selectedRegion && regionsPolygons[selectedRegion] && (
                   <Polygon
@@ -1547,8 +1296,9 @@ const MapView: React.FC = () => {
                 )}
 
                 {layersVisibility.districts && Object.entries(districtsPolygons).map(([districtName, polygon], index) => {
-                  const fillColor = activeTheme ? activeTheme.getColor(districtName) : '#8b5cf6';
-                  const fillOpacity = activeTheme ? 0.6 : 0.1;
+                  const themed = activeTheme?.level === 'district';
+                  const fillColor = themed ? activeTheme!.getColorForName(districtName) : '#8b5cf6';
+                  const fillOpacity = themed ? 0.6 : 0.1;
                   return (
                     <Polygon
                       key={index}
@@ -1556,27 +1306,30 @@ const MapView: React.FC = () => {
                       pathOptions={{
                         fillColor,
                         fillOpacity,
-                        color: activeTheme ? '#ffffff' : '#8b5cf6',
-                        weight: activeTheme ? 2 : 1.5,
-                        opacity: activeTheme ? 0.8 : 0.5
+                        color: themed ? '#ffffff' : '#8b5cf6',
+                        weight: themed ? 2 : 1.5,
+                        opacity: themed ? 0.8 : 0.5
                       }}
                     />
                   );
                 })}
 
-                {layersVisibility.airesantes && Object.entries(airesantesPolygons).map(([airesanteName, polygon], index) => (
-                  <Polygon
-                    key={index}
-                    positions={polygon}
-                    pathOptions={{
-                      fillColor: '#ec4899',
-                      fillOpacity: 0.08,
-                      color: '#ec4899',
-                      weight: 1,
-                      opacity: 0.4
-                    }}
-                  />
-                ))}
+                {layersVisibility.airesantes && Object.entries(airesantesPolygons).map(([airesanteName, polygon], index) => {
+                  const themed = activeTheme?.level === 'airesante';
+                  return (
+                    <Polygon
+                      key={index}
+                      positions={polygon}
+                      pathOptions={{
+                        fillColor: themed ? activeTheme!.getColorForName(airesanteName) : '#ec4899',
+                        fillOpacity: themed ? 0.6 : 0.08,
+                        color: themed ? '#ffffff' : '#ec4899',
+                        weight: themed ? 1.5 : 1,
+                        opacity: themed ? 0.8 : 0.4
+                      }}
+                    />
+                  );
+                })}
 
                 {layersVisibility.hospitals && filteredHospitals.map((h, index) => (
                   <Marker key={index} position={h.coordinates} icon={getHospitalIcon(h)} eventHandlers={{ click: () => setSelectedHospital(h) }}>
@@ -1596,27 +1349,20 @@ const MapView: React.FC = () => {
                 className="bottom-8 right-4"
               />
 
-              <div className="absolute bottom-8 left-20 z-[1000] max-w-sm space-y-3">
-                <ThematicAnalysis
-                  entitiesData={
-                    selectedDistrict !== 'all' ? airesantesData :
-                      selectedDepartement !== 'all' ? arrondissementsData :
-                        selectedRegion !== 'all' ? districtsData :
-                          districtsData
-                  }
-                  fosasData={fosasData}
-                  airesantesData={airesantesData}
-                  onThemeChange={setActiveTheme}
-                  entityType={
-                    selectedDistrict !== 'all' ? 'airesante' :
-                      selectedDepartement !== 'all' ? 'arrondissement' :
-                        selectedRegion !== 'all' ? 'district' :
-                          'district'
-                  }
-                />
+              {/* Colonne bornée à la hauteur de la carte : défile au lieu de déborder. */}
+              <div className="pointer-events-none absolute bottom-8 left-16 top-4 z-[1000] flex w-[22rem] max-w-[calc(100%-5rem)] flex-col gap-3 overflow-y-auto custom-scrollbar">
+                <div className="pointer-events-auto mt-auto">
+                  <ThematicAnalysis
+                    level={thematicScope.level}
+                    parent={thematicScope.parent}
+                    onThemeChange={setActiveTheme}
+                  />
+                </div>
 
                 {activeTheme && (
-                  <MapLegend theme={activeTheme} />
+                  <div className="pointer-events-auto">
+                    <MapLegend theme={activeTheme} />
+                  </div>
                 )}
               </div>
 

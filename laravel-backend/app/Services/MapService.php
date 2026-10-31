@@ -6,6 +6,10 @@ use Illuminate\Support\Facades\DB;
 
 class MapService
 {
+    // Rattachement district -> région : districts.region_id est décalé dans le dump
+    // (ex. les districts de l'Ouest portent l'id du Littoral). On s'appuie sur le
+    // nom de région du district (colonne `region`) ou sur l'inclusion géométrique.
+
     /**
      * Regions with full hierarchy: Region -> Districts -> Airesantes -> Fosas
      */
@@ -17,7 +21,7 @@ class MapService
             a.id as airesante_id, a.nom_as as airesante_nom, a.code_as as airesante_code, ST_AsGeoJSON(a.geom) as airesante_geojson,
             f.id as fosa_id, f.nom as fosa_nom, f.type as fosa_type, f.latitude, f.longitude, f.est_ferme, f.situation
         FROM regions r
-        LEFT JOIN districts d ON ST_Contains(r.geom, d.geom) OR d.region_id = r.id
+        LEFT JOIN districts d ON ST_Contains(r.geom, d.geom) OR d.region COLLATE utf8mb4_unicode_ci = r.nom
         LEFT JOIN airesantes a ON ST_Contains(d.geom, a.geom) OR a.district_id = d.id
         LEFT JOIN tmpfosa f ON f.airesante_id = a.id
         ORDER BY r.id, d.id, a.id, f.id";
@@ -38,7 +42,7 @@ class MapService
             a.id as airesante_id, a.nom_as as airesante_nom, a.code_as as airesante_code, ST_AsGeoJSON(a.geom) as airesante_geojson,
             f.id as fosa_id, f.nom as fosa_nom, f.type as fosa_type, f.latitude, f.longitude, f.est_ferme, f.situation
         FROM regions r
-        LEFT JOIN districts d ON ST_Contains(r.geom, d.geom) OR d.region_id = r.id
+        LEFT JOIN districts d ON ST_Contains(r.geom, d.geom) OR d.region COLLATE utf8mb4_unicode_ci = r.nom
         LEFT JOIN airesantes a ON ST_Contains(d.geom, a.geom) OR a.district_id = d.id
         LEFT JOIN tmpfosa f ON f.airesante_id = a.id
         WHERE r.id = ?
@@ -59,7 +63,7 @@ class MapService
             a.id as airesante_id, a.nom_as as airesante_nom, a.code_as as airesante_code, ST_AsGeoJSON(a.geom) as airesante_geojson,
             f.id as fosa_id, f.nom as fosa_nom, f.type as fosa_type, f.latitude, f.longitude, f.est_ferme, f.situation
         FROM districts d
-        INNER JOIN regions r ON ST_Contains(r.geom, d.geom) OR d.region_id = r.id
+        INNER JOIN regions r ON ST_Contains(r.geom, d.geom) OR d.region COLLATE utf8mb4_unicode_ci = r.nom
         LEFT JOIN airesantes a ON ST_Contains(d.geom, a.geom) OR a.district_id = d.id
         LEFT JOIN tmpfosa f ON f.airesante_id = a.id
         ORDER BY d.id, a.id, f.id";
@@ -80,7 +84,7 @@ class MapService
             a.id as airesante_id, a.nom_as as airesante_nom, a.code_as as airesante_code, ST_AsGeoJSON(a.geom) as airesante_geojson,
             f.id as fosa_id, f.nom as fosa_nom, f.type as fosa_type, f.latitude, f.longitude, f.est_ferme, f.situation
         FROM districts d
-        INNER JOIN regions r ON ST_Contains(r.geom, d.geom) OR d.region_id = r.id
+        INNER JOIN regions r ON ST_Contains(r.geom, d.geom) OR d.region COLLATE utf8mb4_unicode_ci = r.nom
         LEFT JOIN airesantes a ON ST_Contains(d.geom, a.geom) OR a.district_id = d.id
         LEFT JOIN tmpfosa f ON f.airesante_id = a.id
         WHERE d.id = ?
@@ -98,7 +102,7 @@ class MapService
             a.id as airesante_id, a.nom_as as airesante_nom, a.code_as as airesante_code, ST_AsGeoJSON(a.geom) as airesante_geojson,
             f.id as fosa_id, f.nom as fosa_nom, f.type as fosa_type, f.latitude, f.longitude, f.est_ferme, f.situation
         FROM districts d
-        INNER JOIN regions r ON (ST_Contains(r.geom, d.geom) OR d.region_id = r.id) AND r.id = ?
+        INNER JOIN regions r ON (ST_Contains(r.geom, d.geom) OR d.region COLLATE utf8mb4_unicode_ci = r.nom) AND r.id = ?
         LEFT JOIN airesantes a ON ST_Contains(d.geom, a.geom) OR a.district_id = d.id
         LEFT JOIN tmpfosa f ON f.airesante_id = a.id
         ORDER BY d.id, a.id, f.id", [$regionId]);
@@ -119,7 +123,7 @@ class MapService
             f.id as fosa_id, f.nom as fosa_nom, f.type as fosa_type, f.latitude, f.longitude, f.est_ferme, f.situation
         FROM airesantes a
         INNER JOIN districts d ON ST_Contains(d.geom, a.geom) OR a.district_id = d.id
-        LEFT JOIN regions r ON ST_Contains(r.geom, d.geom) OR d.region_id = r.id
+        LEFT JOIN regions r ON ST_Contains(r.geom, d.geom) OR d.region COLLATE utf8mb4_unicode_ci = r.nom
         LEFT JOIN tmpfosa f ON f.airesante_id = a.id
         ORDER BY a.id, f.id";
 
@@ -141,7 +145,7 @@ class MapService
             f.id as fosa_id, f.nom as fosa_nom, f.type as fosa_type, f.latitude, f.longitude, f.est_ferme, f.situation
         FROM airesantes a
         INNER JOIN districts d ON ST_Contains(d.geom, a.geom) OR a.district_id = d.id
-        LEFT JOIN regions r ON ST_Contains(r.geom, d.geom) OR d.region_id = r.id
+        LEFT JOIN regions r ON ST_Contains(r.geom, d.geom) OR d.region COLLATE utf8mb4_unicode_ci = r.nom
         LEFT JOIN tmpfosa f ON f.airesante_id = a.id
         WHERE a.id = ?
         ORDER BY f.id", [$airesanteId]);

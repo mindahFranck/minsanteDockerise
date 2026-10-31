@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\ImportController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\CamerounController;
 use App\Http\Controllers\Api\ImportFosaController;
+use App\Http\Controllers\Api\MapInsightsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -111,6 +112,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/spatial/arrondissement/{arrondissementId}', [FosaController::class, 'spatialByArrondissement']);
         Route::get('/spatial/district/{districtId}', [FosaController::class, 'spatialByDistrict']);
         Route::get('/spatial/airesante/{airesanteId}', [FosaController::class, 'spatialByAiresante']);
+        // Carte publique : analyse thématique et fiche détaillée, calculées depuis la base
+        Route::get('/thematic', [MapInsightsController::class, 'thematic']);
+        Route::get('/{id}/details', [MapInsightsController::class, 'details'])->whereNumber('id');
         Route::get('/{id}', [FosaController::class, 'show']);
     });
 
