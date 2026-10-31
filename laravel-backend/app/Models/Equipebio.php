@@ -16,5 +16,13 @@ class Equipebio extends Model
     }
 
     public function service() { return $this->belongsTo(Service::class); }
-    public function fosa() { return $this->belongsTo(Fosa::class); }
+
+    /**
+     * La table equipebios n'a pas de colonne fosa_id : la FOSA propriétaire est
+     * celle du service (equipebio -> service -> fosa). Charger `service.fosa`.
+     */
+    public function fosa()
+    {
+        return $this->hasOneThrough(Fosa::class, Service::class, 'id', 'id', 'service_id', 'fosa_id');
+    }
 }

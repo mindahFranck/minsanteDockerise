@@ -11,7 +11,8 @@ class EquipebioController extends CrudController
 {
     protected string $modelClass = Equipebio::class;
     protected string $resourceName = 'equipement_biomedical';
-    protected array $relations = ['fosa', 'service'];
+    // FOSA propriétaire : equipebio -> service -> fosa (chargée en 3 requêtes, sans N+1).
+    protected array $relations = ['service', 'service.fosa:id,nom'];
     protected array $filterFields = ['service_id', 'fonction'];
     // La table equipebios n'a pas de colonne fosa_id : on filtre via le service.
     protected array $relationFilters = ['fosa_id' => ['service', 'fosa_id']];
@@ -45,6 +46,9 @@ class EquipebioController extends CrudController
         $item = parent::camelizeKeys($item);
         if (!isset($item['etat']) && array_key_exists('fonction', $item)) {
             $item['etat'] = $item['fonction'];
+        }
+        if (array_key_exists('service', $item)) {
+            $item = $this->withOwningFosa($item, $item['service']['fosa'] ?? null, $item['service']['fosa_id'] ?? null);
         }
         return $item;
     }

@@ -219,6 +219,7 @@ export const exportMaterielroulantsToPDF = (data: any[]) => {
       { header: 'Type', dataKey: 'type' },
       { header: 'Marque', dataKey: 'marque' },
       { header: 'Modèle', dataKey: 'modele' },
+      { header: 'FOSA', dataKey: 'fosaName' },
       { header: 'Immatriculation', dataKey: 'immatriculation' },
       { header: 'État', dataKey: 'etat' },
       { header: 'Année', dataKey: 'annee' },
@@ -236,11 +237,13 @@ export const exportMaterielroulantsToExcel = (data: any[]) => {
       { header: 'Type', key: 'type' },
       { header: 'Marque', key: 'marque' },
       { header: 'Modèle', key: 'modele' },
+      { header: 'FOSA', key: 'fosaName' },
       { header: 'Immatriculation', key: 'immatriculation' },
       { header: 'État', key: 'etat' },
       { header: 'Année', key: 'annee' },
-      { header: 'Kilométrage', key: 'kilometrage' },
-      { header: 'Dernière Révision', key: 'derniereRevision' },
+      // Colonnes réelles de materielroulants (kilométrage / révision n'existent pas en base)
+      { header: 'Énergie', key: 'energie' },
+      { header: 'Mise en circulation', key: 'dateMiseEnCirculation' },
     ],
     `materiel_roulant_${new Date().toISOString().split('T')[0]}`,
     'Matériel Roulant'

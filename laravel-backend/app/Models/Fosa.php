@@ -86,8 +86,10 @@ class Fosa extends Model
     public function batiments() { return $this->hasMany(Batiment::class); }
     public function services() { return $this->hasMany(Service::class); }
     public function personnels() { return $this->hasMany(Personnel::class); }
-    public function equipements() { return $this->hasMany(Equipement::class); }
-    public function equipebios() { return $this->hasMany(Equipebio::class); }
+    // Les tables equipements et equipebios n'ont pas de colonne fosa_id : elles
+    // sont rattachées à un service, lui-même rattaché à la FOSA.
+    public function equipements() { return $this->hasManyThrough(Equipement::class, Service::class, 'fosa_id', 'service_id'); }
+    public function equipebios() { return $this->hasManyThrough(Equipebio::class, Service::class, 'fosa_id', 'service_id'); }
     public function materielroulants() { return $this->hasMany(Materielroulant::class); }
     public function parametres() { return $this->hasMany(Parametre::class); }
 

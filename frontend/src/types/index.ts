@@ -429,6 +429,10 @@ export interface Equipebio {
   dateAcquisition?: string;
   serviceId: number;
   service?: Service;
+  /** FOSA propriétaire (via le service), renvoyée par l'API. */
+  fosaId?: number | null;
+  fosaNom?: string | null;
+  fosa?: { id: number; nom: string | null } | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -444,6 +448,8 @@ export interface Materielroulant {
   etat?: string;
   quantite?: number;
   fosaId: number;
+  /** Nom de la FOSA propriétaire, renvoyé par l'API. */
+  fosaNom?: string | null;
   fosa?: Fosa;
   createdAt?: string;
   updatedAt?: string;

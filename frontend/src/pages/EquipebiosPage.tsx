@@ -47,6 +47,11 @@ function TableSkeleton() {
   )
 }
 
+/** FOSA propriétaire de l'équipement (equipebio -> service -> fosa), « — » si inconnue. */
+function fosaName(e: Equipebio): string {
+  return e.fosaNom ?? e.fosa?.nom ?? (e.service as any)?.fosa?.nom ?? "—"
+}
+
 export default function EquipebiosPage() {
   const permissions = usePermissions()
 
@@ -192,6 +197,7 @@ export default function EquipebiosPage() {
   const columns = [
     { key: "id", label: "ID" },
     { key: "nom", label: "Nom", render: (e: Equipebio) => <span className="font-medium text-gray-900">{e.nom || "-"}</span> },
+    { key: "fosaNom", label: "FOSA", render: (e: Equipebio) => fosaName(e) },
     { key: "type", label: "Type" },
     { key: "service", label: "Service", render: (e: Equipebio) => e.service?.nom || "N/A" },
     { key: "quantite", label: "Quantité", render: (e: Equipebio) => <span className="tabular-nums">{e.quantite ?? "-"}</span> },
@@ -200,19 +206,24 @@ export default function EquipebiosPage() {
       label: "État",
       render: (e: Equipebio) => (
         <Badge variant={etatVariant(e.etat)} withDot>
-          {e.etat}
+          {e.etat || "Non renseigné"}
         </Badge>
       )
     },
   ]
 
 
+  // Lignes exportées : les colonnes calculées (FOSA, service) sont aplaties.
+  const exportRows = () =>
+    equipebios.map((e) => ({ ...e, fosaName: fosaName(e), serviceName: e.service?.nom || "—" }))
+
   const handleExportPDF = () => {
     exportGenericToPDF(
-      equipebios,
+      exportRows(),
       [
         { header: 'ID', dataKey: 'id' },
         { header: 'Nom', dataKey: 'nom' },
+        { header: 'FOSA', dataKey: 'fosaName' },
         { header: 'Type', dataKey: 'type' },
         { header: 'État', dataKey: 'etat' },
         { header: 'Service', dataKey: 'serviceName' },
@@ -224,13 +235,11 @@ export default function EquipebiosPage() {
 
   const handleExportExcel = () => {
     exportGenericToExcel(
-      equipebios.map(e => ({
-        ...e,
-        serviceName: e.service?.nom || '-'
-      })),
+      exportRows(),
       [
         { header: 'ID', key: 'id' },
         { header: 'Nom', key: 'nom' },
+        { header: 'FOSA', key: 'fosaName' },
         { header: 'Type', key: 'type' },
         { header: 'État', key: 'etat' },
         { header: 'Service', key: 'serviceName' },

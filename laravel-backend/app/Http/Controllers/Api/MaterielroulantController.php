@@ -11,7 +11,8 @@ class MaterielroulantController extends CrudController
 {
     protected string $modelClass = Materielroulant::class;
     protected string $resourceName = 'materiel_roulant';
-    protected array $relations = ['fosa', 'service'];
+    // FOSA propriétaire : colonne fosa_id, sinon celle du service (sans N+1).
+    protected array $relations = ['fosa:id,nom', 'service', 'service.fosa:id,nom'];
     protected array $filterFields = ['fosa_id', 'service_id', 'type', 'etat'];
     protected array $validationRules = [
         'numero_chassis' => 'nullable|string|max:100',
@@ -36,6 +37,16 @@ class MaterielroulantController extends CrudController
         'energie' => 'nullable|string|max:50',
         'financement' => 'nullable|string|max:200',
     ];
+
+    protected function camelizeKeys(array $item): array
+    {
+        $item = parent::camelizeKeys($item);
+        if (array_key_exists('fosa', $item) || array_key_exists('service', $item)) {
+            $fosa = $item['fosa'] ?? ($item['service']['fosa'] ?? null);
+            $item = $this->withOwningFosa($item, $fosa, $item['fosaId'] ?? ($item['service']['fosa_id'] ?? null));
+        }
+        return $item;
+    }
 
     /**
      * @OA\Get(

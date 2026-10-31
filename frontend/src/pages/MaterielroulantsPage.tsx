@@ -223,6 +223,7 @@ export default function MaterielroulantsPage() {
     { key: "id", label: "ID" },
     { key: "numeroChassis", label: "N° Chassis", render: (m: Materielroulant) => <span className="font-mono text-xs">{m.numeroChassis || "-"}</span> },
     { key: "marque", label: "Marque", render: (m: Materielroulant) => <span className="font-medium text-gray-900">{m.marque || "-"}</span> },
+    { key: "fosaNom", label: "FOSA", render: (m: Materielroulant) => m.fosaNom ?? m.fosa?.nom ?? "—" },
     { key: "modele", label: "Modèle" },
     { key: "type", label: "Type" },
     { key: "annee", label: "Année", render: (m: Materielroulant) => <span className="tabular-nums">{m.annee || "-"}</span> },
@@ -232,12 +233,13 @@ export default function MaterielroulantsPage() {
       label: "État",
       render: (m: Materielroulant) => (m.etat ? <Badge variant={etatVariant(m.etat)} withDot>{m.etat}</Badge> : "-"),
     },
-    { key: "fosa", label: "FOSA", render: (m: Materielroulant) => m.fosa?.nom || "-" },
   ]
 
 
-  const handleExportPDF = () => exportMaterielroulantsToPDF(materielroulants)
-  const handleExportExcel = () => exportMaterielroulantsToExcel(materielroulants)
+  // La FOSA propriétaire est aplatie pour les exports (« — » si inconnue).
+  const exportRows = () => materielroulants.map((m) => ({ ...m, fosaName: m.fosaNom ?? m.fosa?.nom ?? "—" }))
+  const handleExportPDF = () => exportMaterielroulantsToPDF(exportRows())
+  const handleExportExcel = () => exportMaterielroulantsToExcel(exportRows())
 
   return (
     <div className="space-y-6">

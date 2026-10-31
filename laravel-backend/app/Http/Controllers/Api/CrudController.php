@@ -131,6 +131,22 @@ abstract class CrudController extends Controller
     }
 
     /**
+     * Ajoute la FOSA propriétaire d'un équipement à la réponse : `fosa` {id, nom},
+     * `fosaId` et `fosaNom` (+ alias snake `fosa_nom`). Sans FOSA, les valeurs
+     * sont null (le frontend affiche « — »).
+     */
+    protected function withOwningFosa(array $item, ?array $fosa, $fosaId = null): array
+    {
+        $id = $fosa['id'] ?? $fosaId;
+        $nom = $fosa['nom'] ?? null;
+        $item['fosa'] = $id !== null ? ['id' => (int) $id, 'nom' => $nom] : null;
+        $item['fosaId'] = $id !== null ? (int) $id : null;
+        $item['fosaNom'] = $nom;
+        $item['fosa_nom'] = $nom;
+        return $item;
+    }
+
+    /**
      * Ne conserve que les clés correspondant à des colonnes réellement
      * présentes dans la table (protège des schémas legacy désynchronisés
      * des modèles → évite les erreurs "Unknown column ... in INSERT/UPDATE").
