@@ -153,6 +153,62 @@ export interface LabelTotal {
   total: number;
 }
 
+export interface FosaEquipement {
+  id: number;
+  nom: string | null;
+  type: string | null;
+  dateAcquisition: string | null;
+  description: string | null;
+  service: { id: number; nom: string };
+  batimentId: number | null;
+}
+
+export interface FosaEquipebio extends FosaEquipement {
+  quantite: number | null;
+  /** État de fonctionnement (colonne `fonction`). */
+  etat: string | null;
+}
+
+export interface FosaService {
+  id: number;
+  nom: string;
+  responsable: string | null;
+  capacite: number | null;
+  equipementsBiomedicaux: FosaEquipebio[];
+  autresEquipements: FosaEquipement[];
+}
+
+export interface FosaBatiment {
+  id: number;
+  nom: string | null;
+  type: string | null;
+  etat: string | null;
+  superficie: number | null;
+  anneeConstruction: number | null;
+  description: string | null;
+  degradation: string | null;
+  services: FosaService[];
+}
+
+export interface FosaVehicule {
+  id: number;
+  immatriculation: string | null;
+  type: string | null;
+  typeVehicule: string | null;
+  marque: string | null;
+  modele: string | null;
+  annee: number | null;
+  etat: string | null;
+  energie: string | null;
+  quantite: number | null;
+  dateMiseEnCirculation: string | null;
+  dateMiseService: string | null;
+  usage: string | null;
+  numeroChassis: string | null;
+  utilisateur: string | null;
+  service: { id: number; nom: string } | null;
+}
+
 export interface FosaDetails {
   id: number;
   nom: string;
@@ -190,14 +246,27 @@ export interface FosaDetails {
     priorite: string | null;
     problemes: string[] | null;
   };
-  batiments: { total: number; superficie: number; parEtat: LabelTotal[] };
+  batiments: {
+    total: number;
+    superficie: number;
+    parEtat: LabelTotal[];
+    liste: FosaBatiment[];
+    servicesHorsBatiment: FosaService[];
+  };
   services: {
     total: number;
     liste: { id: number; nom: string; responsable: string | null; capacite: number | null; equipementsBiomedicaux: number }[];
   };
   personnel: { total: number; parCategorie: LabelTotal[] };
-  equipements: { biomedicaux: number; biomedicauxParEtat: LabelTotal[]; autres: number };
-  vehicules: { total: number; ambulances: number };
+  equipements: {
+    biomedicaux: number;
+    biomedicauxParEtat: LabelTotal[];
+    autres: number;
+    biomedicauxListe: FosaEquipebio[];
+    autresListe: FosaEquipement[];
+    lienBatiment: string;
+  };
+  vehicules: { total: number; ambulances: number; liste: FosaVehicule[] };
   patients: { total: number | null; ambulants: number | null; date: string | null } | null;
 }
 

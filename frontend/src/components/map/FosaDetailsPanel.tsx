@@ -11,11 +11,13 @@ import {
   Phone,
   Shield,
   Stethoscope,
+  Truck,
   Users,
+  Wrench,
   X,
   Zap,
 } from "lucide-react";
-import { apiService, type FosaDetails, type GeoRef } from "../../services/apiService";
+import { apiService, type FosaDetails, type FosaEquipebio, type FosaEquipement, type FosaService, type GeoRef } from "../../services/apiService";
 
 /** Libellé affiché quand la base ne contient pas la donnée (aucune valeur inventée). */
 const NA = "Donnée non disponible";
@@ -37,7 +39,7 @@ function formatDate(value: string | null): string | null {
 
 const PRIORITIES: Record<string, string> = { low: "Basse", medium: "Moyenne", high: "Haute", urgent: "Urgente" };
 
-function Section({ title, icon: Icon, children, defaultOpen = true }: { title: string; icon: React.ElementType; children: React.ReactNode; defaultOpen?: boolean }) {
+function Section({ title, icon: Icon, children, defaultOpen = true, count }: { title: string; icon: React.ElementType; children: React.ReactNode; defaultOpen?: boolean; count?: number }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
@@ -47,10 +49,111 @@ function Section({ title, icon: Icon, children, defaultOpen = true }: { title: s
             <Icon className="size-4" />
           </span>
           <span className="text-sm font-semibold text-gray-900">{title}</span>
+          {count !== undefined && (
+            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-gray-600">{fmt(count)}</span>
+          )}
         </div>
         {open ? <ChevronUp className="size-4 text-gray-400" /> : <ChevronDown className="size-4 text-gray-400" />}
       </button>
-      {open && <div className="border-t border-gray-100 p-4">{children}</div>}
+      {open && <div className="max-h-[28rem] overflow-y-auto border-t border-gray-100 p-4 custom-scrollbar">{children}</div>}
+    </div>
+  );
+}
+
+/** Badge d'état coloré selon la valeur réelle de la base (gris si non renseigné). */
+function EtatBadge({ value }: { value: string | null }) {
+  const v = (value ?? "").toLowerCase();
+  const tone = !value
+    ? "bg-gray-100 text-gray-500"
+    : /bon|neuf|fonctionn|excellent/.test(v) && !/non fonction/.test(v)
+      ? "bg-success-soft text-success"
+      : /moyen|passable|usag|vétuste|vetuste/.test(v)
+        ? "bg-warning-soft text-warning"
+        : /mauvais|hors|panne|non fonction|dégrad|degrad|ruine/.test(v)
+          ? "bg-danger-soft text-danger"
+          : "bg-brand-50 text-brand-600";
+  return (
+    <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${tone}`}>
+      <span className="size-1.5 rounded-full bg-current" />
+      {value ?? "Non renseigné"}
+    </span>
+  );
+}
+
+/** Liste tronquée à `limit` éléments, avec bouton « Voir tout ». */
+function Limited<T>({ items, limit = 10, render }: { items: T[]; limit?: number; render: (item: T) => React.ReactNode }) {
+  const [all, setAll] = useState(false);
+  const shown = all ? items : items.slice(0, limit);
+  return (
+    <>
+      {shown.map(render)}
+      {items.length > limit && (
+        <button onClick={() => setAll((v) => !v)} className="mt-2 w-full rounded-lg border border-gray-200 py-1.5 text-xs font-semibold text-brand-600 hover:bg-brand-50">
+          {all ? "Réduire" : `Voir tout (${fmt(items.length)})`}
+        </button>
+      )}
+    </>
+  );
+}
+
+const Empty = ({ children }: { children: React.ReactNode }) => (
+  <p className="py-2 text-center text-xs italic text-gray-400">{children}</p>
+);
+
+/** Petite ligne « libellé · valeur » des cartes ; omise si la valeur manque. */
+const meta = (parts: Array<[string, React.ReactNode | null | undefined]>) =>
+  parts.filter(([, v]) => v !== null && v !== undefined && v !== "").map(([k, v]) => `${k} ${v}`).join(" · ");
+
+function EquipebioItem({ e, showService = true }: { e: FosaEquipebio; showService?: boolean }) {
+  const details = meta([
+    ["Type :", e.type],
+    ["Qté :", e.quantite !== null ? fmt(e.quantite) : null],
+    ["Acquis le", formatDate(e.dateAcquisition)],
+    ["Service :", showService ? e.service.nom : null],
+  ]);
+  return (
+    <li className="rounded-lg border border-gray-100 px-2.5 py-2 text-xs">
+      <div className="flex items-start justify-between gap-2">
+        <span className="font-semibold text-gray-900">{e.nom ?? "Sans nom"}</span>
+        <EtatBadge value={e.etat} />
+      </div>
+      {details && <p className="mt-0.5 text-[11px] text-gray-500">{details}</p>}
+    </li>
+  );
+}
+
+function EquipementItem({ e, showService = true }: { e: FosaEquipement; showService?: boolean }) {
+  const details = meta([
+    ["Type :", e.type],
+    ["Acquis le", formatDate(e.dateAcquisition)],
+    ["Service :", showService ? e.service.nom : null],
+  ]);
+  return (
+    <li className="rounded-lg border border-gray-100 px-2.5 py-2 text-xs">
+      <span className="font-semibold text-gray-900">{e.nom ?? "Sans nom"}</span>
+      {details && <p className="mt-0.5 text-[11px] text-gray-500">{details}</p>}
+      {e.description && <p className="mt-0.5 text-[11px] text-gray-500">{e.description}</p>}
+    </li>
+  );
+}
+
+/** Un service et ses équipements, tel que rattaché en base. */
+function ServiceBlock({ service }: { service: FosaService }) {
+  const count = service.equipementsBiomedicaux.length + service.autresEquipements.length;
+  return (
+    <div className="rounded-lg bg-surface p-2">
+      <p className="mb-1.5 flex items-center justify-between text-xs">
+        <span className="font-semibold text-gray-800">Service : {service.nom}</span>
+        <span className="tabular-nums text-gray-500">{fmt(count)} équipement{count > 1 ? "s" : ""}</span>
+      </p>
+      {count === 0 ? (
+        <Empty>Aucun équipement enregistré dans ce service</Empty>
+      ) : (
+        <ul className="space-y-1">
+          <Limited items={service.equipementsBiomedicaux} render={(e) => <EquipebioItem key={`b${e.id}`} e={e} showService={false} />} />
+          <Limited items={service.autresEquipements} render={(e) => <EquipementItem key={`a${e.id}`} e={e} showService={false} />} />
+        </ul>
+      )}
     </div>
   );
 }
@@ -213,19 +316,105 @@ export default function FosaDetailsPanel({ fosaId, fallbackName, onClose }: { fo
               )}
             </Section>
 
-            <Section title="Services" icon={Stethoscope} defaultOpen={d.services.total > 0}>
-              {d.services.liste.length === 0 ? (
-                <p className="py-2 text-center text-xs italic text-gray-400">Aucun service enregistré pour cette FOSA</p>
+            <Section title="Bâtiments" icon={Building} count={d.batiments.liste.length} defaultOpen={d.batiments.liste.length > 0}>
+              {d.batiments.liste.length === 0 ? (
+                <Empty>Aucun bâtiment enregistré pour cette FOSA</Empty>
               ) : (
-                <ul className="space-y-1.5">
-                  {d.services.liste.map((service) => (
-                    <li key={service.id} className="flex items-center justify-between rounded-lg px-2 py-1.5 text-xs even:bg-row-alt">
-                      <span className="font-medium text-gray-800">{service.nom}</span>
-                      <span className="tabular-nums text-gray-500">
-                        {fmt(service.equipementsBiomedicaux)} {service.equipementsBiomedicaux > 1 ? "équip. biomédicaux" : "équip. biomédical"}
-                      </span>
-                    </li>
-                  ))}
+                <div className="space-y-3">
+                  <p className="text-[11px] text-gray-500">Équipements regroupés par bâtiment, via le service qui les détient (bâtiment → service → équipement).</p>
+                  <Limited
+                    items={d.batiments.liste}
+                    render={(b) => {
+                      const details = meta([
+                        ["Type :", b.type],
+                        ["Construit en", b.anneeConstruction],
+                        ["Superficie :", b.superficie !== null ? `${fmt(b.superficie)} m²` : null],
+                        ["Dégradation :", b.degradation],
+                      ]);
+                      return (
+                        <div key={b.id} className="rounded-xl border border-gray-200 p-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="text-sm font-semibold text-gray-900">{b.nom ?? `Bâtiment n° ${b.id}`}</span>
+                            <EtatBadge value={b.etat} />
+                          </div>
+                          {details && <p className="mt-0.5 text-[11px] text-gray-500">{details}</p>}
+                          {b.description && <p className="mt-0.5 text-[11px] text-gray-500">{b.description}</p>}
+                          <div className="mt-2 space-y-2">
+                            {b.services.length === 0 ? (
+                              <Empty>Aucun service enregistré dans ce bâtiment</Empty>
+                            ) : (
+                              b.services.map((service) => <ServiceBlock key={service.id} service={service} />)
+                            )}
+                          </div>
+                        </div>
+                      );
+                    }}
+                  />
+                  {d.batiments.servicesHorsBatiment.length > 0 && (
+                    <div className="rounded-xl border border-dashed border-gray-300 p-3">
+                      <p className="mb-2 text-xs font-semibold text-gray-700">Services rattachés à un bâtiment hors de cette FOSA</p>
+                      <div className="space-y-2">
+                        {d.batiments.servicesHorsBatiment.map((service) => <ServiceBlock key={service.id} service={service} />)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </Section>
+
+            <Section title="Équipements biomédicaux" icon={Stethoscope} count={d.equipements.biomedicauxListe.length} defaultOpen={false}>
+              {d.equipements.biomedicauxListe.length === 0 ? (
+                <Empty>Aucun équipement biomédical enregistré</Empty>
+              ) : (
+                <>
+                  <p className="mb-2 text-[11px] text-gray-500">
+                    {fmt(d.equipements.biomedicauxListe.length)} références · {fmt(d.equipements.biomedicaux)} unités au total
+                  </p>
+                  <ul className="space-y-1">
+                    <Limited items={d.equipements.biomedicauxListe} render={(e) => <EquipebioItem key={e.id} e={e} />} />
+                  </ul>
+                </>
+              )}
+            </Section>
+
+            <Section title="Autres équipements" icon={Wrench} count={d.equipements.autresListe.length} defaultOpen={false}>
+              {d.equipements.autresListe.length === 0 ? (
+                <Empty>Aucun autre équipement enregistré</Empty>
+              ) : (
+                <ul className="space-y-1">
+                  <Limited items={d.equipements.autresListe} render={(e) => <EquipementItem key={e.id} e={e} />} />
+                </ul>
+              )}
+            </Section>
+
+            <Section title="Matériel roulant" icon={Truck} count={d.vehicules.liste.length} defaultOpen={false}>
+              {d.vehicules.liste.length === 0 ? (
+                <Empty>Aucun véhicule enregistré pour cette FOSA</Empty>
+              ) : (
+                <ul className="space-y-1">
+                  <Limited
+                    items={d.vehicules.liste}
+                    render={(v) => {
+                      const details = meta([
+                        ["Immat. :", v.immatriculation],
+                        ["Marque :", [v.marque, v.modele].filter(Boolean).join(" ") || null],
+                        ["Année :", v.annee],
+                        ["Énergie :", v.energie],
+                        ["Mise en circulation :", formatDate(v.dateMiseEnCirculation)],
+                        ["Usage :", v.usage],
+                        ["Service :", v.service?.nom],
+                      ]);
+                      return (
+                        <li key={v.id} className="rounded-lg border border-gray-100 px-2.5 py-2 text-xs">
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="font-semibold text-gray-900">{v.type ?? v.typeVehicule ?? `Véhicule n° ${v.id}`}</span>
+                            <EtatBadge value={v.etat} />
+                          </div>
+                          {details && <p className="mt-0.5 text-[11px] text-gray-500">{details}</p>}
+                        </li>
+                      );
+                    }}
+                  />
                 </ul>
               )}
             </Section>

@@ -133,6 +133,67 @@ class MapInsightsTest extends TestCase
         }
     }
 
+    public function test_fosa_details_lists_buildings_equipment_and_vehicles(): void
+    {
+        // HD Nkondjock (id 3880) : seule FOSA du dump avec bâtiments, services et équipements.
+        if (!DB::table('tmpfosa')->where('id', 3880)->exists()) {
+            $this->markTestSkipped('HD Nkondjock (3880) absente de la copie.');
+        }
+
+        $data = $this->getJson('/api/v1/fosas/3880/details')->assertOk()->json('data');
+
+        // Bâtiments : une ligne par bâtiment de batiments.fosa_id
+        $batiments = collect($data['batiments']['liste']);
+        $this->assertSame(2, $batiments->count());
+        $this->assertEqualsCanonicalizing(
+            DB::table('batiments')->where('fosa_id', 3880)->pluck('nom')->all(),
+            $batiments->pluck('nom')->all(),
+        );
+        $this->assertSame(['Bon'], $batiments->pluck('etat')->unique()->values()->all());
+
+        // Lien bâtiment -> services -> équipements, par services.batiment_id
+        foreach ($batiments as $batiment) {
+            foreach ($batiment['services'] as $service) {
+                $this->assertSame($batiment['id'], (int) DB::table('services')->where('id', $service['id'])->value('batiment_id'));
+                $this->assertSame(
+                    DB::table('equipebios')->where('service_id', $service['id'])->count(),
+                    count($service['equipementsBiomedicaux']),
+                );
+            }
+        }
+        $this->assertSame([], $data['batiments']['servicesHorsBatiment']);
+
+        // Équipements biomédicaux : 10 références, 13 unités
+        $equipebios = collect($data['equipements']['biomedicauxListe']);
+        $this->assertSame(10, $equipebios->count());
+        $this->assertSame(13, $equipebios->sum('quantite'));
+        $this->assertSame(13, $data['equipements']['biomedicaux']);
+        $centrifugeuse = $equipebios->firstWhere('nom', 'Centrifugeuse');
+        $this->assertSame(2, $centrifugeuse['quantite']);
+        $this->assertSame('Laboratoire', $centrifugeuse['service']['nom']);
+        $this->assertSame('2026-01-01', $centrifugeuse['dateAcquisition']);
+        $this->assertNull($centrifugeuse['etat']); // colonne fonction vide : pas d'état inventé
+
+        // Autres équipements et véhicules : aucun en base pour cette FOSA
+        $this->assertSame([], $data['equipements']['autresListe']);
+        $this->assertSame([], $data['vehicules']['liste']);
+    }
+
+    public function test_fosa_details_lists_vehicles(): void
+    {
+        $vehicule = DB::table('materielroulants')->first();
+        if (!$vehicule) {
+            $this->markTestSkipped('Aucun véhicule dans la copie.');
+        }
+
+        $liste = collect($this->getJson("/api/v1/fosas/{$vehicule->fosa_id}/details")->assertOk()->json('data.vehicules.liste'));
+        $row = $liste->firstWhere('id', $vehicule->id);
+        $this->assertNotNull($row);
+        $this->assertSame($vehicule->immatriculation, $row['immatriculation']);
+        $this->assertSame($vehicule->etat, $row['etat']);
+        $this->assertSame($vehicule->energie, $row['energie']);
+    }
+
     public function test_fosa_details_unknown_id_returns_404(): void
     {
         $this->getJson('/api/v1/fosas/999999999/details')->assertNotFound();

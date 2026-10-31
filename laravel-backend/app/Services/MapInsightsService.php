@@ -189,6 +189,8 @@ class MapInsightsService
         $text = fn ($v) => ($v === null || trim((string) $v) === '') ? null : trim((string) $v);
         $sumTotals = fn (array $rows) => array_sum(array_map(fn ($r) => (int) $r->total, $rows));
 
+        $lists = $this->detailLists($id, $text);
+
         $issues = null;
         if ($text($f->maintenance_issues)) {
             $decoded = json_decode($f->maintenance_issues, true);
@@ -238,6 +240,10 @@ class MapInsightsService
                 'total' => $sumTotals($batiments),
                 'superficie' => (float) array_sum(array_map(fn ($r) => (float) $r->superficie, $batiments)),
                 'parEtat' => array_map(fn ($r) => ['label' => $r->label, 'total' => (int) $r->total], $batiments),
+                // Un bâtiment, ses services et leurs équipements (services.batiment_id)
+                'liste' => $lists['batiments'],
+                // Services de la FOSA rattachés à un bâtiment d'une autre FOSA ou introuvable
+                'servicesHorsBatiment' => $lists['servicesHorsBatiment'],
             ],
             'services' => [
                 'total' => count($services),
@@ -257,16 +263,123 @@ class MapInsightsService
                 'biomedicaux' => $sumTotals($equipebios),
                 'biomedicauxParEtat' => array_map(fn ($r) => ['label' => $r->label, 'total' => (int) $r->total], $equipebios),
                 'autres' => (int) $equipements->total,
+                'biomedicauxListe' => $lists['equipebios'],
+                'autresListe' => $lists['equipements'],
+                // Lien bâtiment ↔ équipement : equipement.service_id -> services.batiment_id
+                'lienBatiment' => 'services.batiment_id',
             ],
             'vehicules' => [
                 'total' => (int) $vehicules->total,
                 'ambulances' => (int) $vehicules->ambulances,
+                'liste' => $lists['vehicules'],
             ],
             'patients' => $parametre ? [
                 'total' => $parametre->nombre_patients_totaux !== null ? (int) $parametre->nombre_patients_totaux : null,
                 'ambulants' => $parametre->nombre_patients_ambulants !== null ? (int) $parametre->nombre_patients_ambulants : null,
                 'date' => $parametre->date,
             ] : null,
+        ];
+    }
+
+    /**
+     * Listes détaillées de la fiche : bâtiments (avec services et équipements),
+     * équipements biomédicaux, autres équipements, véhicules. Colonnes réelles
+     * du dump uniquement ; une valeur vide vaut null.
+     *
+     * Lien bâtiment ↔ équipement : il n'existe pas de colonne batiment_id sur
+     * les équipements, mais chaque service a un batiment_id (NOT NULL) et chaque
+     * équipement un service_id : bâtiment -> services -> équipements.
+     */
+    private function detailLists(int $id, callable $text): array
+    {
+        $date = fn ($v) => $v ? substr((string) $v, 0, 10) : null;
+        // superficie vaut 0.00 par défaut dans le dump : 0 = non renseignée
+        $positive = fn ($v) => $v !== null && (float) $v > 0 ? (float) $v : null;
+
+        $equipebios = array_map(fn ($e) => [
+            'id' => (int) $e->id,
+            'nom' => $text($e->nom),
+            'type' => $text($e->type),
+            'quantite' => $e->quantite !== null ? (int) $e->quantite : null,
+            'etat' => $text($e->fonction),
+            'dateAcquisition' => $date($e->date_acquisition),
+            'description' => $text($e->description),
+            'service' => ['id' => (int) $e->service_id, 'nom' => $e->service_nom],
+            'batimentId' => $e->batiment_id !== null ? (int) $e->batiment_id : null,
+        ], DB::select('SELECT e.id, e.nom, e.type, e.quantite, e.fonction, e.date_acquisition, e.description,
+                e.service_id, s.nom AS service_nom, s.batiment_id
+            FROM equipebios e INNER JOIN services s ON s.id = e.service_id
+            WHERE s.fosa_id = ? ORDER BY s.nom, e.nom', [$id]));
+
+        $equipements = array_map(fn ($e) => [
+            'id' => (int) $e->id,
+            'nom' => $text($e->nom),
+            'type' => $text($e->type),
+            'dateAcquisition' => $date($e->date_acquisition),
+            'description' => $text($e->description),
+            'service' => ['id' => (int) $e->service_id, 'nom' => $e->service_nom],
+            'batimentId' => $e->batiment_id !== null ? (int) $e->batiment_id : null,
+        ], DB::select('SELECT e.id, e.nom, e.type, e.date_acquisition, e.description, e.service_id,
+                s.nom AS service_nom, s.batiment_id
+            FROM equipements e INNER JOIN services s ON s.id = e.service_id
+            WHERE s.fosa_id = ? ORDER BY s.nom, e.nom', [$id]));
+
+        $services = DB::select('SELECT id, nom, responsable, capacite, batiment_id FROM services WHERE fosa_id = ? ORDER BY nom', [$id]);
+        $serviceRow = fn ($s) => [
+            'id' => (int) $s->id,
+            'nom' => $s->nom,
+            'responsable' => $text($s->responsable),
+            'capacite' => $s->capacite !== null && (int) $s->capacite > 0 ? (int) $s->capacite : null,
+            'equipementsBiomedicaux' => array_values(array_filter($equipebios, fn ($e) => $e['service']['id'] === (int) $s->id)),
+            'autresEquipements' => array_values(array_filter($equipements, fn ($e) => $e['service']['id'] === (int) $s->id)),
+        ];
+
+        $batimentRows = DB::select('SELECT b.id, b.nom, b.type, b.etat, b.superficie, b.anne_construction, b.description,
+                d.type AS degradation
+            FROM batiments b LEFT JOIN degradations d ON d.id = b.degradation_id
+            WHERE b.fosa_id = ? ORDER BY b.nom', [$id]);
+        $batimentIds = array_map(fn ($b) => (int) $b->id, $batimentRows);
+
+        $batiments = array_map(fn ($b) => [
+            'id' => (int) $b->id,
+            'nom' => $text($b->nom),
+            'type' => $text($b->type),
+            'etat' => $text($b->etat),
+            'superficie' => $positive($b->superficie),
+            'anneeConstruction' => $b->anne_construction !== null && (int) $b->anne_construction > 0 ? (int) $b->anne_construction : null,
+            'description' => $text($b->description),
+            'degradation' => $text($b->degradation),
+            'services' => array_values(array_map($serviceRow, array_filter($services, fn ($s) => (int) $s->batiment_id === (int) $b->id))),
+        ], $batimentRows);
+
+        $horsBatiment = array_values(array_map($serviceRow, array_filter($services, fn ($s) => !in_array((int) $s->batiment_id, $batimentIds, true))));
+
+        $vehicules = array_map(fn ($v) => [
+            'id' => (int) $v->id,
+            'immatriculation' => $text($v->immatriculation),
+            'type' => $text($v->type),
+            'typeVehicule' => $text($v->type_vehicule),
+            'marque' => $text($v->marque),
+            'modele' => $text($v->modele),
+            'annee' => $v->annee !== null && (int) $v->annee > 0 ? (int) $v->annee : null,
+            'etat' => $text($v->etat),
+            'energie' => $text($v->energie),
+            'quantite' => $v->quantite !== null ? (int) $v->quantite : null,
+            'dateMiseEnCirculation' => $date($v->date_mise_en_circulation),
+            'dateMiseService' => $date($v->date_mise_service),
+            'usage' => $text($v->usage),
+            'numeroChassis' => $text($v->numero_chassis),
+            'utilisateur' => $text($v->nom_utilisateur),
+            'service' => $v->service_id ? ['id' => (int) $v->service_id, 'nom' => $v->service_nom] : null,
+        ], DB::select('SELECT m.*, s.nom AS service_nom FROM materielroulants m
+            LEFT JOIN services s ON s.id = m.service_id WHERE m.fosa_id = ? ORDER BY m.type, m.id', [$id]));
+
+        return [
+            'batiments' => $batiments,
+            'servicesHorsBatiment' => $horsBatiment,
+            'equipebios' => $equipebios,
+            'equipements' => $equipements,
+            'vehicules' => $vehicules,
         ];
     }
 
