@@ -1,61 +1,16 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { AlertCircle, Map, RefreshCw } from "lucide-react"
+import { AlertCircle, ChevronDown, Download, FileSpreadsheet, FileText, Loader2, Map, RefreshCw } from "lucide-react"
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts"
 import api from "../services/api"
 import {
   PageHeader, StatCard, SectionCard, Segmented, SearchInput, RankBars, EmptyState, Badge,
-  formatNumber, formatPercent, percent, cn,
+  formatNumber, formatPercent, percent, cn, toast,
 } from "../components/ui"
-
-/* --- Forme de GET /statistics/dashboard ------------------------------------ */
-
-interface Breakdown {
-  label: string
-  total: number
-  ouvertes?: number
-}
-
-interface RegionRow {
-  region: string
-  total: number
-  ouvertes: number
-  electrifiees: number
-  securisees: number
-  lits: number
-}
-
-interface DashboardData {
-  fosas: {
-    total: number
-    ouvertes: number
-    fermees: number
-    fonctionnelles: number
-    electrifiees: number
-    titre_foncier: number
-    cloturees: number
-    securisees: number
-    geolocalisees: number
-    lits: number
-    maintenance_urgente: number
-    maintenance_haute: number
-    inspections_en_retard: number
-  }
-  parRegion: RegionRow[]
-  parCategorie: Breakdown[]
-  parStatut: Breakdown[]
-  parType: Breakdown[]
-  personnel: { total: number; fosasDotees: number; parCategorie: Breakdown[] }
-  batiments: { total: number; superficie: number; parEtat: Breakdown[] }
-  equipements: { biomedicaux: number; autres: number }
-  vehicules: { total: number; parEtat: Breakdown[]; parEnergie: Breakdown[] }
-  patients: { total: number; ambulants: number }
-  genereLe: string
-}
-
-type Dimension = "categorie" | "statut" | "type" | "region"
+import { deriveDashboard, type Breakdown, type DashboardData, type Dimension } from "../types/dashboard"
+import type { DashboardExportInput } from "../utils/dashboardExport"
 
 const DIMENSIONS: { value: Dimension; label: string }[] = [
   { value: "type", label: "Type" },
@@ -143,6 +98,78 @@ function DashboardSkeleton() {
   )
 }
 
+/** Menu « Exporter » : Excel (une feuille par bloc) ou PDF A4. Les bibliothèques sont chargées au clic. */
+function ExportMenu({ disabled, getInput }: { disabled?: boolean; getInput: () => DashboardExportInput | null }) {
+  const [open, setOpen] = useState(false)
+  const [busy, setBusy] = useState<null | "xlsx" | "pdf">(null)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const close = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) setOpen(false)
+    }
+    const onKey = (event: KeyboardEvent) => event.key === "Escape" && setOpen(false)
+    document.addEventListener("mousedown", close)
+    document.addEventListener("keydown", onKey)
+    return () => {
+      document.removeEventListener("mousedown", close)
+      document.removeEventListener("keydown", onKey)
+    }
+  }, [open])
+
+  const run = async (kind: "xlsx" | "pdf") => {
+    const input = getInput()
+    if (!input) return
+    setOpen(false)
+    setBusy(kind)
+    try {
+      const { exportDashboardExcel, exportDashboardPdf } = await import("../utils/dashboardExport")
+      const filename = kind === "xlsx" ? await exportDashboardExcel(input) : await exportDashboardPdf(input)
+      toast.success("Export terminé", filename)
+    } catch (err: any) {
+      console.error("Export du tableau de bord :", err)
+      toast.error("Export impossible", err?.message || "Erreur lors de la génération du fichier")
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        disabled={disabled || busy !== null}
+        className="btn btn-outline"
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        {busy ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
+        {busy ? "Export en cours…" : "Exporter"}
+        <ChevronDown className="size-4 text-gray-400" />
+      </button>
+      {open && (
+        <div role="menu" className="absolute right-0 z-30 mt-2 w-64 overflow-hidden rounded-xl border border-gray-200 bg-white p-1 shadow-lg">
+          <button role="menuitem" onClick={() => run("xlsx")} className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-gray-50">
+            <FileSpreadsheet className="mt-0.5 size-4 text-success" />
+            <span>
+              <span className="block text-sm font-semibold text-gray-900">Excel (.xlsx)</span>
+              <span className="block text-xs text-gray-500">Une feuille par indicateur et tableau</span>
+            </span>
+          </button>
+          <button role="menuitem" onClick={() => run("pdf")} className="flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-gray-50">
+            <FileText className="mt-0.5 size-4 text-danger" />
+            <span>
+              <span className="block text-sm font-semibold text-gray-900">PDF (A4)</span>
+              <span className="block text-xs text-gray-500">Rapport avec indicateurs, graphiques et tableaux</span>
+            </span>
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 /* --- Page ---------------------------------------------------------------------- */
 
 export default function Dashboard() {
@@ -152,6 +179,12 @@ export default function Dashboard() {
   const [dimension, setDimension] = useState<Dimension>("type")
   const [query, setQuery] = useState("")
   const [showAll, setShowAll] = useState(false)
+  // Blocs graphiques capturés en image pour l'export PDF
+  const repartitionRef = useRef<HTMLDivElement>(null)
+  const foncierRef = useRef<HTMLDivElement>(null)
+  const batiRef = useRef<HTMLDivElement>(null)
+  const personnelRef = useRef<HTMLDivElement>(null)
+  const vehiculesRef = useRef<HTMLDivElement>(null)
 
   const load = async () => {
     try {
@@ -187,6 +220,7 @@ export default function Dashboard() {
       .map((row) => ({
         label: row.label,
         value: row.total,
+        ouvertes: row.ouvertes,
         sub: row.ouvertes != null ? `${formatNumber(row.ouvertes)} ouvertes · ${formatPercent(percent(row.ouvertes, row.total))}` : undefined,
       }))
   }, [data, dimension, query])
@@ -213,11 +247,21 @@ export default function Dashboard() {
 
   const f = data.fosas
   const tauxOuverture = percent(f.ouvertes, f.total)
-  const tfSeul = Math.max(0, f.titre_foncier - f.securisees)
-  const clotureSeule = Math.max(0, f.cloturees - f.securisees)
-  const aucune = Math.max(0, f.total - (f.titre_foncier + f.cloturees - f.securisees))
-  const maintenance = f.maintenance_urgente + f.maintenance_haute
-  const litsParFosa = f.ouvertes > 0 ? Math.round((f.lits / f.ouvertes) * 10) / 10 : 0
+  const { tfSeul, clotureSeule, aucune, maintenance, litsParFosa } = deriveDashboard(data)
+  const dimensionLabel = DIMENSIONS.find((d) => d.value === dimension)?.label ?? ""
+  const exportInput = (): DashboardExportInput => ({
+    data,
+    dimensionLabel,
+    query,
+    breakdown: breakdown.map((row) => ({ label: row.label, value: row.value, ouvertes: row.ouvertes })),
+    charts: [
+      { title: "Répartition des FOSA", node: repartitionRef.current, span: "full" },
+      { title: "Sécurisation foncière", node: foncierRef.current, span: "half" },
+      { title: "Patrimoine bâti", node: batiRef.current, span: "half" },
+      { title: "Personnel par catégorie", node: personnelRef.current, span: "half" },
+      { title: "Matériel roulant", node: vehiculesRef.current, span: "half" },
+    ],
+  })
   const half = Math.ceil(Math.min(breakdown.length, showAll ? breakdown.length : 20) / 2)
   const visible = showAll ? breakdown : breakdown.slice(0, 20)
   const breakdownTotal = breakdown.reduce((acc, row) => acc + row.value, 0)
@@ -235,6 +279,7 @@ export default function Dashboard() {
               <RefreshCw className={cn("size-4", loading && "animate-spin")} />
               Actualiser
             </button>
+            <ExportMenu disabled={loading} getInput={exportInput} />
             <Link to="/" className="btn btn-primary">
               <Map className="size-4" />
               Ouvrir la carte
@@ -307,6 +352,7 @@ export default function Dashboard() {
       </div>
 
       {/* Explorateur de répartition */}
+      <div ref={repartitionRef}>
       <SectionCard
         title="Répartition des FOSA"
         subtitle="Classement par effectif, avec la part de structures ouvertes"
@@ -385,6 +431,7 @@ export default function Dashboard() {
           </div>
         </div>
       </SectionCard>
+      </div>
 
       {/* Couverture régionale */}
       <SectionCard title="Couverture régionale" subtitle="Ouverture, électrification et sécurisation par région" flush>
@@ -417,7 +464,8 @@ export default function Dashboard() {
       </SectionCard>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <SectionCard title="Sécurisation foncière" subtitle="Titre foncier et clôture des FOSA">
+        <div ref={foncierRef}>
+        <SectionCard title="Sécurisation foncière" subtitle="Titre foncier et clôture des FOSA" className="h-full">
           <Donut
             centerLabel="sécurisées"
             centerValue={formatPercent(percent(f.securisees, f.total))}
@@ -429,8 +477,11 @@ export default function Dashboard() {
             ]}
           />
         </SectionCard>
+        </div>
 
+        <div ref={batiRef}>
         <SectionCard
+          className="h-full"
           title="Patrimoine bâti"
           subtitle={`${formatNumber(data.batiments.total)} bâtiments · ${formatNumber(data.batiments.superficie)} m² recensés`}
         >
@@ -444,10 +495,13 @@ export default function Dashboard() {
             />
           )}
         </SectionCard>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
+        <div ref={personnelRef}>
         <SectionCard
+          className="h-full"
           title="Personnel par catégorie"
           subtitle={`${formatNumber(data.personnel.total)} agents dans ${formatNumber(data.personnel.fosasDotees)} FOSA`}
         >
@@ -457,8 +511,10 @@ export default function Dashboard() {
             <RankBars items={data.personnel.parCategorie.map((row) => ({ label: row.label, value: row.total }))} limit={10} />
           )}
         </SectionCard>
+        </div>
 
-        <SectionCard title="Matériel roulant" subtitle={`${formatNumber(data.vehicules.total)} véhicules`}>
+        <div ref={vehiculesRef}>
+        <SectionCard title="Matériel roulant" subtitle={`${formatNumber(data.vehicules.total)} véhicules`} className="h-full">
           {data.vehicules.total === 0 ? (
             <EmptyState title="Aucun véhicule enregistré" />
           ) : (
@@ -480,6 +536,7 @@ export default function Dashboard() {
             </div>
           )}
         </SectionCard>
+        </div>
       </div>
     </div>
   )

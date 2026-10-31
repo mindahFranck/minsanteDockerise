@@ -1,6 +1,11 @@
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+// jspdf, jspdf-autotable et xlsx sont chargés à la demande (import() au moment
+// de l'export) : ils ne pèsent plus sur le bundle initial de l'application.
+import { toast } from '../components/ui';
+
+const reportExportError = (err: unknown) => {
+  console.error("Erreur d'export :", err);
+  toast.error('Export impossible', err instanceof Error ? err.message : undefined);
+};
 
 /**
  * Configuration pour l'export PDF
@@ -27,7 +32,11 @@ interface ExcelExportConfig {
 /**
  * Exporte des données au format PDF
  */
-export const exportToPDF = (config: PDFExportConfig): void => {
+export const exportToPDF = (config: PDFExportConfig): Promise<void> =>
+  buildPDF(config).catch(reportExportError);
+
+const buildPDF = async (config: PDFExportConfig): Promise<void> => {
+  const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([import('jspdf'), import('jspdf-autotable')]);
   const {
     title,
     filename,
@@ -114,7 +123,11 @@ export const exportToPDF = (config: PDFExportConfig): void => {
 /**
  * Exporte des données au format Excel
  */
-export const exportToExcel = (config: ExcelExportConfig): void => {
+export const exportToExcel = (config: ExcelExportConfig): Promise<void> =>
+  buildExcel(config).catch(reportExportError);
+
+const buildExcel = async (config: ExcelExportConfig): Promise<void> => {
+  const XLSX = await import('xlsx');
   const { filename, sheetName, data, columns } = config;
 
   // Préparer les données
