@@ -546,12 +546,6 @@ export async function exportDashboardPdf(input: DashboardExportInput): Promise<s
     doc.setFont("helvetica", "bold")
     doc.setFontSize(13)
     doc.text("Tableau de bord des formations sanitaires", M, 15.5)
-    doc.setFont("helvetica", "normal")
-    doc.setFontSize(7)
-    doc.text("Conçu et développé par", W - M, 10, { align: "right" })
-    doc.setFont("helvetica", "bold")
-    doc.setFontSize(11)
-    doc.text("IT-GRAFIK", W - M, 15.5, { align: "right" })
 
     doc.setDrawColor(226, 232, 240)
     doc.setLineWidth(0.2)
