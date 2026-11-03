@@ -35,9 +35,9 @@ function resourceOf(url = "") {
  * Les erreurs de validation listent les champs concernés, déjà en français côté API.
  */
 export function describeApiError(error: unknown, action = "L'opération"): { title: string; message: string } {
-  const err = error as AxiosError<{ message?: string; errors?: Record<string, string[]> }>
+  const err = error as AxiosError<{ message?: string; error?: string; errors?: Record<string, string[]> }>
   const status = err?.response?.status
-  const data = err?.response?.data
+  const data = err?.response?.data as { message?: string; error?: string; errors?: Record<string, string[]> } | undefined
 
   if (!err?.response) {
     if (typeof navigator !== "undefined" && !navigator.onLine) {
@@ -49,14 +49,22 @@ export function describeApiError(error: unknown, action = "L'opération"): { tit
     return { title: "Serveur injoignable", message: "Vérifiez votre connexion internet puis réessayez." }
   }
 
-  if (status === 422 && data?.errors) {
-    const lines = Object.values(data.errors).flat().slice(0, 4)
-    return { title: "Le formulaire contient des erreurs", message: lines.map((line) => `• ${line}`).join("\n") }
+  if ((status === 422 || status === 400) && data?.errors && typeof data.errors === "object") {
+    const lines = Object.values(data.errors).flat().filter(Boolean).slice(0, 6)
+    if (lines.length) {
+      return {
+        title: "Rien n'a été enregistré : le formulaire contient des erreurs",
+        message: lines.map((line) => `• ${line}`).join("\n"),
+      }
+    }
+  }
+  if (status === 422) {
+    return { title: "Rien n'a été enregistré", message: data?.message || data?.error || "Les données envoyées sont invalides." }
   }
 
   switch (status) {
     case 400:
-      return { title: `${action} n'a pas pu aboutir`, message: data?.message || "La demande est incomplète ou invalide." }
+      return { title: `${action} n'a pas pu aboutir`, message: data?.message || data?.error || "La demande est incomplète ou invalide." }
     case 401:
       return { title: "Session expirée", message: "Reconnectez-vous pour continuer." }
     case 403:
@@ -74,10 +82,14 @@ export function describeApiError(error: unknown, action = "L'opération"): { tit
   if (status && status >= 500) {
     return {
       title: "Erreur du serveur",
-      message: "L'opération n'a pas été enregistrée. Réessayez ; si le problème persiste, contactez l'administrateur.",
+      message: [
+        "L'opération n'a pas été enregistrée.",
+        data?.message ? `Détail : ${data.message}` : "",
+        "Réessayez ; si le problème persiste, contactez l'administrateur.",
+      ].filter(Boolean).join("\n"),
     }
   }
-  return { title: `${action} a échoué`, message: data?.message || "Réessayez dans un instant." }
+  return { title: `${action} a échoué`, message: data?.message || data?.error || "Réessayez dans un instant." }
 }
 
 function successMessage(response: AxiosResponse): string | null {

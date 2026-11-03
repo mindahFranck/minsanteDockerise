@@ -1,5 +1,6 @@
 "use client"
 
+import { validateImageFile } from "../utils/imageUrl"
 import type React from "react"
 
 import { useEffect, useState, useCallback } from "react"
@@ -18,7 +19,7 @@ import { usePermissions } from "../hooks/usePermissions"
 import { exportFosasToPDF, exportFosasToExcel } from "../utils/exportUtils"
 import {
   PageHeader, StatCard, Badge, SearchInput, FilterBar,
-  cn, formatNumber, formatPercent, percent,
+  cn, formatNumber, formatPercent, percent, toast,
 } from "../components/ui"
 
 // Interface FOSA étendue
@@ -347,6 +348,12 @@ export default function FosasPage() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      const problem = validateImageFile(file)
+      if (problem) {
+        toast.error("Image refusée", problem)
+        e.target.value = ""
+        return
+      }
       setImageFile(file)
       const reader = new FileReader()
       reader.onloadend = () => {
@@ -487,6 +494,8 @@ export default function FosasPage() {
           <img
             src={fosaService.getImageUrl(f.image)}
             alt={f.nom}
+            loading="lazy"
+            onError={(e) => { e.currentTarget.style.visibility = "hidden" }}
             className="size-10 rounded-lg border border-gray-200 object-cover"
           />
         ) : (
@@ -919,7 +928,7 @@ export default function FosasPage() {
                   )}
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
                     onChange={handleImageChange}
                     className="block w-full text-sm text-gray-500 file:mr-3 file:h-10 file:cursor-pointer file:rounded-xl file:border-0 file:bg-brand-50 file:px-4 file:text-sm file:font-semibold file:text-brand-600 hover:file:bg-brand-100"
                   />

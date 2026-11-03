@@ -301,6 +301,16 @@ docker logs health-frontend
 
 ## 🔐 Configuration Nginx Reverse Proxy
 
+> **Upload d'images** : nginx-proxy limite par défaut le corps des requêtes à 1 Mo (erreur 413, « Fichier trop volumineux »).
+> L'API accepte jusqu'à 5 Mo par image ; autorisez-les côté proxy :
+>
+> ```bash
+> echo "client_max_body_size 10m;" > proxy.conf
+> docker cp proxy.conf nginx-proxy:/etc/nginx/conf.d/proxy.conf && docker exec nginx-proxy nginx -s reload
+> ```
+>
+> (ou montez ce fichier dans `/etc/nginx/conf.d/` au `docker run` ci-dessous).
+
 ### Nginx-Proxy avec Let's Encrypt
 
 Si vous n'avez pas déjà configuré nginx-proxy avec Let's Encrypt :

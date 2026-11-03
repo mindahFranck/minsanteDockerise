@@ -497,5 +497,7 @@ export interface PaginatedResponse<T> {
     limit: number;
     total: number;
     totalPages: number;
+    /** Somme des quantités des résultats filtrés (équipements, véhicules). */
+    totalQuantite?: number;
   };
 }

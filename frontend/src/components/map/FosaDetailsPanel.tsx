@@ -17,6 +17,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
+import { resolveImageUrl } from "../../utils/imageUrl";
 import { apiService, type FosaDetails, type FosaEquipebio, type FosaEquipement, type FosaService, type GeoRef } from "../../services/apiService";
 
 /** Libellé affiché quand la base ne contient pas la donnée (aucune valeur inventée). */
@@ -24,12 +25,7 @@ const NA = "Donnée non disponible";
 
 const fmt = (n: number) => n.toLocaleString("fr-FR");
 
-function imageUrl(image: string | null): string | null {
-  if (!image) return null;
-  if (image.startsWith("http")) return image;
-  const base = ((import.meta as any).env?.VITE_API_URL || "").replace(/\/api\/v1\/?$/, "").replace(/\/api\/?$/, "");
-  return image.startsWith("/") ? `${base}${image}` : `${base}/storage/${image}`;
-}
+const imageUrl = (image: string | null) => resolveImageUrl(image)
 
 function formatDate(value: string | null): string | null {
   if (!value) return null;

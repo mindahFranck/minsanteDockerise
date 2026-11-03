@@ -71,7 +71,7 @@ export function Toaster() {
   return (
     <div
       aria-live="polite"
-      className="pointer-events-none fixed inset-x-4 bottom-4 z-[100] flex flex-col items-end gap-2 sm:left-auto sm:right-6 sm:w-[24rem]"
+      className="pointer-events-none fixed inset-x-4 top-4 z-[1000] flex flex-col items-end gap-2 sm:left-auto sm:right-6 sm:w-[26rem]"
     >
       {list.map((item) => {
         const style = STYLES[item.kind]

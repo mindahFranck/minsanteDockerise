@@ -69,7 +69,7 @@ export default function MaterielroulantsPage() {
   const [filterServiceId, setFilterServiceId] = useState<number | null>(null)
   const { services: filterServices, loadServicesForFosa: loadFilterServices } = useServicesForFosa()
   const [page, setPage] = useState(1)
-  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 })
+  const [pagination, setPagination] = useState<{ page: number; limit: number; total: number; totalPages: number; totalQuantite?: number }>({ page: 1, limit: 10, total: 0, totalPages: 0 })
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean
     materielroulant: Materielroulant | null
@@ -277,8 +277,8 @@ export default function MaterielroulantsPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Total"
-          value={formatNumber(pagination.total)}
-          hint="véhicules selon les filtres"
+          value={formatNumber(pagination.totalQuantite ?? pagination.total)}
+          hint={`véhicules selon les filtres · ${formatNumber(pagination.total)} ligne(s)`}
           tone="brand"
           icon={<Truck />}
         />

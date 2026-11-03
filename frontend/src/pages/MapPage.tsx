@@ -1,5 +1,6 @@
 "use client"
 
+import { resolveImageUrl } from "../utils/imageUrl";
 import { useEffect, useState, useCallback } from "react"
 import { MapContainer, TileLayer, Marker, Popup, GeoJSON } from "react-leaflet"
 import { Search, Filter, X as XIcon } from "lucide-react"
@@ -549,7 +550,8 @@ export default function MapPage() {
                   {/* Image */}
                   {fosa.image && (
                     <img
-                      src={`${import.meta.env.VITE_API_URL || "http://localhost:5000"}${fosa.image}`}
+                      src={resolveImageUrl(fosa.image) ?? ""}
+                      onError={(e) => { e.currentTarget.style.display = "none" }}
                       alt={fosa.nom}
                       className="w-full h-32 object-cover rounded"
                     />

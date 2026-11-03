@@ -107,8 +107,7 @@ export default defineConfig({
           // Images stockées
           {
             urlPattern: ({ url, request }) =>
-              request.destination === "image" &&
-              /api-minsante-stg\.it-grafik\.com/.test(url.host),
+              request.destination === "image" && url.pathname.startsWith("/storage/"),
             handler: "StaleWhileRevalidate",
             options: {
               cacheName: "fosa-images",

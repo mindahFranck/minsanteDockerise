@@ -1,3 +1,4 @@
+import { resolveImageUrl } from "../utils/imageUrl";
 import api from "./api";
 import { offlineCache } from "./offlineCache";
 
@@ -231,12 +232,7 @@ class FosaService {
   }
 
   getImageUrl(imagePath?: string): string {
-    if (!imagePath) return "/placeholder-hospital.png";
-    if (imagePath.startsWith("http")) return imagePath;
-    // Extraire le domaine depuis baseURL (enlever /api/v1 à la fin)
-    const baseUrl = (api.defaults.baseURL || "").replace(/\/api\/v1\/?$/, "").replace(/\/api\/?$/, "");
-    if (imagePath.startsWith("/")) return `${baseUrl}${imagePath}`;
-    return `${baseUrl}/storage/${imagePath}`;
+    return resolveImageUrl(imagePath, api.defaults.baseURL || undefined) ?? "/placeholder-hospital.png";
   }
 }
 

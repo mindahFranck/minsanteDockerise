@@ -252,11 +252,22 @@ abstract class CrudController extends Controller
         $perPage = (int) ($request->input('per_page') ?? $request->input('limit', 15));
         $perPage = max($perPage, 1);
 
+        // Ressources à quantité (équipements, véhicules) : le total utile est la somme des
+        // quantités sur tous les résultats filtrés, pas le nombre de lignes.
+        $totalQuantite = in_array('quantite', $existingColumns, true)
+            ? (int) (clone $query)->toBase()->sum(\Illuminate\Support\Facades\DB::raw('COALESCE(quantite, 1)'))
+            : null;
+
         $data = $query->paginate($perPage);
+        $pagination = ['page' => $data->currentPage(), 'total' => $data->total(), 'totalPages' => $data->lastPage()];
+        if ($totalQuantite !== null) {
+            $pagination['totalQuantite'] = $totalQuantite;
+        }
+
         return response()->json([
             'success' => true,
             'data' => collect($data->items())->map(fn ($m) => $this->camelizeKeys($m->toArray()))->values(),
-            'pagination' => ['page' => $data->currentPage(), 'total' => $data->total(), 'totalPages' => $data->lastPage()],
+            'pagination' => $pagination,
         ]);
     }
 
