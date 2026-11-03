@@ -185,6 +185,10 @@ jobs:
               ${{ env.BACKEND_IMAGE }}:latest || rollback
             docker network connect proxy-tier health-backend
 
+            # nginx-proxy limite le corps des requêtes à 1 Mo : les images de FOSA (jusqu'à 5 Mo)
+            # recevaient un 413 sans jamais atteindre l'API (requête OPTIONS OK, pas de POST).
+            docker exec nginx-proxy sh -c 'echo "client_max_body_size 10m;" > /etc/nginx/vhost.d/${{ env.BACKEND_DOMAIN }} && nginx -s reload' || echo "⚠️ client_max_body_size non appliqué"
+
             HEALTHY=0
             for i in $(seq 1 18); do
               if docker exec health-backend curl -fsS http://localhost/api/health/ready -o /dev/null 2>&1; then
