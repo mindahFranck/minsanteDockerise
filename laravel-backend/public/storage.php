@@ -24,7 +24,13 @@ if (empty($file)) {
 $file = str_replace(['..', '\\'], ['', '/'], $file);
 $path = dirname(__DIR__) . '/storage/app/public/' . $file;
 
-if (!file_exists($path)) {
+$real = realpath($path);
+$root = realpath(dirname(__DIR__) . '/storage/app/public');
+if ($real === false || $root === false || strpos($real, $root . DIRECTORY_SEPARATOR) !== 0) {
+    $path = '';
+}
+
+if ($path === '' || !is_file($path)) {
     error_log('[fosa-image] fichier introuvable : ' . $file . ' (cherche ' . $path . ') referer=' . ($_SERVER['HTTP_REFERER'] ?? '-') . ' ip=' . ($_SERVER['REMOTE_ADDR'] ?? '-'));
     http_response_code(404);
     echo 'File not found';

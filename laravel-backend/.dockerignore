@@ -20,7 +20,6 @@ public/maj-colonnes.php
 public/maj-fosa-fk.php
 public/maj-import.php
 public/test-cols.php
-public/storage.php
 index.php
 .htaccess
 bootstrap/cache/*.php
