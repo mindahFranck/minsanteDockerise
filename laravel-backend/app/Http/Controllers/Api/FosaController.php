@@ -9,6 +9,7 @@ use App\Models\Fosa;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -18,6 +19,71 @@ class FosaController extends Controller
         protected FosaService $fosaService,
         protected AuditService $auditService
     ) {}
+
+    /** Journalise (fichier + stderr Docker) tout ce qui touche aux images de FOSA. */
+    private function imageLog(string $level, string $message, array $context = []): void
+    {
+        Log::stack(['daily', 'stderr'])->{$level}('[fosa-image] ' . $message, $context);
+    }
+
+    /**
+     * Enregistre l'image envoyée (si présente), vérifie qu'elle est lisible publiquement
+     * et supprime l'ancienne seulement après succès.
+     */
+    private function handleImageUpload(Request $request, array $data, ?string $oldImage, string $action, ?int $fosaId = null): array
+    {
+        $ctx = ['action' => $action, 'fosa_id' => $fosaId, 'user_id' => $request->user()?->id, 'ip' => $request->ip()];
+
+        if (!$request->hasFile('image')) {
+            $this->imageLog('info', 'aucune image dans la requete', $ctx + [
+                'image_en_base' => $oldImage,
+                'content_type' => $request->header('Content-Type'),
+            ]);
+            return $data;
+        }
+
+        $file = $request->file('image');
+        $ctx += [
+            'nom_original' => $file->getClientOriginalName(),
+            'mime' => $file->getClientMimeType(),
+            'taille_octets' => $file->getSize(),
+            'upload_valide' => $file->isValid(),
+            'upload_erreur' => $file->getErrorMessage(),
+        ];
+        $this->imageLog('info', 'image recue', $ctx);
+
+        try {
+            $path = $file->store('fosas', 'public');
+        } catch (\Throwable $e) {
+            $this->imageLog('error', 'echec du stockage : ' . $e->getMessage(), $ctx);
+            throw $e;
+        }
+
+        $disk = Storage::disk('public');
+        $publicLink = public_path('storage');
+        $this->imageLog($path ? 'info' : 'error', 'image stockee', $ctx + [
+            'chemin' => $path,
+            'fichier_sur_disque' => $path ? $disk->exists($path) : false,
+            'chemin_disque' => $path ? $disk->path($path) : null,
+            'dossier_ecriture' => is_writable($disk->path('')),
+            'symlink_public_storage' => is_link($publicLink),
+            'symlink_cible' => is_link($publicLink) ? readlink($publicLink) : null,
+            'accessible_via_public' => $path ? is_file($publicLink . '/' . $path) : false,
+            'url_attendue' => $path ? rtrim((string) config('app.url'), '/') . '/storage/' . $path : null,
+        ]);
+
+        if (!$path) {
+            throw new \RuntimeException("Impossible d'enregistrer l'image sur le serveur (stockage non inscriptible).");
+        }
+
+        if ($oldImage) {
+            $deleted = $disk->delete($oldImage);
+            $this->imageLog('info', 'ancienne image supprimee', $ctx + ['ancienne' => $oldImage, 'supprimee' => $deleted]);
+        }
+
+        $data['image'] = $path;
+        return $data;
+    }
 
     /**
      * @OA\Get(
@@ -261,9 +327,7 @@ class FosaController extends Controller
                 }
             }
 
-            if ($request->hasFile('image')) {
-                $data['image'] = $request->file('image')->store('fosas', 'public');
-            }
+            $data = $this->handleImageUpload($request, $data, null, 'create');
 
             // Build POINT geometry if coordinates provided
             if (isset($data['latitude']) && isset($data['longitude'])) {
@@ -422,12 +486,7 @@ class FosaController extends Controller
                 }
             }
 
-            if ($request->hasFile('image')) {
-                if ($fosa->image) {
-                    Storage::disk('public')->delete($fosa->image);
-                }
-                $data['image'] = $request->file('image')->store('fosas', 'public');
-            }
+            $data = $this->handleImageUpload($request, $data, $fosa->image, 'update', $fosa->id);
 
             if (isset($data['latitude']) && isset($data['longitude'])) {
                 $data['geom'] = DB::raw("ST_GeomFromText('POINT({$data['longitude']} {$data['latitude']})', 4326)");

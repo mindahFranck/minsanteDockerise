@@ -207,7 +207,7 @@ class MapInsightsService
             'fonctionnelle' => $bool($f->fonction),
             'situation' => $text($f->situation),
             'orgUnit' => $text($f->org_unit),
-            'image' => $text($f->image),
+            'image' => $this->checkedImage($text($f->image), (int) $f->id),
             'localisation' => $location + [
                 'latitude' => $f->latitude !== null ? (float) $f->latitude : null,
                 'longitude' => $f->longitude !== null ? (float) $f->longitude : null,
@@ -428,5 +428,20 @@ class MapInsightsService
             'district' => $ref($district, ['code']),
             'airesante' => $ref($airesante, ['code']),
         ];
+    }
+
+    /** Signale dans les logs une image référencée en base mais absente du disque (cause d'images invisibles sur la carte). */
+    private function checkedImage(?string $image, int $fosaId): ?string
+    {
+        if ($image && !preg_match('#^https?://#', $image)) {
+            $relative = preg_replace('#^/?(public/)?(storage/)?#', '', $image);
+            if (!is_file(storage_path('app/public/' . $relative))) {
+                \Illuminate\Support\Facades\Log::stack(['daily', 'stderr'])->warning(
+                    '[fosa-image] image en base mais absente du disque',
+                    ['fosa_id' => $fosaId, 'image' => $image, 'cherche' => storage_path('app/public/' . $relative)]
+                );
+            }
+        }
+        return $image;
     }
 }
