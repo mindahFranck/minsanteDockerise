@@ -47,7 +47,6 @@ const Router: React.FC = () => {
             <Route path="districts" element={<DistrictsPage />} />
             <Route path="airesantes" element={<AiresantesPage />} />
             <Route path="fosas" element={<FosasPage />} />
-            <Route path="personnels" element={<PersonnelsPage />} />
             <Route path="equipements" element={<EquipementsPage />} />
             <Route path="materielroulants" element={<MaterielroulantsPage />} />
             <Route path="map" element={<MapPage />} />

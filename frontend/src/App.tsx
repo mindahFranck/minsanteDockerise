@@ -16,7 +16,6 @@ import AiresantesPage from "./pages/AiresantesPage"
 import FosasPage from "./pages/FosasPage"
 import BatimentsPage from "./pages/BatimentsPage"
 import ServicesPage from "./pages/ServicesPage"
-import PersonnelsPage from "./pages/PersonnelsPage"
 import EquipementsPage from "./pages/EquipementsPage"
 import EquipebiosPage from "./pages/EquipebiosPage"
 import MaterielroulantsPage from "./pages/MaterielroulantsPage"
@@ -74,7 +73,6 @@ function App() {
           <Route path="services" element={<ServicesPage />} />
 
           {/* Gestion du personnel */}
-          <Route path="personnels" element={<PersonnelsPage />} />
           <Route path="categories" element={<CategoriesPage />} />
 
           {/* Gestion des équipements */}

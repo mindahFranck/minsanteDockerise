@@ -61,7 +61,6 @@ const SidebarNew: React.FC = () => {
       label: 'Ressources Humaines',
       roles: ['super_admin', 'admin', 'manager', 'user'],
       children: [
-        { icon: Users, label: 'Personnel', path: '/personnels', roles: ['super_admin', 'admin', 'manager', 'user'] },
         { icon: FileText, label: 'Catégories', path: '/categories', roles: ['super_admin', 'admin', 'manager', 'user'] },
       ]
     },

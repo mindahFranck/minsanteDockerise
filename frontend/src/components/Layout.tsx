@@ -64,7 +64,6 @@ const NAVIGATION: NavSection[] = [
   {
     title: "Personnel",
     items: [
-      { name: "Personnel", href: "/dashboard/personnels", icon: Users, requiresPermission: "canView" },
       { name: "Catégories", href: "/dashboard/categories", icon: Tag, requiresPermission: "canView" },
     ],
   },
