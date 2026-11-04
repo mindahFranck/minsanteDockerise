@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   Home, Map, Building2, ChevronDown, ChevronRight,
-  Users, FileText, Settings as SettingsIcon, BarChart3,
+  FileText, Settings as SettingsIcon, BarChart3,
   HelpCircle, MapPin, Hospital, Stethoscope, Wrench,
   UserCog, Shield, Activity, Package
 } from 'lucide-react';
@@ -54,14 +54,6 @@ const SidebarNew: React.FC = () => {
         { icon: Hospital, label: 'Liste des FOSA', path: '/fosas', roles: ['super_admin', 'admin', 'manager', 'user'] },
         { icon: Building2, label: 'Bâtiments', path: '/batiments', roles: ['super_admin', 'admin', 'manager', 'user'] },
         { icon: Stethoscope, label: 'Services', path: '/services', roles: ['super_admin', 'admin', 'manager', 'user'] },
-      ]
-    },
-    {
-      icon: Users,
-      label: 'Ressources Humaines',
-      roles: ['super_admin', 'admin', 'manager', 'user'],
-      children: [
-        { icon: FileText, label: 'Catégories', path: '/categories', roles: ['super_admin', 'admin', 'manager', 'user'] },
       ]
     },
     {

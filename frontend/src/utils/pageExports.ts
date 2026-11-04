@@ -1,42 +1,6 @@
 import { exportGenericToPDF, exportGenericToExcel } from './exportUtils';
 
 /**
- * Export pour PersonnelsPage
- */
-export const exportPersonnelsToPDF = (data: any[]) => {
-  exportGenericToPDF(
-    data,
-    [
-      { header: 'ID', dataKey: 'id' },
-      { header: 'Nom', dataKey: 'nom' },
-      { header: 'Prénom', dataKey: 'prenom' },
-      { header: 'Catégorie', dataKey: 'categorie' },
-      { header: 'Spécialité', dataKey: 'specialite' },
-      { header: 'Statut', dataKey: 'statut' },
-    ],
-    'Liste du Personnel',
-    `personnel_${new Date().toISOString().split('T')[0]}`
-  );
-};
-
-export const exportPersonnelsToExcel = (data: any[]) => {
-  exportGenericToExcel(
-    data,
-    [
-      { header: 'ID', key: 'id' },
-      { header: 'Nom', key: 'nom' },
-      { header: 'Prénom', key: 'prenom' },
-      { header: 'Catégorie', key: 'categorie' },
-      { header: 'Spécialité', key: 'specialite' },
-      { header: 'Statut', key: 'statut' },
-      { header: 'Date d\'embauche', key: 'dateEmbauche' },
-    ],
-    `personnel_${new Date().toISOString().split('T')[0]}`,
-    'Personnel'
-  );
-};
-
-/**
  * Export pour EquipementsPage
  */
 export const exportEquipementsToPDF = (data: any[]) => {

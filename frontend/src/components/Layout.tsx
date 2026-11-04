@@ -3,7 +3,7 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom"
 import {
   Map, LogOut, Menu, X, ChevronDown, LayoutDashboard, MapPin, Building2, Building, Activity,
-  Users, Tag, Package, Stethoscope, Truck, UserCircle, FileSpreadsheet, Settings, WifiOff, AlertTriangle,
+  Package, Stethoscope, Truck, UserCircle, FileSpreadsheet, Settings, WifiOff, AlertTriangle,
 } from "lucide-react"
 import { useEffect, useRef, useState, type ComponentType } from "react"
 import { usePermissions } from "../hooks/usePermissions"
@@ -59,12 +59,6 @@ const NAVIGATION: NavSection[] = [
       { name: "FOSA", href: "/dashboard/fosas", icon: Building2, requiresPermission: "canView" },
       { name: "Bâtiments", href: "/dashboard/batiments", icon: Building, requiresPermission: "canView" },
       { name: "Services", href: "/dashboard/services", icon: Activity, requiresPermission: "canView" },
-    ],
-  },
-  {
-    title: "Personnel",
-    items: [
-      { name: "Catégories", href: "/dashboard/categories", icon: Tag, requiresPermission: "canView" },
     ],
   },
   {

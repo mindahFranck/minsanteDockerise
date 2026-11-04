@@ -94,13 +94,6 @@ function buildKpis(data: DashboardData): Kpi[] {
       detail: f.lits > 0 ? `${nf(d.litsParFosa, 1)} lits / FOSA ouverte` : "non renseignée dans la base",
     },
     { groupe: "FOSA", label: "Géolocalisation", value: ratio(f.geolocalisees, f.total), format: "pct", detail: `${nf(f.total - f.geolocalisees)} sans coordonnées` },
-    {
-      groupe: "Ressources",
-      label: "Personnel",
-      value: data.personnel.total,
-      format: "int",
-      detail: `${nf(data.personnel.fosasDotees)} FOSA dotées · ${pf(ratio(data.personnel.fosasDotees, f.total))}`,
-    },
     { groupe: "Ressources", label: "Équipements biomédicaux", value: data.equipements.biomedicaux, format: "int", detail: `${nf(data.equipements.autres)} autres équipements` },
     {
       groupe: "Ressources",
@@ -218,16 +211,6 @@ function buildTables(input: DashboardExportInput): Table[] {
         { header: "Part", format: "pct" },
       ],
       rows: data.batiments.parEtat.map((r) => [r.label, r.total, ratio(r.total, data.batiments.total)]),
-    },
-    {
-      sheet: "Personnel",
-      title: `Personnel par catégorie : ${nf(data.personnel.total)} agents dans ${nf(data.personnel.fosasDotees)} FOSA`,
-      columns: [
-        { header: "Catégorie", format: "text", width: 28 },
-        { header: "Agents", format: "int" },
-        { header: "Part", format: "pct" },
-      ],
-      rows: data.personnel.parCategorie.map((r) => [r.label, r.total, ratio(r.total, data.personnel.total)]),
     },
     {
       sheet: "Matériel roulant",

@@ -19,7 +19,6 @@ import ServicesPage from "./pages/ServicesPage"
 import EquipementsPage from "./pages/EquipementsPage"
 import EquipebiosPage from "./pages/EquipebiosPage"
 import MaterielroulantsPage from "./pages/MaterielroulantsPage"
-import CategoriesPage from "./pages/CategoriesPage"
 import DegradationsPage from "./pages/DegradationsPage"
 import ParametresPage from "./pages/ParametresPage"
 import UsersPage from "./pages/UsersPage"
@@ -72,8 +71,6 @@ function App() {
           <Route path="batiments" element={<BatimentsPage />} />
           <Route path="services" element={<ServicesPage />} />
 
-          {/* Gestion du personnel */}
-          <Route path="categories" element={<CategoriesPage />} />
 
           {/* Gestion des équipements */}
           <Route path="equipements" element={<EquipementsPage />} />

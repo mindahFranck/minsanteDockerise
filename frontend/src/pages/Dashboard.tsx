@@ -183,7 +183,6 @@ export default function Dashboard() {
   const repartitionRef = useRef<HTMLDivElement>(null)
   const foncierRef = useRef<HTMLDivElement>(null)
   const batiRef = useRef<HTMLDivElement>(null)
-  const personnelRef = useRef<HTMLDivElement>(null)
   const vehiculesRef = useRef<HTMLDivElement>(null)
 
   const load = async () => {
@@ -258,7 +257,6 @@ export default function Dashboard() {
       { title: "Répartition des FOSA", node: repartitionRef.current, span: "full" },
       { title: "Sécurisation foncière", node: foncierRef.current, span: "half" },
       { title: "Patrimoine bâti", node: batiRef.current, span: "half" },
-      { title: "Personnel par catégorie", node: personnelRef.current, span: "half" },
       { title: "Matériel roulant", node: vehiculesRef.current, span: "half" },
     ],
   })
@@ -327,11 +325,6 @@ export default function Dashboard() {
 
       {/* Ressources et alertes */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Personnel"
-          value={formatNumber(data.personnel.total)}
-          hint={`${formatNumber(data.personnel.fosasDotees)} FOSA dotées · ${formatPercent(percent(data.personnel.fosasDotees, f.total))}`}
-        />
         <StatCard
           label="Équipements biomédicaux"
           value={formatNumber(data.equipements.biomedicaux)}
@@ -498,21 +491,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div ref={personnelRef}>
-        <SectionCard
-          className="h-full"
-          title="Personnel par catégorie"
-          subtitle={`${formatNumber(data.personnel.total)} agents dans ${formatNumber(data.personnel.fosasDotees)} FOSA`}
-        >
-          {data.personnel.total === 0 ? (
-            <EmptyState title="Aucun personnel enregistré" />
-          ) : (
-            <RankBars items={data.personnel.parCategorie.map((row) => ({ label: row.label, value: row.total }))} limit={10} />
-          )}
-        </SectionCard>
-        </div>
-
+      <div className="grid gap-6">
         <div ref={vehiculesRef}>
         <SectionCard title="Matériel roulant" subtitle={`${formatNumber(data.vehicules.total)} véhicules`} className="h-full">
           {data.vehicules.total === 0 ? (

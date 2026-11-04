@@ -12,7 +12,6 @@ import {
   Shield,
   Stethoscope,
   Truck,
-  Users,
   Wrench,
   X,
   Zap,
@@ -293,7 +292,6 @@ export default function FosaDetailsPanel({ fosaId, fallbackName, onClose }: { fo
                 <Metric label="Lits" value={d.capaciteLits} />
                 <Metric label="Bâtiments" value={d.batiments.total} />
                 <Metric label="Services" value={d.services.total} />
-                <Metric label="Personnel" value={d.personnel.total} />
                 <Metric label="Équip. biomédicaux" value={d.equipements.biomedicaux} />
                 <Metric label="Autres équipements" value={d.equipements.autres} />
                 <Metric label="Véhicules" value={d.vehicules.total} />
@@ -412,19 +410,6 @@ export default function FosaDetailsPanel({ fosaId, fallbackName, onClose }: { fo
                     }}
                   />
                 </ul>
-              )}
-            </Section>
-
-            <Section title="Personnel" icon={Users} defaultOpen={d.personnel.total > 0}>
-              {d.personnel.parCategorie.length === 0 ? (
-                <p className="py-2 text-center text-xs italic text-gray-400">Aucun personnel enregistré pour cette FOSA</p>
-              ) : (
-                d.personnel.parCategorie.map((row) => (
-                  <div key={row.label} className="flex items-center justify-between rounded-lg px-2 py-1.5 even:bg-row-alt">
-                    <span className="text-xs text-gray-700">{row.label}</span>
-                    <span className="text-sm font-bold tabular-nums text-gray-900">{fmt(row.total)}</span>
-                  </div>
-                ))
               )}
             </Section>
 
