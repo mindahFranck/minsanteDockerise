@@ -13,6 +13,8 @@ class Materielroulant extends Model
         'date_mise_service', 'acte_affectation', 'type_vehicule',
         'immatriculation', 'usage', 'code', 'structure', 'service_id',
         'nom_utilisateur', 'fonction_utilisateur', 'energie', 'financement',
+        // Champs recommandation ImmoSanté
+        'image', 'nombre_places', 'source_acquisition', 'puissance_fiscale',
     ];
 
     protected function casts(): array
@@ -22,6 +24,8 @@ class Materielroulant extends Model
             'quantite' => 'integer',
             'date_mise_en_circulation' => 'date',
             'date_mise_service' => 'date',
+            'nombre_places' => 'integer',
+            'puissance_fiscale' => 'integer',
         ];
     }
 

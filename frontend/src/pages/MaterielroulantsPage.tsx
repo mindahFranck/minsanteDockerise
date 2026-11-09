@@ -28,11 +28,49 @@ function etatVariant(etat?: string): BadgeVariant {
       return "warning"
     case "Mauvais":
     case "Hors service":
+    case "Amorti":
       return "danger"
     default:
       return "neutral"
   }
 }
+
+/** Valeurs par défaut (recommandation ImmoSanté) pour le type, l'usage et le code. */
+const TYPES_VEHICULE = [
+  "Pick-up", "SUV", "Berline", "Minibus", "Camion", "Tricycle", "Motocycle",
+  "Bicyclette", "Hors-Bord", "Clinique Mobile", "Ambulance",
+]
+const USAGES = ["Fonction", "Service", "Ambulance"]
+const CODES = ["A-Services Centraux", "B-Services-Déconcentrés", "C-Programme/Projets"]
+const SOURCES_ACQUISITION = ["BIP", "PTF", "ACHAT", "DON"]
+
+const EMPTY_FORM = {
+  numeroChassis: "",
+  annee: new Date().getFullYear() as number | "",
+  marque: "",
+  modele: "",
+  type: "",
+  dateMiseEnCirculation: "",
+  etat: "",
+  quantite: 1,
+  fosaId: 0,
+  dateMiseService: "",
+  acteAffectation: "",
+  typeVehicule: "",
+  immatriculation: "",
+  usage: "",
+  code: "",
+  structure: "",
+  serviceId: 0,
+  nomUtilisateur: "",
+  fonctionUtilisateur: "",
+  energie: "",
+  // Champs recommandation ImmoSanté
+  nombrePlaces: "" as number | "",
+  puissanceFiscale: "" as number | "",
+  sourceAcquisition: "",
+}
+type FormState = typeof EMPTY_FORM
 
 /** Intertitre de section dans le formulaire. */
 function FormSection({ title }: { title: string }) {
@@ -75,30 +113,10 @@ export default function MaterielroulantsPage() {
     materielroulant: Materielroulant | null
   }>({ isOpen: false, materielroulant: null })
 
-  const [formData, setFormData] = useState({
-    numeroChassis: "",
-    annee: new Date().getFullYear(),
-    marque: "",
-    modele: "",
-    type: "",
-    dateMiseEnCirculation: "",
-    etat: "",
-    quantite: 1,
-    fosaId: 0,
-    // Nouveaux champs (Page 4 du document)
-    dateMiseService: "",
-    acteAffectation: "",
-    typeVehicule: "",
-    immatriculation: "",
-    usage: "",
-    code: "",
-    structure: "",
-    serviceId: 0,
-    nomUtilisateur: "",
-    fonctionUtilisateur: "",
-    energie: "",
-    financement: "",
-  })
+  const [formData, setFormData] = useState<FormState>({ ...EMPTY_FORM })
+  // Image du véhicule : fichier choisi + chemin déjà enregistré (édition)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [existingImage, setExistingImage] = useState<string | null>(null)
 
   useEffect(() => {
     loadData()
@@ -133,36 +151,28 @@ export default function MaterielroulantsPage() {
     e.preventDefault()
     setSubmitting(true)
     try {
+      // Nettoyage : chaînes vides -> null ; entiers convertis.
+      const payload: any = { ...formData }
+      payload.annee = formData.annee === "" ? null : Number(formData.annee)
+      payload.nombrePlaces = formData.nombrePlaces === "" ? null : Number(formData.nombrePlaces)
+      payload.puissanceFiscale = formData.puissanceFiscale === "" ? null : Number(formData.puissanceFiscale)
+      for (const k of [
+        "numeroChassis", "modele", "type", "dateMiseEnCirculation", "etat", "dateMiseService",
+        "acteAffectation", "typeVehicule", "immatriculation", "usage", "code", "structure",
+        "nomUtilisateur", "fonctionUtilisateur", "energie", "sourceAcquisition",
+      ]) {
+        if (payload[k] === "") payload[k] = null
+      }
       if (editingItem) {
-        await materielroulantService.update(editingItem.id, formData)
+        await materielroulantService.update(editingItem.id, payload, imageFile)
       } else {
-        await materielroulantService.create(formData)
+        await materielroulantService.create(payload, imageFile)
       }
       setIsModalOpen(false)
       setEditingItem(null)
-      setFormData({
-        numeroChassis: "",
-        annee: new Date().getFullYear(),
-        marque: "",
-        modele: "",
-        type: "",
-        dateMiseEnCirculation: "",
-        etat: "",
-        quantite: 1,
-        fosaId: 0,
-        dateMiseService: "",
-        acteAffectation: "",
-        typeVehicule: "",
-        immatriculation: "",
-        usage: "",
-        code: "",
-        structure: "",
-        serviceId: 0,
-        nomUtilisateur: "",
-        fonctionUtilisateur: "",
-        energie: "",
-        financement: "",
-      })
+      setFormData({ ...EMPTY_FORM })
+      setImageFile(null)
+      setExistingImage(null)
       loadData()
     } catch (error) {
       console.error("Error saving:", error)
@@ -176,7 +186,7 @@ export default function MaterielroulantsPage() {
     const itemAny = item as any
     setFormData({
       numeroChassis: item.numeroChassis || "",
-      annee: item.annee || new Date().getFullYear(),
+      annee: item.annee ?? "",
       marque: item.marque || "",
       modele: item.modele || "",
       type: item.type || "",
@@ -195,8 +205,13 @@ export default function MaterielroulantsPage() {
       nomUtilisateur: itemAny.nomUtilisateur || "",
       fonctionUtilisateur: itemAny.fonctionUtilisateur || "",
       energie: itemAny.energie || "",
-      financement: itemAny.financement || "",
+      // Champs recommandation ImmoSanté (source d'acquisition reprend financement si absente)
+      nombrePlaces: itemAny.nombrePlaces ?? "",
+      puissanceFiscale: itemAny.puissanceFiscale ?? "",
+      sourceAcquisition: itemAny.sourceAcquisition || itemAny.financement || "",
     })
+    setImageFile(null)
+    setExistingImage(itemAny.image || null)
     setIsModalOpen(true)
   }
 
@@ -252,17 +267,9 @@ export default function MaterielroulantsPage() {
             <button
               onClick={() => {
                 setEditingItem(null)
-                setFormData({
-                  numeroChassis: "",
-                  annee: new Date().getFullYear(),
-                  marque: "",
-                  modele: "",
-                  type: "",
-                  dateMiseEnCirculation: "",
-                  etat: "",
-                  quantite: 1,
-                  fosaId: 0,
-                })
+                setFormData({ ...EMPTY_FORM })
+                setImageFile(null)
+                setExistingImage(null)
                 setIsModalOpen(true)
               }}
               className="btn btn-primary"
@@ -374,10 +381,7 @@ export default function MaterielroulantsPage() {
                 className="input"
               >
                 <option value="">Sélectionner...</option>
-                <option value="Ambulance">Ambulance</option>
-                <option value="Véhicule de service">Véhicule de service</option>
-                <option value="Moto">Moto</option>
-                <option value="Camion">Camion</option>
+                {TYPES_VEHICULE.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
@@ -413,7 +417,7 @@ export default function MaterielroulantsPage() {
                 className="input"
               />
             </div>
-            <div className="sm:col-span-2">
+            <div>
               <label className="label">État</label>
               <select
                 value={formData.etat}
@@ -426,7 +430,40 @@ export default function MaterielroulantsPage() {
                 <option value="Moyen">Moyen</option>
                 <option value="Mauvais">Mauvais</option>
                 <option value="Hors service">Hors service</option>
+                <option value="Amorti">Amorti</option>
               </select>
+            </div>
+            <div>
+              <label className="label">Nombre de places</label>
+              <input
+                type="number" min="0"
+                value={formData.nombrePlaces}
+                onChange={(e) => setFormData({ ...formData, nombrePlaces: e.target.value === "" ? "" : Number(e.target.value) })}
+                className="input"
+              />
+            </div>
+            <div>
+              <label className="label">Puissance fiscale (CV)</label>
+              <input
+                type="number" min="0"
+                value={formData.puissanceFiscale}
+                onChange={(e) => setFormData({ ...formData, puissanceFiscale: e.target.value === "" ? "" : Number(e.target.value) })}
+                className="input"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="label">Photo du véhicule</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
+                className="input"
+              />
+              {(imageFile || existingImage) && (
+                <p className="mt-1 text-xs text-gray-500">
+                  {imageFile ? `Nouveau fichier : ${imageFile.name}` : "Image enregistrée (remplacer en choisissant un fichier)"}
+                </p>
+              )}
             </div>
           </div>
 
@@ -464,22 +501,25 @@ export default function MaterielroulantsPage() {
             </div>
             <div>
               <label className="label">Usage</label>
-              <input
-                type="text"
+              <select
                 value={formData.usage}
                 onChange={(e) => setFormData({ ...formData, usage: e.target.value })}
                 className="input"
-                placeholder="Ex: Fonction"
-              />
+              >
+                <option value="">Sélectionner...</option>
+                {USAGES.map((u) => <option key={u} value={u}>{u}</option>)}
+              </select>
             </div>
             <div>
               <label className="label">Code</label>
-              <input
-                type="text"
+              <select
                 value={formData.code}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                 className="input"
-              />
+              >
+                <option value="">Sélectionner...</option>
+                {CODES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
             </div>
             <div>
               <label className="label">Structure</label>
@@ -525,13 +565,15 @@ export default function MaterielroulantsPage() {
               </select>
             </div>
             <div className="sm:col-span-2">
-              <label className="label">Financement</label>
-              <input
-                type="text"
-                value={formData.financement}
-                onChange={(e) => setFormData({ ...formData, financement: e.target.value })}
+              <label className="label">Source d'acquisition</label>
+              <select
+                value={formData.sourceAcquisition}
+                onChange={(e) => setFormData({ ...formData, sourceAcquisition: e.target.value })}
                 className="input"
-              />
+              >
+                <option value="">Sélectionner...</option>
+                {SOURCES_ACQUISITION.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
             </div>
             <div className="sm:col-span-3">
               <label className="label">Acte d'Affectation</label>

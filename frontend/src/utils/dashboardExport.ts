@@ -281,7 +281,7 @@ export async function exportDashboardExcel(input: DashboardExportInput): Promise
   const summary: Cell[][] = [
     ...preamble,
     ["Source : base MINSANTÉ, via l'API /statistics/dashboard"],
-    ["Signature : MINSANTÉ · IMMOSANTECam — conçu et développé par IT-GRAFIK"],
+    ["Signature : MINSANTÉ · IMMOSANTECam — conçu et développé par GENEX"],
     [],
     ["Groupe", "Indicateur", "Valeur", "Détail"],
     ...kpis.map((k): Cell[] => [k.groupe, k.label, k.value === null ? "Non renseignée" : k.value, k.detail]),
@@ -536,7 +536,7 @@ export async function exportDashboardPdf(input: DashboardExportInput): Promise<s
     doc.setFont("helvetica", "normal")
     doc.setFontSize(7.5)
     doc.setTextColor(...GRAY)
-    doc.text("MINSANTÉ · Données issues de la base des formations sanitaires · Réalisation IT-GRAFIK", M, H - 6.5)
+    doc.text("MINSANTÉ · Données issues de la base des formations sanitaires · Réalisation GENEX", M, H - 6.5)
     doc.text(`Page ${i} / ${pages}`, W - M, H - 6.5, { align: "right" })
   }
 

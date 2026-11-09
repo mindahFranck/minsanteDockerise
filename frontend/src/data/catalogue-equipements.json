@@ -1,0 +1,8142 @@
+{
+"HR": {
+"label": "Hôpital Régional",
+"equipements": [
+{
+"code": "31001",
+"designation": "Lampe de poche coudée",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31002",
+"designation": "Marteau à réflexe",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31003",
+"designation": "Miroir laryngien",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31004",
+"designation": "Panneau de Snellen (test de Snellen)",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31005",
+"designation": "Stéthoscope double pavillon",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31006",
+"designation": "Stéthoscope fœtal",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31007",
+"designation": "Tensiomètre anéroïde",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31008",
+"designation": "Tensiomètre à colonne de mercure",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31009",
+"designation": "Tensiomètre enfant",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31010",
+"designation": "Thermomètre",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31011",
+"designation": "Laryngoscope",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31012",
+"designation": "Stéthoscope",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31013",
+"designation": "Pelvimètre de Collyer",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31014",
+"designation": "Otoscope + jeu de spéculums auriculaire",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31015",
+"designation": "Otoscope – Ophtalmoscope (boite ORL de base)",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31016",
+"designation": "Mètre souple",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31017",
+"designation": "Lampe frontale de Clark avec boîtier secteur",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31018",
+"designation": "Lampe infrarouge réanimation",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31019",
+"designation": "Aiguilles assorties pour seringues",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31020",
+"designation": "Anse de platine",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31021",
+"designation": "Goupillon diam.",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31024",
+"designation": "Haricot inox 250 ml",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31025",
+"designation": "Aiguilles pour sutures (droites, courbes, Hagedorn)",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31026",
+"designation": "Aiguille spinale enfant",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31027",
+"designation": "Aiguille spinale adulte",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31028",
+"designation": "Cuvette inox",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31029",
+"designation": "Garrots",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31030",
+"designation": "Boite à instruments (vide) 30x15x25 cm",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31030",
+"designation": "Minuteur 60 minutes à ressort",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31031",
+"designation": "Aspirateur bronchial",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31032",
+"designation": "Aspirateur de mucosités",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31033",
+"designation": "Bocal pour thermomètre",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31034",
+"designation": "Haricot inox 500 ml",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31035",
+"designation": "Haricot inox 900 ml",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31036",
+"designation": "Manche de bistouri inox",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31037",
+"designation": "Pissette plastique 250 ml",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31038",
+"designation": "Plateau plat 30x15 cm, inox, avec couvercle",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31039",
+"designation": "Plateau profond 30x15 cm, inox, avec couvercle",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31040",
+"designation": "Poire à injection auriculaire",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31041",
+"designation": "Poissonnière inox 40x12x10 cm",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31042",
+"designation": "Porte-aiguille de Mayo Hégar",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31043",
+"designation": "Rasoir manuel et lames",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31044",
+"designation": "Tasse à solution 180 ml, inox",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31045",
+"designation": "Plateau plat 30x40 cm, inox",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31046",
+"designation": "Bassin de lit, inox",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31047",
+"designation": "Cuvette profonde , inox",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31048",
+"designation": "Poire d’aspiration bucco pharyngée",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31049",
+"designation": "Seringue métallique 100 ml",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31050",
+"designation": "Set perfusion avec bocal",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31051",
+"designation": "Bassin de lit polypropylène",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31052",
+"designation": "Support mural pour thermomètre",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31053",
+"designation": "Cuvette , inox",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31054",
+"designation": "Bac à lavement avec canule",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31055",
+"designation": "Scie à plâtre à manuelle",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31056",
+"designation": "Tire-lait manuel à piston",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31057",
+"designation": "Attelles, jeu assorti",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31058",
+"designation": "Cuvette forme haricot , inox",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31059",
+"designation": "Paire de ciseaux à gaze droits",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31060",
+"designation": "Paire de ciseaux courbes de Mayo",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31061",
+"designation": "Paire de ciseaux de Lister angulaires 20 cm",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31062",
+"designation": "Pince à échardes fine 100 mm",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31063",
+"designation": "Pince à servir avec pot",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31064",
+"designation": "Pinces pour poser et enlever des agrafes de Michel",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31065",
+"designation": "Pinces courbes, Rochester-Pean",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31066",
+"designation": "Pinces hémostatiques droites Mosquito 125 mm",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31067",
+"designation": "Sac pour agent sanitaire",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31068",
+"designation": "Pinces Kocher 20 cm",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31069",
+"designation": "Abaisse langue inox (par 10)",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31070",
+"designation": "Doigtiers 2 doigts (assort. de 50)",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31071",
+"designation": "Spéculums vaginaux inox (jeu de 3)",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31072",
+"designation": "Boite de cranioclasie, garnie",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31073",
+"designation": "Boite de trachéotomie, garnie",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31074",
+"designation": "Boite à épisiotomie, garnie",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31075",
+"designation": "Boite à instruments (accouchement), garnie standard",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31076",
+"designation": "Boite pour curetage, garnie, inox",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31077",
+"designation": "Forceps de Suzor",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31078",
+"designation": "Forceps de tarnier",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31079",
+"designation": "Boite à dénudation",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31080",
+"designation": "Ventouse obstétricale",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31081",
+"designation": "Boite à pansements garnie, inox",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31082",
+"designation": "Seringue 5 ml réutilisable",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31083",
+"designation": "Boite à circoncision, garnie",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31084",
+"designation": "Boite infirmière garnie, inox (boite à suture)",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31085",
+"designation": "Boite de petite chirurgie, garnie",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31086",
+"designation": "Table d’accouchement",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31087",
+"designation": "Armoire de classement deux battants",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31088",
+"designation": "Ventilateur",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31089",
+"designation": "Respirateur manuel adulte",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31090",
+"designation": "Electrocardiographe",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31091",
+"designation": "Jeu de diapasons",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31092",
+"designation": "Ballon autogonflable avec jeu de masques",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31093",
+"designation": "Brancard sur chariot avec civière amovible",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31094",
+"designation": "Eclairage opératoire mobile",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31095",
+"designation": "Extracteur d’oxygène",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31096",
+"designation": "Insufflateur manuel adulte/ enfant",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31097",
+"designation": "Lavabo chirurgien 2 postes",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31098",
+"designation": "Paravent sur roulettes",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31099",
+"designation": "Pompe à nutrition pédiatrique",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31100",
+"designation": "Porte pinces inox",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31101",
+"designation": "Stérilisateur à biberons",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31102",
+"designation": "Table sèche inox",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31103",
+"designation": "Tabouret réglable chirurgien",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31104",
+"designation": "Tambour inox 155x160 mm",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31105",
+"designation": "Trousse ORL",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31106",
+"designation": "Urinoir en plastique avec couvercle",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31107",
+"designation": "Valise d’urgence pédiatrique",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31108",
+"designation": "Vibromasseur",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31109",
+"designation": "Porte pince à servir + couvercle 40 x 230 mm Porte-pince à servir + couvercle 40 x 230 mm Inox. Autoclavable et Chaleur sèche.",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31110",
+"designation": "Poire à injection vaginale",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "31111",
+"designation": "Collier cervical",
+"service": "Accueil – Consultations – Soins"
+},
+{
+"code": "32001",
+"designation": "Eclairage médical mobile sur pieds (halogène avec 8 lampes de rechange)",
+"service": "BLOC opératoire"
+},
+{
+"code": "32002",
+"designation": "Armoire mobile catgutier et instruments de salle opératoire",
+"service": "BLOC opératoire"
+},
+{
+"code": "32003",
+"designation": "Lavabos chirurgiens à eau stérile 2 postes",
+"service": "BLOC opératoire"
+},
+{
+"code": "32004",
+"designation": "Table d’opération chirurgie générale",
+"service": "BLOC opératoire"
+},
+{
+"code": "32005",
+"designation": "Table d’opération mineure",
+"service": "BLOC opératoire"
+},
+{
+"code": "32006",
+"designation": "Tabouret salle d’intervention",
+"service": "BLOC opératoire"
+},
+{
+"code": "32007",
+"designation": "Eclairage opératoire plafonnier 110.000 lux (Livre avec 8 lampes de rechange)",
+"service": "BLOC opératoire"
+},
+{
+"code": "32008",
+"designation": "Eclairage opératoire mobile avec batterie (Livre avec 8 lampes de rechange)",
+"service": "BLOC opératoire"
+},
+{
+"code": "32009",
+"designation": "Electro-bistouri mono bipolaire sur chariot mobile",
+"service": "BLOC opératoire"
+},
+{
+"code": "32010",
+"designation": "Aspirateur chirurgical à 2 bocaux de 4 litres",
+"service": "BLOC opératoire"
+},
+{
+"code": "32011",
+"designation": "Botte de protection (sur chaussure bleue)",
+"service": "BLOC opératoire"
+},
+{
+"code": "32012",
+"designation": "Distributeur mural de liquide",
+"service": "BLOC opératoire"
+},
+{
+"code": "33001",
+"designation": "Aspirateur nasal bébé 30 ml",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33002",
+"designation": "Insufflateur manuel",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33003",
+"designation": "Chariot d’anesthésie",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33004",
+"designation": "Monitoring de gaz pour appareil d’anesthésie",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33005",
+"designation": "Table d’anesthésie Fluorane / Fluothec",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33006",
+"designation": "Respirateur d’urgence et transport",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33009",
+"designation": "Débimètre oxygène adulte avec masque",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33010",
+"designation": "Débilitre oxygène enfant avec masque",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33011",
+"designation": "Aspirateur chirurgical autonome",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33012",
+"designation": "Couveuse électrique",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33013",
+"designation": "Appareil de photothérapie par UV (livré avec 10 lampes de rechange)",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33014",
+"designation": "Table de réanimation nouveau-née",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33015",
+"designation": "Centrale d’oxygène à inversion automatique 2x2 bouteilles d’oxygène",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33016",
+"designation": "Centrale protoxyde N à inversion automatique 2x1 bouteilles",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33017",
+"designation": "Centrale air comprimé médical à 30 m3/h",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33018",
+"designation": "Pousse seringue 2 voies indépendantes",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33019",
+"designation": "Nutripompe",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33020",
+"designation": "Défibrillateur d’urgence",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33021",
+"designation": "Colonne de Janneret",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33022",
+"designation": "Débilitre d’aspiration",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33023",
+"designation": "Obus oxygène avec masque",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33024",
+"designation": "Obus protoxyde d’azote avec masque",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33025",
+"designation": "Réseau distr. Oxyg. 5 prises normales.",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "33026",
+"designation": "Réseau distr. protoxyde N 5 prises normales salle",
+"service": "Anesthésie – Réanimation"
+},
+{
+"code": "34001",
+"designation": "Electrocardiographe 3 pistes",
+"service": "Exploration fonctionnelle"
+},
+{
+"code": "34002",
+"designation": "Moniteur multiparamétrique",
+"service": "Exploration fonctionnelle"
+},
+{
+"code": "34003",
+"designation": "Détecteur Fœtal",
+"service": "Exploration fonctionnelle"
+},
+{
+"code": "34004",
+"designation": "Unité de soins ORL",
+"service": "Exploration fonctionnelle"
+},
+{
+"code": "34005",
+"designation": "Lampe à fente pour ophtalmologie",
+"service": "Exploration fonctionnelle"
+},
+{
+"code": "34006",
+"designation": "Microscope opératoire",
+"service": "Exploration fonctionnelle"
+},
+{
+"code": "34007",
+"designation": "Tonomètre à aplanation",
+"service": "Exploration fonctionnelle"
+},
+{
+"code": "34008",
+"designation": "Fronto-focomètre",
+"service": "Exploration fonctionnelle"
+},
+{
+"code": "34009",
+"designation": "Exophtalmomètre",
+"service": "Exploration fonctionnelle"
+},
+{
+"code": "34010",
+"designation": "Skiascope électrique",
+"service": "Exploration fonctionnelle"
+},
+{
+"code": "34011",
+"designation": "Test ophtalmologique",
+"service": "Exploration fonctionnelle"
+},
+{
+"code": "34012",
+"designation": "Projecteur automatique de test d’ophtalmologie",
+"service": "Exploration fonctionnelle"
+},
+{
+"code": "34013",
+"designation": "Monture de verres d’essais universels",
+"service": "Exploration fonctionnelle"
+},
+{
+"code": "34014",
+"designation": "EEG",
+"service": "Exploration fonctionnelle"
+},
+{
+"code": "35003",
+"designation": "Bassin de lit",
+"service": "Maternite"
+},
+{
+"code": "35004",
+"designation": "Boc à lavement /canules",
+"service": "Maternite"
+},
+{
+"code": "35005",
+"designation": "Boîte d’accouchement",
+"service": "Maternite"
+},
+{
+"code": "35006",
+"designation": "Boîte de curetage",
+"service": "Maternite"
+},
+{
+"code": "35007",
+"designation": "Boîte de petite chirurgie",
+"service": "Maternite"
+},
+{
+"code": "35008",
+"designation": "Boîte de suture périnéale",
+"service": "Maternite"
+},
+{
+"code": "35009",
+"designation": "Boîte examen gynécologique",
+"service": "Maternite"
+},
+{
+"code": "35011",
+"designation": "Chariot porte instruments",
+"service": "Maternite"
+},
+{
+"code": "35012",
+"designation": "Compas pelvimètre",
+"service": "Maternite"
+},
+{
+"code": "35013",
+"designation": "Escabeau",
+"service": "Maternite"
+},
+{
+"code": "35014",
+"designation": "Fauteuil roulant",
+"service": "Maternite"
+},
+{
+"code": "35015",
+"designation": "Fœtoscope doppler",
+"service": "Maternite"
+},
+{
+"code": "35016",
+"designation": "Kit aspirateur manuel intra utérin",
+"service": "Maternite"
+},
+{
+"code": "35017",
+"designation": "Lampe d’examen",
+"service": "Maternite"
+},
+{
+"code": "35018",
+"designation": "Lit de travail",
+"service": "Maternite"
+},
+{
+"code": "35019",
+"designation": "Lunettes de protection",
+"service": "Maternite"
+},
+{
+"code": "35020",
+"designation": "Tablier de protection",
+"service": "Maternite"
+},
+{
+"code": "35021",
+"designation": "Botte de protection (sur chaussures)",
+"service": "Maternite"
+},
+{
+"code": "35022",
+"designation": "Mètre ruban",
+"service": "Maternite"
+},
+{
+"code": "35023",
+"designation": "Négatoscope",
+"service": "Maternite"
+},
+{
+"code": "35024",
+"designation": "Paravent",
+"service": "Maternite"
+},
+{
+"code": "35025",
+"designation": "Pèse-bébé avec toise",
+"service": "Maternite"
+},
+{
+"code": "35026",
+"designation": "Pèse-personnes avec toise",
+"service": "Maternite"
+},
+{
+"code": "35027",
+"designation": "Petites poires aspiration",
+"service": "Maternite"
+},
+{
+"code": "35028",
+"designation": "Plateau rectangulaire",
+"service": "Maternite"
+},
+{
+"code": "35029",
+"designation": "Plateau réniforme",
+"service": "Maternite"
+},
+{
+"code": "35030",
+"designation": "Potence porte-sérum",
+"service": "Maternite"
+},
+{
+"code": "35030",
+"designation": "Siège",
+"service": "Maternite"
+},
+{
+"code": "35031",
+"designation": "Spéculum vaginal",
+"service": "Maternite"
+},
+{
+"code": "35032",
+"designation": "Sphygmomanomètre",
+"service": "Maternite"
+},
+{
+"code": "35035",
+"designation": "Table bureau deux tiroirs",
+"service": "Maternite"
+},
+{
+"code": "35037",
+"designation": "Table réanimation nouveau né avec ambu",
+"service": "Maternite"
+},
+{
+"code": "35039",
+"designation": "Poubelle",
+"service": "Maternite"
+},
+{
+"code": "35040",
+"designation": "Bassine de décontamination",
+"service": "Maternite"
+},
+{
+"code": "35041",
+"designation": "Réfrigérateur",
+"service": "Maternite"
+},
+{
+"code": "35042",
+"designation": "Boîte à tranchants",
+"service": "Maternite"
+},
+{
+"code": "35043",
+"designation": "Table d’examen gynécologique",
+"service": "Maternite"
+},
+{
+"code": "35044",
+"designation": "Tambours compresses",
+"service": "Maternite"
+},
+{
+"code": "35045",
+"designation": "Tambours linge accouchement",
+"service": "Maternite"
+},
+{
+"code": "36001",
+"designation": "Matériel de communication (réseau radio)",
+"service": "Equipements de Logistique"
+},
+{
+"code": "36002",
+"designation": "Ambulance adaptée",
+"service": "Equipements de Logistique"
+},
+{
+"code": "36003",
+"designation": "Moto tout terrain 125 CC",
+"service": "Equipements de Logistique"
+},
+{
+"code": "36004",
+"designation": "Extincteur",
+"service": "Equipements de Logistique"
+},
+{
+"code": "36005",
+"designation": "Station d’épuration des eaux",
+"service": "Equipements de Logistique"
+},
+{
+"code": "36006",
+"designation": "Groupe électrogène de secours",
+"service": "Equipements de Logistique"
+},
+{
+"code": "37001",
+"designation": "Scanner",
+"service": "Imagerie médicale"
+},
+{
+"code": "37002",
+"designation": "Appareil de radiologie numérique",
+"service": "Imagerie médicale"
+},
+{
+"code": "37004",
+"designation": "Set standard cassettes/grilles/écrans",
+"service": "Imagerie médicale"
+},
+{
+"code": "37005",
+"designation": "Jeu de localisateurs",
+"service": "Imagerie médicale"
+},
+{
+"code": "37006",
+"designation": "Paravent plombé (protection anti-RX) 1, 2x2,1",
+"service": "Imagerie médicale"
+},
+{
+"code": "37007",
+"designation": "Tablier plombé RX",
+"service": "Imagerie médicale"
+},
+{
+"code": "37008",
+"designation": "Jeu de cales radiologiques",
+"service": "Imagerie médicale"
+},
+{
+"code": "37009",
+"designation": "Protecteurs pour gonades et ovaires",
+"service": "Imagerie médicale"
+},
+{
+"code": "37010",
+"designation": "Négatoscope 2 plages",
+"service": "Imagerie médicale"
+},
+{
+"code": "37011",
+"designation": "Négatoscope 4 plages",
+"service": "Imagerie médicale"
+},
+{
+"code": "37012",
+"designation": "LAMPE INACTINIQUE",
+"service": "Imagerie médicale"
+},
+{
+"code": "37013",
+"designation": "Echographe polyvalent noir/blanc",
+"service": "Imagerie médicale"
+},
+{
+"code": "37014",
+"designation": "Sonde linéaire 7,5 MHz",
+"service": "Imagerie médicale"
+},
+{
+"code": "37015",
+"designation": "Sonde convexe 3,5 MHz",
+"service": "Imagerie médicale"
+},
+{
+"code": "37016",
+"designation": "Sonde endo-vaginale et rectale",
+"service": "Imagerie médicale"
+},
+{
+"code": "37017",
+"designation": "Imprimante vidéo pour échographe",
+"service": "Imagerie médicale"
+},
+{
+"code": "37018",
+"designation": "Négatoscope 1 plage pour films humides",
+"service": "Imagerie médicale"
+},
+{
+"code": "37019",
+"designation": "Jeu de films radio et produits de développement",
+"service": "Imagerie médicale"
+},
+{
+"code": "37020",
+"designation": "Développeuse automatique pour radiologie",
+"service": "Imagerie médicale"
+},
+{
+"code": "37021",
+"designation": "Table sèche pour films",
+"service": "Imagerie médicale"
+},
+{
+"code": "37022",
+"designation": "Meuble à films",
+"service": "Imagerie médicale"
+},
+{
+"code": "37023",
+"designation": "Jeu de vessie de compression",
+"service": "Imagerie médicale"
+},
+{
+"code": "37024",
+"designation": "Jeu de lettres et chiffres en plomb",
+"service": "Imagerie médicale"
+},
+{
+"code": "37025",
+"designation": "Livre des techniques OMS de radiologie",
+"service": "Imagerie médicale"
+},
+{
+"code": "37026",
+"designation": "Marqueur de film",
+"service": "Imagerie médicale"
+},
+{
+"code": "37027",
+"designation": "Minuterie",
+"service": "Imagerie médicale"
+},
+{
+"code": "37028",
+"designation": "Paire de gants plombés",
+"service": "Imagerie médicale"
+},
+{
+"code": "37029",
+"designation": "Support mural",
+"service": "Imagerie médicale"
+},
+{
+"code": "37030",
+"designation": "Thermomètre de bain de développement",
+"service": "Imagerie médicale"
+},
+{
+"code": "37031",
+"designation": "Ventilateur extracteur de chambre noire",
+"service": "Imagerie médicale"
+},
+{
+"code": "37034",
+"designation": "Ensemble hystérosalpingographie",
+"service": "Imagerie médicale"
+},
+{
+"code": "37035",
+"designation": "Sangle de compression",
+"service": "Imagerie médicale"
+},
+{
+"code": "38001",
+"designation": "Agitateur électromagnétique",
+"service": "Laboratoire"
+},
+{
+"code": "38003",
+"designation": "Appareil de Westergreen",
+"service": "Laboratoire"
+},
+{
+"code": "38004",
+"designation": "Stérilisateur à vapeur haute pression horizonal",
+"service": "Laboratoire"
+},
+{
+"code": "38005",
+"designation": "Stérilisateur à air chaud ou poupinel pour stérilisation 60 litres",
+"service": "Laboratoire"
+},
+{
+"code": "38006",
+"designation": "Hotte à flux laminaire",
+"service": "Laboratoire"
+},
+{
+"code": "38007",
+"designation": "Etuve d’incubation",
+"service": "Laboratoire"
+},
+{
+"code": "38008",
+"designation": "Verre à pied gradué",
+"service": "Laboratoire"
+},
+{
+"code": "38009",
+"designation": "Spectrophotomètre",
+"service": "Laboratoire"
+},
+{
+"code": "38010",
+"designation": "Photomètre à flamme",
+"service": "Laboratoire"
+},
+{
+"code": "38013",
+"designation": "Bac de coloration",
+"service": "Laboratoire"
+},
+{
+"code": "38014",
+"designation": "Bain marie",
+"service": "Laboratoire"
+},
+{
+"code": "38015",
+"designation": "Calculatrice",
+"service": "Laboratoire"
+},
+{
+"code": "38016",
+"designation": "Cellules de numération : Malasèz et Thoma",
+"service": "Laboratoire"
+},
+{
+"code": "38017",
+"designation": "Centrifugeuse cytologie de table",
+"service": "Laboratoire"
+},
+{
+"code": "38018",
+"designation": "Centrifugeuse micro hématocrite",
+"service": "Laboratoire"
+},
+{
+"code": "38019",
+"designation": "Classeur de lames",
+"service": "Laboratoire"
+},
+{
+"code": "38020",
+"designation": "Coffret de rangement pour lames",
+"service": "Laboratoire"
+},
+{
+"code": "38021",
+"designation": "Compteur manuel de cellules",
+"service": "Laboratoire"
+},
+{
+"code": "38022",
+"designation": "Distillateur d’eau",
+"service": "Laboratoire"
+},
+{
+"code": "38023",
+"designation": "Mortier + pilon en porcelaine",
+"service": "Laboratoire"
+},
+{
+"code": "38024",
+"designation": "Glucomètre",
+"service": "Laboratoire"
+},
+{
+"code": "38025",
+"designation": "Lampe à alcool",
+"service": "Laboratoire"
+},
+{
+"code": "38026",
+"designation": "Lampe de rechange pour microscope",
+"service": "Laboratoire"
+},
+{
+"code": "38027",
+"designation": "Albuminomètre de Esbach",
+"service": "Laboratoire"
+},
+{
+"code": "38028",
+"designation": "Automate d’hématologie 18 paramètres",
+"service": "Laboratoire"
+},
+{
+"code": "38029",
+"designation": "Micropipettes multidoses automatiques",
+"service": "Laboratoire"
+},
+{
+"code": "38030",
+"designation": "Microscope binoculaire",
+"service": "Laboratoire"
+},
+{
+"code": "38030",
+"designation": "Plaque chauffante",
+"service": "Laboratoire"
+},
+{
+"code": "38033",
+"designation": "Réchaud à gaz",
+"service": "Laboratoire"
+},
+{
+"code": "38034",
+"designation": "Bouteille à gaz",
+"service": "Laboratoire"
+},
+{
+"code": "38035",
+"designation": "Ensemble de verrerie",
+"service": "Laboratoire"
+},
+{
+"code": "38036",
+"designation": "Séchoir mural pour verrerie",
+"service": "Laboratoire"
+},
+{
+"code": "38040",
+"designation": "Table de prélèvement",
+"service": "Laboratoire"
+},
+{
+"code": "38041",
+"designation": "Ballon de laboratoire 250 ml",
+"service": "Laboratoire"
+},
+{
+"code": "38042",
+"designation": "Ballon de laboratoire 500 ml",
+"service": "Laboratoire"
+},
+{
+"code": "38043",
+"designation": "Béchers forme basse (le jeu de 5)",
+"service": "Laboratoire"
+},
+{
+"code": "38044",
+"designation": "Béchers 500 ml",
+"service": "Laboratoire"
+},
+{
+"code": "38045",
+"designation": "Boite de pétri en verre (diam. 90mm), le lot de 10",
+"service": "Laboratoire"
+},
+{
+"code": "38046",
+"designation": "Cellule de Malassez",
+"service": "Laboratoire"
+},
+{
+"code": "38049",
+"designation": "Crayon de cire bleu (boite de 12)",
+"service": "Laboratoire"
+},
+{
+"code": "38050",
+"designation": "Crayon de cire rouge (boite de 12)",
+"service": "Laboratoire"
+},
+{
+"code": "38051",
+"designation": "Densimètre pour urine",
+"service": "Laboratoire"
+},
+{
+"code": "38052",
+"designation": "Distillateur d’eau 2 à 4 litres/heure",
+"service": "Laboratoire"
+},
+{
+"code": "38053",
+"designation": "Entonnoir plastique cannelé 100 ml",
+"service": "Laboratoire"
+},
+{
+"code": "38054",
+"designation": "Eprouvette graduée 100 ml",
+"service": "Laboratoire"
+},
+{
+"code": "38055",
+"designation": "Eprouvette graduée 500 ml",
+"service": "Laboratoire"
+},
+{
+"code": "38056",
+"designation": "Erlenmeyer 250 ml",
+"service": "Laboratoire"
+},
+{
+"code": "38057",
+"designation": "Laveur à pipettes, manuel",
+"service": "Laboratoire"
+},
+{
+"code": "38058",
+"designation": "Flacon pour réactif 1000 ml et 500 ml (2 de chaque)",
+"service": "Laboratoire"
+},
+{
+"code": "38059",
+"designation": "Flacon pour réactif 250 ml",
+"service": "Laboratoire"
+},
+{
+"code": "38060",
+"designation": "Lamelles verre, pour hémocytomètre (boite de 100)",
+"service": "Laboratoire"
+},
+{
+"code": "38061",
+"designation": "Hémocytomètre",
+"service": "Laboratoire"
+},
+{
+"code": "38062",
+"designation": "Hémoglobinomètre de Sahli",
+"service": "Laboratoire"
+},
+{
+"code": "38063",
+"designation": "Lamelles pour microscope (boite de 100)",
+"service": "Laboratoire"
+},
+{
+"code": "38064",
+"designation": "Lames pour microscope (boite de 100)",
+"service": "Laboratoire"
+},
+{
+"code": "38065",
+"designation": "Manuel OMS des techniques de laboratoire",
+"service": "Laboratoire"
+},
+{
+"code": "38066",
+"designation": "Panier pour tubes à éssai",
+"service": "Laboratoire"
+},
+{
+"code": "38067",
+"designation": "Pince Stoddart pour tube à essai",
+"service": "Laboratoire"
+},
+{
+"code": "38068",
+"designation": "Pipette à dilution de Thoma GB",
+"service": "Laboratoire"
+},
+{
+"code": "38069",
+"designation": "Pipette à dilution de Thoma GR",
+"service": "Laboratoire"
+},
+{
+"code": "38070",
+"designation": "Pipette de 1 ml graduée",
+"service": "Laboratoire"
+},
+{
+"code": "38071",
+"designation": "Pipette de 10 ml graduée",
+"service": "Laboratoire"
+},
+{
+"code": "38072",
+"designation": "Pipette de 2 ml graduée",
+"service": "Laboratoire"
+},
+{
+"code": "38073",
+"designation": "Pipette de 5 ml graduée",
+"service": "Laboratoire"
+},
+{
+"code": "38074",
+"designation": "Pipette de Sahli",
+"service": "Laboratoire"
+},
+{
+"code": "38075",
+"designation": "Pipettes de Westergreen (par 6)",
+"service": "Laboratoire"
+},
+{
+"code": "38076",
+"designation": "Pipettes jauges 10 ml (le jeu)",
+"service": "Laboratoire"
+},
+{
+"code": "38077",
+"designation": "Pipette pasteur (B/250)",
+"service": "Laboratoire"
+},
+{
+"code": "38078",
+"designation": "Thermomètre de laboratoire -10°C +110°C, P.0,1°C",
+"service": "Laboratoire"
+},
+{
+"code": "38079",
+"designation": "Poire en caoutchouc pour pipette 2 ml",
+"service": "Laboratoire"
+},
+{
+"code": "38080",
+"designation": "Rhésuscope",
+"service": "Laboratoire"
+},
+{
+"code": "38081",
+"designation": "Support pour 6 pipettes de Westergreen",
+"service": "Laboratoire"
+},
+{
+"code": "38082",
+"designation": "Tube à essai (boite de 100)",
+"service": "Laboratoire"
+},
+{
+"code": "38083",
+"designation": "Tube gradué pour centrifugeuse manuelle",
+"service": "Laboratoire"
+},
+{
+"code": "38084",
+"designation": "Tube pour hémoglobimètre de Sahli",
+"service": "Laboratoire"
+},
+{
+"code": "38085",
+"designation": "Tubes à échantillons 20 ml (boite de 100)",
+"service": "Laboratoire"
+},
+{
+"code": "38086",
+"designation": "Tubes hémolyse avec bouchon (B/50)",
+"service": "Laboratoire"
+},
+{
+"code": "38087",
+"designation": "Tubes capillaires héparinisés (B/50)",
+"service": "Laboratoire"
+},
+{
+"code": "38088",
+"designation": "Tube gradué pour centrifugeuse électrique",
+"service": "Laboratoire"
+},
+{
+"code": "38090",
+"designation": "Bec Bunsen",
+"service": "Laboratoire"
+},
+{
+"code": "38091",
+"designation": "Verrerie courante, le lot",
+"service": "Laboratoire"
+},
+{
+"code": "38092",
+"designation": "Verrerie spécialisée, le lot",
+"service": "Laboratoire"
+},
+{
+"code": "39001",
+"designation": "Armoire de rangement 2 battants",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39007",
+"designation": "Lit d’hospitalisation avec relève buste",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39008",
+"designation": "Lampe torche",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39009",
+"designation": "Urinal homme",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39010",
+"designation": "Lit d’hospitalisation simple",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39015",
+"designation": "Boîte à instruments",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39016",
+"designation": "Tensiomètre",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39017",
+"designation": "Otoscope",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39019",
+"designation": "Ophtalmoscope",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39021",
+"designation": "Table d’examen à dos ajustable",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39024",
+"designation": "Marteau reflexe",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39026",
+"designation": "Jeu de diapason",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39028",
+"designation": "Réchaud",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39032",
+"designation": "Boîte infirmière",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39034",
+"designation": "Table de chevet",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39035",
+"designation": "Lit d’hospitalisation adulte standard (avec relève buste)",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39036",
+"designation": "Berceau avec matelas en skaï",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39037",
+"designation": "Matelas avec housse lavable",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39038",
+"designation": "Paravent mobile pour examens",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39039",
+"designation": "Fauteuil pour prélèvements",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39040",
+"designation": "Guéridon inox, 2 plateaux avec galerie",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39041",
+"designation": "Guéridon inox, 2 plateaux avec galerie et tiroirs",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39042",
+"designation": "Chariot à pansement",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39045",
+"designation": "Eclairage médical mobilier sur pieds",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39046",
+"designation": "Cuvette inox sur socle roulant bas",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39047",
+"designation": "Pied à sérum inox, mobile",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39048",
+"designation": "Boîte à savon",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39049",
+"designation": "Paillasse inox humide 180x80",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39050",
+"designation": "Paillasse sèche inox 180x80",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39051",
+"designation": "Gaine technique tête de lit",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39052",
+"designation": "Table à instruments type Mayo",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39053",
+"designation": "Rail porte – accessoires fixation murale (2 m)",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39054",
+"designation": "Chariot brancard",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39055",
+"designation": "Support mobile métal avec 2 cuvettes inox",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "39056",
+"designation": "Vidoir humide",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "310008",
+"designation": "Berceau",
+"service": "HOSPITALISATION Pédiatrie"
+},
+{
+"code": "310017",
+"designation": "Stéthoscope nouveau-né et nourrisson",
+"service": "HOSPITALISATION Pédiatrie"
+},
+{
+"code": "310024",
+"designation": "Table d’examen",
+"service": "HOSPITALISATION Pédiatrie"
+},
+{
+"code": "311001",
+"designation": "Caisse à outils mécanique-plonberie de base",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311002",
+"designation": "Caisse à outils d'électricien de base",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311003",
+"designation": "Outillage menuisier de base",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311004",
+"designation": "Outillage maçonnerie-peinture de base",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311005",
+"designation": "Caisse à outils d'électronicien",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311006",
+"designation": "Outillage frigoriste (KIT)",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311007",
+"designation": "Outillage de jardinier de base (KIT)",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311008",
+"designation": "Outillage polyvalent",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311009",
+"designation": "Burette de lubrification",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311010",
+"designation": "Burin plat",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311011",
+"designation": "Burin pointu",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311012",
+"designation": "Caisse à outils",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311013",
+"designation": "Chargeur de batteries",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311014",
+"designation": "Jeu de chasse pointe",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311015",
+"designation": "Ciseaux de menuisier",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311017",
+"designation": "Siège visiteur",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311019",
+"designation": "Micro-ordinateur",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311020",
+"designation": "Siège d’atelier",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311022",
+"designation": "Ciseaux normaux",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311023",
+"designation": "Clé à fourche",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311024",
+"designation": "Clé à molette",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311025",
+"designation": "Compresseur d’air",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311026",
+"designation": "Coupe tube cuivre",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311027",
+"designation": "Couteau d’électricien",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311028",
+"designation": "Dudgeonnière",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311029",
+"designation": "Equerre de menuisier",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311030",
+"designation": "Etabli de travail",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311031",
+"designation": "Etau à base tournante",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311032",
+"designation": "Fer à souder",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311033",
+"designation": "Jeu de 7 clés mâles",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311034",
+"designation": "Jeu de 8 clés à fourche",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311035",
+"designation": "Jeu de clés à douille",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311036",
+"designation": "Jeu de tournevis horloger",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311037",
+"designation": "Lampe d’établi",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311038",
+"designation": "Lime demi-douce demi-ronde",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311039",
+"designation": "Lime demi-douce ronde",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311040",
+"designation": "Manifold",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311041",
+"designation": "Marteau de maçon",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311042",
+"designation": "Marteau de serrurier",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311043",
+"designation": "Marteau pour carreleur 75 gr",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311044",
+"designation": "Massette",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311045",
+"designation": "Mèche à bois",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311047",
+"designation": "Mètre pliant",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311049",
+"designation": "Meuleuse d’établi",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311050",
+"designation": "Monture de scie à métaux",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311051",
+"designation": "Multimètre numérique",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311052",
+"designation": "Niveau à bulle",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311053",
+"designation": "Peigne pour condenseur",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311054",
+"designation": "Perceuse d’établi",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311055",
+"designation": "Perceuse portative",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311056",
+"designation": "Pied à coulisse",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311057",
+"designation": "Pince à becs pointus 200 mm",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311058",
+"designation": "Pince ampèremétrique",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311059",
+"designation": "Pince coupante diagonale",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311060",
+"designation": "Pince multiprise",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311061",
+"designation": "Pince universelle isolée",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311062",
+"designation": "Pinceau plat",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311063",
+"designation": "Pinceau rond",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311064",
+"designation": "Pointe à tracer",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311065",
+"designation": "Pompe à vide",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311066",
+"designation": "Poste de soudure à l’arc",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311067",
+"designation": "Poste de soudure autogène",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311068",
+"designation": "Rabot à contre fer",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311069",
+"designation": "Rabot de finition",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311070",
+"designation": "Râpe bois demi-ronde demi-douce",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311071",
+"designation": "Râpe bois demi-ronde bâtarde",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311072",
+"designation": "Râpe bois ronde demi-douce",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311073",
+"designation": "Scie fraiseuse",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311074",
+"designation": "Scie poignée en bois",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311075",
+"designation": "Serre joint",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311076",
+"designation": "Spatule simple",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311077",
+"designation": "Spatule crénelée",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311078",
+"designation": "Tenaille",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311079",
+"designation": "Thermomètre électronique",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311080",
+"designation": "Jeu de tournevis cruciforme",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311081",
+"designation": "Jeu de tournevis de menuisier",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311082",
+"designation": "Jeu de tournevis manche plastique",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311083",
+"designation": "Tournevis testeur de tension",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311084",
+"designation": "Jeu de truelle",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311085",
+"designation": "Vilebrequin",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "311086",
+"designation": "Vrille",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "312001",
+"designation": "Abaisse langue",
+"service": "Orl"
+},
+{
+"code": "312003",
+"designation": "Aspirateur",
+"service": "Orl"
+},
+{
+"code": "312004",
+"designation": "Boîte à paracentèse",
+"service": "Orl"
+},
+{
+"code": "312005",
+"designation": "Boîte amygdalectomie",
+"service": "Orl"
+},
+{
+"code": "312006",
+"designation": "Boîte de chirurgie ORL",
+"service": "Orl"
+},
+{
+"code": "312009",
+"designation": "Potence",
+"service": "Orl"
+},
+{
+"code": "312010",
+"designation": "Boîte pour chirurgie et soins de sinus",
+"service": "Orl"
+},
+{
+"code": "312011",
+"designation": "Boîte tympanoplastie",
+"service": "Orl"
+},
+{
+"code": "312012",
+"designation": "Boîte végétations",
+"service": "Orl"
+},
+{
+"code": "312013",
+"designation": "Fauteuil ORL",
+"service": "Orl"
+},
+{
+"code": "312015",
+"designation": "Jeu de spéculum nasal et auriculaire",
+"service": "Orl"
+},
+{
+"code": "312016",
+"designation": "Miroir frontal",
+"service": "Orl"
+},
+{
+"code": "312017",
+"designation": "Trousse pour gestes diagnostics et soins",
+"service": "Orl"
+},
+{
+"code": "312018",
+"designation": "Siège réglable",
+"service": "Orl"
+},
+{
+"code": "312019",
+"designation": "Manuel OMS pour soins en ORL",
+"service": "Orl"
+},
+{
+"code": "312020",
+"designation": "Bronchoscope",
+"service": "Orl"
+},
+{
+"code": "312021",
+"designation": "Oesophagoscope",
+"service": "Orl"
+},
+{
+"code": "312024",
+"designation": "Unité de soins otologie",
+"service": "Orl"
+},
+{
+"code": "313001",
+"designation": "Album test Ishiara",
+"service": "Ophtalmologie"
+},
+{
+"code": "313003",
+"designation": "Biomicroscope avec tonomètre à applanation",
+"service": "Ophtalmologie"
+},
+{
+"code": "313006",
+"designation": "Jeu de verres d’essai",
+"service": "Ophtalmologie"
+},
+{
+"code": "313007",
+"designation": "Loupe binoculaire",
+"service": "Ophtalmologie"
+},
+{
+"code": "313009",
+"designation": "Monture de verres d’essai universel",
+"service": "Ophtalmologie"
+},
+{
+"code": "313011",
+"designation": "Projecteur de tests automatique",
+"service": "Ophtalmologie"
+},
+{
+"code": "313016",
+"designation": "Test de Périmétrie",
+"service": "Ophtalmologie"
+},
+{
+"code": "313017",
+"designation": "Test de Snellen",
+"service": "Ophtalmologie"
+},
+{
+"code": "313018",
+"designation": "Echographe A scan biométrie",
+"service": "Ophtalmologie"
+},
+{
+"code": "313019",
+"designation": "Tonomètre à Schotz",
+"service": "Ophtalmologie"
+},
+{
+"code": "313020",
+"designation": "Trousse à cathétérisme des voies lacrymales",
+"service": "Ophtalmologie"
+},
+{
+"code": "313021",
+"designation": "Trousse à Chalazion",
+"service": "Ophtalmologie"
+},
+{
+"code": "313022",
+"designation": "Trousse à extraction des corps étrangers cornéens",
+"service": "Ophtalmologie"
+},
+{
+"code": "313023",
+"designation": "Trousse à extraction des corps étrangers magnétiques",
+"service": "Ophtalmologie"
+},
+{
+"code": "313024",
+"designation": "Trousse à paupière, trichiasis, ptotsis",
+"service": "Ophtalmologie"
+},
+{
+"code": "313025",
+"designation": "Trousse à ptérygion",
+"service": "Ophtalmologie"
+},
+{
+"code": "313026",
+"designation": "Trousse à strabisme",
+"service": "Ophtalmologie"
+},
+{
+"code": "313027",
+"designation": "Trousse à énucléation",
+"service": "Ophtalmologie"
+},
+{
+"code": "313028",
+"designation": "Loupe de 90 dioptries",
+"service": "Ophtalmologie"
+},
+{
+"code": "313029",
+"designation": "Manuels OMS",
+"service": "Ophtalmologie"
+},
+{
+"code": "313030",
+"designation": "Trousse microchirugicale à glaucome et trabecuceltomie",
+"service": "Ophtalmologie"
+},
+{
+"code": "313030",
+"designation": "Trousse microchirurgicale à cataracte adulte",
+"service": "Ophtalmologie"
+},
+{
+"code": "313031",
+"designation": "Trousse microchirurgicale à cataracte congénitale",
+"service": "Ophtalmologie"
+},
+{
+"code": "314001",
+"designation": "fauteuil dentaire complet avec rinçage et éclairage médical",
+"service": "Stomatologie"
+},
+{
+"code": "314002",
+"designation": "Instrumentation comprenant : Vibreur à amalgame de ciment",
+"service": "Stomatologie"
+},
+{
+"code": "314003",
+"designation": "Amalgamateur",
+"service": "Stomatologie"
+},
+{
+"code": "314005",
+"designation": "Détartreur à ultrasons",
+"service": "Stomatologie"
+},
+{
+"code": "314006",
+"designation": "Kit de détartrage manuel",
+"service": "Stomatologie"
+},
+{
+"code": "314007",
+"designation": "Lampe à photopolymériser",
+"service": "Stomatologie"
+},
+{
+"code": "314008",
+"designation": "Plateau rectangulaire 20x10",
+"service": "Stomatologie"
+},
+{
+"code": "314009",
+"designation": "Pot à coton",
+"service": "Stomatologie"
+},
+{
+"code": "314010",
+"designation": "Sondes parodontales",
+"service": "Stomatologie"
+},
+{
+"code": "314012",
+"designation": "Jeu d’instruments pour extraction dentaire",
+"service": "Stomatologie"
+},
+{
+"code": "314013",
+"designation": "Porte plateau à instruments dentaires",
+"service": "Stomatologie"
+},
+{
+"code": "314014",
+"designation": "Jeu d’instruments dentaires de base",
+"service": "Stomatologie"
+},
+{
+"code": "314015",
+"designation": "Meuble à instruments mobiles à tiroirs",
+"service": "Stomatologie"
+},
+{
+"code": "314016",
+"designation": "Tabouret mobile ajustable pour praticien",
+"service": "Stomatologie"
+},
+{
+"code": "314017",
+"designation": "Appareil de radiologie dentaire",
+"service": "Stomatologie"
+},
+{
+"code": "314018",
+"designation": "Développeuse automatique de films dentaires",
+"service": "Stomatologie"
+},
+{
+"code": "314019",
+"designation": "Distributeur mural de liquide bactériostatique",
+"service": "Stomatologie"
+},
+{
+"code": "314020",
+"designation": "Boite à dénudation garnie",
+"service": "Stomatologie"
+},
+{
+"code": "315002",
+"designation": "Bistouri électrique",
+"service": "Chirurgie"
+},
+{
+"code": "315003",
+"designation": "Boîte à broches",
+"service": "Chirurgie"
+},
+{
+"code": "315004",
+"designation": "Boîte à clous",
+"service": "Chirurgie"
+},
+{
+"code": "315005",
+"designation": "Boîte à plaques",
+"service": "Chirurgie"
+},
+{
+"code": "315006",
+"designation": "Boîte à trachéotomie",
+"service": "Chirurgie"
+},
+{
+"code": "315007",
+"designation": "Boîte à vis",
+"service": "Chirurgie"
+},
+{
+"code": "315008",
+"designation": "Boîte de chirurgie osseuse",
+"service": "Chirurgie"
+},
+{
+"code": "315009",
+"designation": "Boîte de chirurgie urologique",
+"service": "Chirurgie"
+},
+{
+"code": "315010",
+"designation": "Boite de chirurgie générale, garnie",
+"service": "Chirurgie"
+},
+{
+"code": "315011",
+"designation": "Boite de chirurgie d’urgence, garnie",
+"service": "Chirurgie"
+},
+{
+"code": "315012",
+"designation": "Boite pour amputation, garnie",
+"service": "Chirurgie"
+},
+{
+"code": "315013",
+"designation": "Boite de chirurgie abdominale, garnie:",
+"service": "Chirurgie"
+},
+{
+"code": "315014",
+"designation": "Boite à hernie + appendice, garnie",
+"service": "Chirurgie"
+},
+{
+"code": "315015",
+"designation": "Boite d’hystérectomie, garnie",
+"service": "Chirurgie"
+},
+{
+"code": "315016",
+"designation": "Boite pour autopsie, garnie, inox",
+"service": "Chirurgie"
+},
+{
+"code": "315017",
+"designation": "Boite pour césarienne, garnie",
+"service": "Chirurgie"
+},
+{
+"code": "315018",
+"designation": "Boite de cerclage, garnie",
+"service": "Chirurgie"
+},
+{
+"code": "316001",
+"designation": "Colposcope",
+"service": "Gynecologie Obstetrique"
+},
+{
+"code": "316002",
+"designation": "Compas pelvimetre",
+"service": "Gynecologie Obstetrique"
+},
+{
+"code": "316003",
+"designation": "Cardiotocographe",
+"service": "Gynecologie Obstetrique"
+},
+{
+"code": "316004",
+"designation": "Forceps",
+"service": "Gynecologie Obstetrique"
+},
+{
+"code": "316005",
+"designation": "Insufflateur",
+"service": "Gynecologie Obstetrique"
+},
+{
+"code": "316006",
+"designation": "Foetoscope doppler",
+"service": "Gynecologie Obstetrique"
+},
+{
+"code": "316007",
+"designation": "Echographe",
+"service": "Gynecologie Obstetrique"
+},
+{
+"code": "317001",
+"designation": "Incubateur avec photothérapie",
+"service": "Pediatrie - Neonatologie"
+},
+{
+"code": "317002",
+"designation": "Boîte pour intubation pédiatrique",
+"service": "Pediatrie - Neonatologie"
+},
+{
+"code": "317004",
+"designation": "Sphygmomanomètre pédiatrique",
+"service": "Pediatrie - Neonatologie"
+},
+{
+"code": "318001",
+"designation": "Balance de précision 220g / 0,1mg",
+"service": "EQUIPEMENTS DE Laboratoire"
+},
+{
+"code": "318002",
+"designation": "Balance 2 plateaux 1 Kg-0,5g",
+"service": "EQUIPEMENTS DE Laboratoire"
+},
+{
+"code": "318003",
+"designation": "Bain- marie thermostaté",
+"service": "EQUIPEMENTS DE Laboratoire"
+},
+{
+"code": "318004",
+"designation": "Etuve universelle",
+"service": "EQUIPEMENTS DE Laboratoire"
+},
+{
+"code": "318005",
+"designation": "Agitateur vibrant",
+"service": "EQUIPEMENTS DE Laboratoire"
+},
+{
+"code": "318006",
+"designation": "Centrifugeuse électrique de paillasse ventilée",
+"service": "EQUIPEMENTS DE Laboratoire"
+},
+{
+"code": "318007",
+"designation": "Centrifugeuse à Micro-Hématocrite",
+"service": "EQUIPEMENTS DE Laboratoire"
+},
+{
+"code": "318009",
+"designation": "Spectrophotomètre 300 à 900 nm",
+"service": "EQUIPEMENTS DE Laboratoire"
+},
+{
+"code": "318010",
+"designation": "Centrifugeuse manuelle 4x15 ml 1500tr/min",
+"service": "EQUIPEMENTS DE Laboratoire"
+},
+{
+"code": "318011",
+"designation": "Microscope binoculaire avec éclairage et miroir",
+"service": "EQUIPEMENTS DE Laboratoire"
+},
+{
+"code": "318013",
+"designation": "Mortier et pilon de laboratoire 200ml",
+"service": "EQUIPEMENTS DE Laboratoire"
+},
+{
+"code": "318015",
+"designation": "Bac à coloration manuelle",
+"service": "EQUIPEMENTS DE Laboratoire"
+},
+{
+"code": "319002",
+"designation": "Fauteuil de prise de sang",
+"service": "Banque de Sang"
+},
+{
+"code": "319003",
+"designation": "Banque de sang",
+"service": "Banque de Sang"
+},
+{
+"code": "319004",
+"designation": "Lit avec relève buste",
+"service": "Banque de Sang"
+},
+{
+"code": "319007",
+"designation": "Agitateur magnétique",
+"service": "Banque de Sang"
+},
+{
+"code": "319010",
+"designation": "Réfrigérateur mixte pétrole électricité",
+"service": "Banque de Sang"
+},
+{
+"code": "Zone de sale",
+"designation": "Zone de sale",
+"service": "Buanderie"
+},
+{
+"code": "320001",
+"designation": "Grand bac en acier pour linge",
+"service": "Buanderie"
+},
+{
+"code": "320002",
+"designation": "Pèse linge",
+"service": "Buanderie"
+},
+{
+"code": "Zone de lavage",
+"designation": "Zone de lavage",
+"service": "Buanderie"
+},
+{
+"code": "320003",
+"designation": "Machine à laver",
+"service": "Buanderie"
+},
+{
+"code": "320005",
+"designation": "pressoir",
+"service": "Buanderie"
+},
+{
+"code": "320006",
+"designation": "seaux",
+"service": "Buanderie"
+},
+{
+"code": "Zone de séchage, repassage et couture",
+"designation": "Zone de séchage, repassage et couture",
+"service": "Buanderie"
+},
+{
+"code": "320007",
+"designation": "Fer à repasser à vapeur",
+"service": "Buanderie"
+},
+{
+"code": "320008",
+"designation": "Table de repassage en bois",
+"service": "Buanderie"
+},
+{
+"code": "320010",
+"designation": "Grand chariot à linge avec fermeture",
+"service": "Buanderie"
+},
+{
+"code": "320011",
+"designation": "Grande table de pliage de linge",
+"service": "Buanderie"
+},
+{
+"code": "320012",
+"designation": "Séchoir rotatif",
+"service": "Buanderie"
+},
+{
+"code": "320013",
+"designation": "Calandreuse",
+"service": "Buanderie"
+},
+{
+"code": "COUTURE",
+"designation": "COUTURE",
+"service": "Buanderie"
+},
+{
+"code": "320014",
+"designation": "Armoire de rangement métallique",
+"service": "Buanderie"
+},
+{
+"code": "320015",
+"designation": "Ciseaux de couture",
+"service": "Buanderie"
+},
+{
+"code": "320016",
+"designation": "Machine à coudre",
+"service": "Buanderie"
+},
+{
+"code": "Zone de stockage linge propre",
+"designation": "Zone de stockage linge propre",
+"service": "Buanderie"
+},
+{
+"code": "320018",
+"designation": "Cintre en bois",
+"service": "Buanderie"
+},
+{
+"code": "320019",
+"designation": "Cintre métallique",
+"service": "Buanderie"
+},
+{
+"code": "320020",
+"designation": "Porte-cintre",
+"service": "Buanderie"
+},
+{
+"code": "320020",
+"designation": "Equipements de la Centrale de Chauffage d’eau : BOILER",
+"service": "Buanderie"
+},
+{
+"code": "321001",
+"designation": "Barres parallèles",
+"service": "PHYSIOThérapie"
+},
+{
+"code": "321002",
+"designation": "Appareil à ultrasons",
+"service": "PHYSIOThérapie"
+},
+{
+"code": "321003",
+"designation": "Appareil de courant interférentiel",
+"service": "PHYSIOThérapie"
+},
+{
+"code": "321004",
+"designation": "Appareil pour hydrothérapie",
+"service": "PHYSIOThérapie"
+},
+{
+"code": "321005",
+"designation": "Générateur de courant de basse fréquence",
+"service": "PHYSIOThérapie"
+},
+{
+"code": "321006",
+"designation": "Générateur de micro ondes",
+"service": "PHYSIOThérapie"
+},
+{
+"code": "321007",
+"designation": "Lampe à infra-rouge",
+"service": "PHYSIOThérapie"
+},
+{
+"code": "321008",
+"designation": "Lampe UV",
+"service": "PHYSIOThérapie"
+},
+{
+"code": "321009",
+"designation": "Baignoire pour bébé",
+"service": "PHYSIOThérapie"
+},
+{
+"code": "321010",
+"designation": "Baignoire pour bébé polyéthylène",
+"service": "PHYSIOThérapie"
+},
+{
+"code": "321011",
+"designation": "Centre de dialyse",
+"service": "PHYSIOThérapie"
+},
+{
+"code": "322001",
+"designation": "CENTRALE D’AIR MEDICAL",
+"service": "Centrale de Production et de Distribution de Gaz Medicaux"
+},
+{
+"code": "322002",
+"designation": "CENTRALE DE VIDE MEDICAL",
+"service": "Centrale de Production et de Distribution de Gaz Medicaux"
+},
+{
+"code": "322003",
+"designation": "Dispositif de filtrage et de traitement et d’air et de vide",
+"service": "Centrale de Production et de Distribution de Gaz Medicaux"
+},
+{
+"code": "322004",
+"designation": "Chaîne de traitement d’air",
+"service": "Centrale de Production et de Distribution de Gaz Medicaux"
+},
+{
+"code": "322005",
+"designation": "Chaîne de traitement de vide",
+"service": "Centrale de Production et de Distribution de Gaz Medicaux"
+},
+{
+"code": "322006",
+"designation": "Dispositif d’inversion de bouteilles sur double rampe de 6 bouteilles d’O2 et de 3 bouteilles de NO2 avec alarmes :",
+"service": "Centrale de Production et de Distribution de Gaz Medicaux"
+},
+{
+"code": "322007",
+"designation": "Aménagement des locaux, des surfaces de travails, des chemins de gaz et raccordement aux différentes centrales",
+"service": "Centrale de Production et de Distribution de Gaz Medicaux"
+},
+{
+"code": "323001",
+"designation": "Morgue 12 cassiers inox avec civière",
+"service": "Morgue"
+},
+{
+"code": "323002",
+"designation": "Chariot post mortem",
+"service": "Morgue"
+},
+{
+"code": "323003",
+"designation": "Diable à roulettes",
+"service": "Morgue"
+},
+{
+"code": "323004",
+"designation": "Chariot de présentation de corps",
+"service": "Morgue"
+},
+{
+"code": "323005",
+"designation": "Equipement pour autopsie",
+"service": "Morgue"
+},
+{
+"code": "325001",
+"designation": "Appareil de désinfection terminale au formol",
+"service": "Désinfection – Stérilisation"
+},
+{
+"code": "325002",
+"designation": "Autoclave rapide de paillasse 25 l",
+"service": "Désinfection – Stérilisation"
+},
+{
+"code": "325003",
+"designation": "Autoclave vap double face 120 l env.",
+"service": "Désinfection – Stérilisation"
+},
+{
+"code": "325004",
+"designation": "Autoclave vap double face 200 L env.",
+"service": "Désinfection – Stérilisation"
+},
+{
+"code": "325005",
+"designation": "Stérilisateur à chaleur sèche 25 litres",
+"service": "Désinfection – Stérilisation"
+},
+{
+"code": "325006",
+"designation": "Stérilisateur à chaleur sèche 50 litres",
+"service": "Désinfection – Stérilisation"
+},
+{
+"code": "325007",
+"designation": "Tambour inox diam. 240 mm",
+"service": "Désinfection – Stérilisation"
+},
+{
+"code": "325008",
+"designation": "Tambour inox diam. 190 mm",
+"service": "Désinfection – Stérilisation"
+},
+{
+"code": "325009",
+"designation": "Tambour inox diam. 340 mm",
+"service": "Désinfection – Stérilisation"
+},
+{
+"code": "325010",
+"designation": "Tambour inox diam. 290 mm",
+"service": "Désinfection – Stérilisation"
+},
+{
+"code": "325011",
+"designation": "Distillateur 8 litres/heure",
+"service": "Désinfection – Stérilisation"
+},
+{
+"code": "325012",
+"designation": "Filtre à bougie, réservoir 9 litres",
+"service": "Désinfection – Stérilisation"
+},
+{
+"code": "325013",
+"designation": "Baril d’eau distillée",
+"service": "Désinfection – Stérilisation"
+},
+{
+"code": "325014",
+"designation": "Destructeur d’aiguilles",
+"service": "Désinfection – Stérilisation"
+},
+{
+"code": "325015",
+"designation": "Bande de contrôle de stérilisation à vapeur (assorti 300)",
+"service": "Désinfection – Stérilisation"
+},
+{
+"code": "325016",
+"designation": "Bande de contrôle de stérile à la chaleur",
+"service": "Désinfection – Stérilisation"
+},
+{
+"code": "325017",
+"designation": "Adoucisseur d’eau",
+"service": "Désinfection – Stérilisation"
+},
+{
+"code": "325018",
+"designation": "Ensemble de filtration au robinet (2 microns)",
+"service": "Désinfection – Stérilisation"
+},
+{
+"code": "325019",
+"designation": "Stérilisateur à biberon",
+"service": "Désinfection – Stérilisation"
+},
+{
+"code": "326001",
+"designation": "Boite de distribution de médicaments",
+"service": "Pharmacie"
+},
+{
+"code": "326002",
+"designation": "Triangle compte comprimés",
+"service": "Pharmacie"
+},
+{
+"code": "326003",
+"designation": "Glacière 2 litres",
+"service": "Pharmacie"
+},
+{
+"code": "326004",
+"designation": "Glacière de transport 20 litres",
+"service": "Pharmacie"
+},
+{
+"code": "326005",
+"designation": "Accumulateur de froid 0,5 litre",
+"service": "Pharmacie"
+},
+{
+"code": "326006",
+"designation": "Congélateur horizontal",
+"service": "Pharmacie"
+},
+{
+"code": "326008",
+"designation": "Réfrigérateur 300 litres",
+"service": "Pharmacie"
+},
+{
+"code": "326009",
+"designation": "Congélateur - 40°C/370 litres",
+"service": "Pharmacie"
+},
+{
+"code": "326010",
+"designation": "Jerricane métallique 20 litres",
+"service": "Pharmacie"
+},
+{
+"code": "326011",
+"designation": "Jerricane plastique 20 litres",
+"service": "Pharmacie"
+}
+]
+},
+"HD": {
+"label": "Hôpital de District",
+"equipements": [
+{
+"code": "41001",
+"designation": "Armoire de classement deux battants",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41002",
+"designation": "Aspirateur bronchial",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41003",
+"designation": "Ventilateur",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41004",
+"designation": "Respirateur manuel adulte",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41005",
+"designation": "Electrocardiographe",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41006",
+"designation": "Tensiomètre",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41007",
+"designation": "Miroir laryngien",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41008",
+"designation": "Jeu de diapasons",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41009",
+"designation": "Boîte à instruments",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41010",
+"designation": "Attelles maniables",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41011",
+"designation": "Ballon autogonflable avec jeu de masques",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41012",
+"designation": "Bassin de lit",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41013",
+"designation": "Boîte de petite chirurgie",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41014",
+"designation": "Boîte de trachéotomie",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41015",
+"designation": "Boîte infirmier",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41016",
+"designation": "Boîte ORL de base",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41017",
+"designation": "Brancard sur chariot avec civière amovible",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41018",
+"designation": "Chariot porte instruments",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41019",
+"designation": "Eclairage opératoire mobile",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41020",
+"designation": "Scie à plâtre",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41021",
+"designation": "Ciseaux à plâtre",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41022",
+"designation": "Escabeau",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41023",
+"designation": "Fauteuil roulant",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41024",
+"designation": "Lampe d’examen",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41025",
+"designation": "Laryngoscope",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41026",
+"designation": "Marteau réflexe",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41027",
+"designation": "Mètre ruban",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41028",
+"designation": "Négatoscope",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41029",
+"designation": "Ophthalmoscope",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41030",
+"designation": "Otoscope",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41030",
+"designation": "Pèse-bébé",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41031",
+"designation": "Pèse-personnes avec toise",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41032",
+"designation": "Plateau rectangulaire",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41033",
+"designation": "Plateau réniforme",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41034",
+"designation": "Potence porte-sérum",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41035",
+"designation": "Siège visiteur",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41036",
+"designation": "Sphygmomanomètre portatif",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41037",
+"designation": "Stéthoscope",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41038",
+"designation": "Table bureau deux tiroirs",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41039",
+"designation": "Table d’examen",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41040",
+"designation": "Table d’opération pour petite chirurgie",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41041",
+"designation": "Test de Snellen",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41042",
+"designation": "Urinal homme",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41043",
+"designation": "Appareil de radiologie mobile",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41044",
+"designation": "Aspirateur électrique double bocal",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41045",
+"designation": "Biberon en verre",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41046",
+"designation": "Bistouri électrique bipolaire/ monopolaire",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41047",
+"designation": "Moniteur de surveillance multiparametrique",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41048",
+"designation": "Gaine technique pour GAZ MEDICAUX",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41049",
+"designation": "Chaise de malade trouée",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41050",
+"designation": "Défibrillateur",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41051",
+"designation": "Detecteur foetal",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41052",
+"designation": "Echographe portatif avec 3 sondes 3,3Mhz, 5 MHz, 7,5Mhz + imprimante vidéo",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41053",
+"designation": "Extracteur d’oxygène",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41054",
+"designation": "Haricot inox",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41055",
+"designation": "Insufflateur manuel adulte/ enfant",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41056",
+"designation": "Lavabo chirurgien 2 postes",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41057",
+"designation": "Paire de ciseaux Mayo mousse inox",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41058",
+"designation": "Négatoscope 2 plages",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41059",
+"designation": "Otoscope avec 1 jeu de spéculum à pile",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41060",
+"designation": "Paravent sur roulettes",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41061",
+"designation": "Pompe à nutrition pédiatrique",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41062",
+"designation": "Porte pinces inox",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41063",
+"designation": "Stérilisateur à biberons",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41064",
+"designation": "Table sèche inox",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41065",
+"designation": "Tabouret réglable chirurgien",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41066",
+"designation": "Tambour inox 155x160 mm",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41067",
+"designation": "Tensiomètre à mercure sur roulettes",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41068",
+"designation": "Thermomètre médical",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41069",
+"designation": "Trousse ORL",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41070",
+"designation": "Urinoir en plastique avec couvercle",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41071",
+"designation": "Valise d’urgence pédiatrique",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "41072",
+"designation": "Vibromasseur",
+"service": "Accueil – Consultations – Urgences"
+},
+{
+"code": "42002",
+"designation": "Aspirateur chirurgical à 2 bocaux de",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42003",
+"designation": "Tambour pour linge opératoire",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42004",
+"designation": "Boîte hystérectomie",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42005",
+"designation": "Boîte pour abdomen",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42006",
+"designation": "Boîte pour amputation",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42007",
+"designation": "Boîte pour appendice-hernie",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42008",
+"designation": "Boîte pour césarienne",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42010",
+"designation": "Lunettes de protection",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42011",
+"designation": "Bac de décontamination",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42012",
+"designation": "Tablier de protection",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42013",
+"designation": "Botte de protection (sur chaussures)",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42015",
+"designation": "Distributeur de brosse",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42016",
+"designation": "Distributeur de savon",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42018",
+"designation": "Eclairage opératoire plafonnier",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42024",
+"designation": "Siège",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42025",
+"designation": "Stérilisateur à vapeur grande capacité",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42027",
+"designation": "Guéridon plateau",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42028",
+"designation": "Table d’opération universelle",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42029",
+"designation": "Tabouret à hauteur réglable",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42031",
+"designation": "Appareil d’anasthésie",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42033",
+"designation": "Stérilisateur d’eau à UV",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42034",
+"designation": "Boîte pour partie molles",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42037",
+"designation": "Boite d’instruments ORL",
+"service": "Bloc Operatoire"
+},
+{
+"code": "42038",
+"designation": "Oxygène sur cylindre",
+"service": "Bloc Operatoire"
+},
+{
+"code": "43001",
+"designation": "Appareil d'anesthésie / Chariot d’anesthésie",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "",
+"designation": "Aspirateur",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43003",
+"designation": "Boîte à intubation",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43005",
+"designation": "Lampe d'examen",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43006",
+"designation": "Siège réglable",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43011",
+"designation": "Aspirateur nasal bébé 30 ml",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43012",
+"designation": "Insufflateur manuel",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43013",
+"designation": "Monitoring de gaz pour appareil d’anesthésie",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43014",
+"designation": "Table d’anesthésie Fluorane / Fluothec",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43015",
+"designation": "Respirateur d’urgence et transport",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43017",
+"designation": "Débimètre oxygène adulte avec masque",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43018",
+"designation": "Débilitre oxygène enfant avec masque",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43019",
+"designation": "Aspirateur chirurgical autonome",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43020",
+"designation": "Couveuse électrique",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43021",
+"designation": "Appareil de photothérapie par UV (livré avec 10 lampes de rechange)",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43022",
+"designation": "Table de réanimation nouveau-née",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43023",
+"designation": "Centrale d’oxygène à inversion automatique 2x2 bouteilles d’oxygène",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43024",
+"designation": "Centrale protoxyde N à inversion automatique 2x1 bouteilles",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43025",
+"designation": "Centrale air comprimé médical à 30 m3/h",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43026",
+"designation": "Pousse seringue 2 voies indépendantes",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43027",
+"designation": "Nutripompe",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43028",
+"designation": "Défibrillateur d’urgence",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43029",
+"designation": "Colonne de Janneret",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43030",
+"designation": "Débilitre d’aspiration",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43031",
+"designation": "Obus oxygène avec masque",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43032",
+"designation": "Réseau distr. Oxyg. 5 prises normales.",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43033",
+"designation": "Réseau distr. protoxyde N 5 prises normales salle",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "43034",
+"designation": "Obus protoxyde d’azote avec masque",
+"service": "Anesthesie Reanimation"
+},
+{
+"code": "44001",
+"designation": "Appareil à ultrasons",
+"service": "Physiotherapie-exploration Fonctionnelle"
+},
+{
+"code": "44002",
+"designation": "Appareil de courant interférentiel",
+"service": "Physiotherapie-exploration Fonctionnelle"
+},
+{
+"code": "44003",
+"designation": "Appareil pour hydrothérapie",
+"service": "Physiotherapie-exploration Fonctionnelle"
+},
+{
+"code": "44004",
+"designation": "Générateur de courant de basse fréquence",
+"service": "Physiotherapie-exploration Fonctionnelle"
+},
+{
+"code": "44005",
+"designation": "Générateur de micro ondes",
+"service": "Physiotherapie-exploration Fonctionnelle"
+},
+{
+"code": "44007",
+"designation": "Barres parallèles",
+"service": "Physiotherapie-exploration Fonctionnelle"
+},
+{
+"code": "44008",
+"designation": "Bicyclette ergométrique",
+"service": "Physiotherapie-exploration Fonctionnelle"
+},
+{
+"code": "44009",
+"designation": "Lampe à infra-rouge",
+"service": "Physiotherapie-exploration Fonctionnelle"
+},
+{
+"code": "44010",
+"designation": "Lampe UV",
+"service": "Physiotherapie-exploration Fonctionnelle"
+},
+{
+"code": "44011",
+"designation": "Plan de musculation",
+"service": "Physiotherapie-exploration Fonctionnelle"
+},
+{
+"code": "44014",
+"designation": "Table de traction vertébrale",
+"service": "Physiotherapie-exploration Fonctionnelle"
+},
+{
+"code": "44015",
+"designation": "Tapis pour gymnastique médicale",
+"service": "Physiotherapie-exploration Fonctionnelle"
+},
+{
+"code": "44016",
+"designation": "Tapis roulant",
+"service": "Physiotherapie-exploration Fonctionnelle"
+},
+{
+"code": "EXPLORATION FONCTIONNELLE",
+"designation": "EXPLORATION FONCTIONNELLE",
+"service": "Physiotherapie-exploration Fonctionnelle"
+},
+{
+"code": "44017",
+"designation": "Electrocardiographe 3 pistes",
+"service": "Physiotherapie-exploration Fonctionnelle"
+},
+{
+"code": "44018",
+"designation": "Moniteur multiparamétrique",
+"service": "Physiotherapie-exploration Fonctionnelle"
+},
+{
+"code": "44019",
+"designation": "Détecteur Fœtal",
+"service": "Physiotherapie-exploration Fonctionnelle"
+},
+{
+"code": "44021",
+"designation": "Baignoire POUR bébé",
+"service": "Physiotherapie-exploration Fonctionnelle"
+},
+{
+"code": "45002",
+"designation": "Aspirateur de mucosités",
+"service": "Maternite"
+},
+{
+"code": "45004",
+"designation": "Boc à lavement /canules",
+"service": "Maternite"
+},
+{
+"code": "45005",
+"designation": "Boîte d’accouchement",
+"service": "Maternite"
+},
+{
+"code": "45006",
+"designation": "Boîte de curetage",
+"service": "Maternite"
+},
+{
+"code": "45008",
+"designation": "Boîte de suture périnéale",
+"service": "Maternite"
+},
+{
+"code": "45009",
+"designation": "Boîte examen gynécologique",
+"service": "Maternite"
+},
+{
+"code": "45012",
+"designation": "Compas pelvimètre",
+"service": "Maternite"
+},
+{
+"code": "45015",
+"designation": "Fœtoscope doppler",
+"service": "Maternite"
+},
+{
+"code": "45016",
+"designation": "Kit aspirateur manuel intra utérin",
+"service": "Maternite"
+},
+{
+"code": "45018",
+"designation": "Lit de travail",
+"service": "Maternite"
+},
+{
+"code": "45022",
+"designation": "Gants de révision utérine",
+"service": "Maternite"
+},
+{
+"code": "45025",
+"designation": "Paravent",
+"service": "Maternite"
+},
+{
+"code": "45026",
+"designation": "Pèse-bébé avec toise",
+"service": "Maternite"
+},
+{
+"code": "45028",
+"designation": "Petites poires aspiration",
+"service": "Maternite"
+},
+{
+"code": "45033",
+"designation": "Spéculum vaginal",
+"service": "Maternite"
+},
+{
+"code": "45034",
+"designation": "Sphygmomanomètre",
+"service": "Maternite"
+},
+{
+"code": "45036",
+"designation": "Stéthoscope fœtal",
+"service": "Maternite"
+},
+{
+"code": "45038",
+"designation": "Table d’accouchement",
+"service": "Maternite"
+},
+{
+"code": "45039",
+"designation": "Table réanimation nouveau né avec ambu",
+"service": "Maternite"
+},
+{
+"code": "45041",
+"designation": "Poubelle",
+"service": "Maternite"
+},
+{
+"code": "45042",
+"designation": "Bassine de décontamination",
+"service": "Maternite"
+},
+{
+"code": "45043",
+"designation": "Réfrigérateur",
+"service": "Maternite"
+},
+{
+"code": "45044",
+"designation": "Boîte à tranchants",
+"service": "Maternite"
+},
+{
+"code": "45045",
+"designation": "Table d’examen gynécologique",
+"service": "Maternite"
+},
+{
+"code": "45046",
+"designation": "Tambours compresses",
+"service": "Maternite"
+},
+{
+"code": "45047",
+"designation": "Tambours linge accouchement",
+"service": "Maternite"
+},
+{
+"code": "46001",
+"designation": "Groupe électrogène de secours",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "46002",
+"designation": "Matériel de communication (réseau radio)",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "46003",
+"designation": "Ambulance médicalisée",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "46004",
+"designation": "Moto tout terrain 125 CC",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "46005",
+"designation": "Extincteur",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "46006",
+"designation": "Générateur d’oxygène médical",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "46007",
+"designation": "Traiteur déchets hospitaliers",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "46008",
+"designation": "Station d’épuration des eaux",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "",
+"designation": "morgue",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "46009",
+"designation": "Equipement frigorifique de morgue ou morgue 2x3 places + accessoires",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "46010",
+"designation": "Chariot post mortem",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "46011",
+"designation": "Diable à roulettes",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "46012",
+"designation": "Chariot de présentation de corps",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "46013",
+"designation": "Equipement pour autopsie",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "47001",
+"designation": "Appareil de radiologie universel",
+"service": "Imagerie"
+},
+{
+"code": "47002",
+"designation": "Cache plombé",
+"service": "Imagerie"
+},
+{
+"code": "47003",
+"designation": "Ensemble de cadres pour films",
+"service": "Imagerie"
+},
+{
+"code": "47004",
+"designation": "Ensemble de cassettes avec écrans renforçateurs et Grille",
+"service": "Imagerie"
+},
+{
+"code": "47005",
+"designation": "Ensemble de développement manuel",
+"service": "Imagerie"
+},
+{
+"code": "47006",
+"designation": "Lampe inactinique",
+"service": "Imagerie"
+},
+{
+"code": "47007",
+"designation": "Lettres en plomb",
+"service": "Imagerie"
+},
+{
+"code": "47008",
+"designation": "Livre des techniques OMS de radiologie",
+"service": "Imagerie"
+},
+{
+"code": "47009",
+"designation": "Marqueur de film",
+"service": "Imagerie"
+},
+{
+"code": "47010",
+"designation": "Minuterie",
+"service": "Imagerie"
+},
+{
+"code": "47011",
+"designation": "Paire de gants plombés",
+"service": "Imagerie"
+},
+{
+"code": "47012",
+"designation": "Paravent mobile anti R-X",
+"service": "Imagerie"
+},
+{
+"code": "47013",
+"designation": "Support mural",
+"service": "Imagerie"
+},
+{
+"code": "47014",
+"designation": "Tablier plombé",
+"service": "Imagerie"
+},
+{
+"code": "47016",
+"designation": "Armoire porte film",
+"service": "Imagerie"
+},
+{
+"code": "47017",
+"designation": "Thermomètre de bain de développement",
+"service": "Imagerie"
+},
+{
+"code": "47018",
+"designation": "Ventilateur extracteur de chambre noire",
+"service": "Imagerie"
+},
+{
+"code": "48001",
+"designation": "Agitateur électromagnétique",
+"service": "Laboratoire"
+},
+{
+"code": "48002",
+"designation": "Anse de platine",
+"service": "Laboratoire"
+},
+{
+"code": "48003",
+"designation": "Appareil de Westergreen",
+"service": "Laboratoire"
+},
+{
+"code": "48004",
+"designation": "Stérilisateur à vapeur haute pression vertical",
+"service": "Laboratoire"
+},
+{
+"code": "48005",
+"designation": "Stérilisateur à air chaud ou poupinel pour stérilisation",
+"service": "Laboratoire"
+},
+{
+"code": "48006",
+"designation": "Hotte à flux laminaire",
+"service": "Laboratoire"
+},
+{
+"code": "48007",
+"designation": "Compteur automatique de cellules",
+"service": "Laboratoire"
+},
+{
+"code": "48008",
+"designation": "Etuve d’incubation",
+"service": "Laboratoire"
+},
+{
+"code": "48009",
+"designation": "Verre à pied gradué",
+"service": "Laboratoire"
+},
+{
+"code": "48010",
+"designation": "Spectrophotomètre",
+"service": "Laboratoire"
+},
+{
+"code": "48011",
+"designation": "Photomètre à flamme",
+"service": "Laboratoire"
+},
+{
+"code": "48014",
+"designation": "Bac de coloration",
+"service": "Laboratoire"
+},
+{
+"code": "48015",
+"designation": "Bain marie",
+"service": "Laboratoire"
+},
+{
+"code": "48016",
+"designation": "Calculatrice",
+"service": "Laboratoire"
+},
+{
+"code": "48017",
+"designation": "Cellules de numération : Malasèz et Thoma",
+"service": "Laboratoire"
+},
+{
+"code": "48018",
+"designation": "Centrifugeuse cytologie de table",
+"service": "Laboratoire"
+},
+{
+"code": "48019",
+"designation": "Centrifugeuse micro hématocrite",
+"service": "Laboratoire"
+},
+{
+"code": "48020",
+"designation": "Classeur de lames",
+"service": "Laboratoire"
+},
+{
+"code": "48021",
+"designation": "Coffret de rangement pour lames",
+"service": "Laboratoire"
+},
+{
+"code": "48022",
+"designation": "Compteur manuel de cellules",
+"service": "Laboratoire"
+},
+{
+"code": "48023",
+"designation": "Distillateur d’eau",
+"service": "Laboratoire"
+},
+{
+"code": "48024",
+"designation": "Mortier + pilon en porcelaine",
+"service": "Laboratoire"
+},
+{
+"code": "48025",
+"designation": "Glucomètre",
+"service": "Laboratoire"
+},
+{
+"code": "48026",
+"designation": "Lampe à alcool",
+"service": "Laboratoire"
+},
+{
+"code": "4027",
+"designation": "Livre OMS Techniques de laboratoire",
+"service": "Laboratoire"
+},
+{
+"code": "48028",
+"designation": "Lampe de rechange pour microscope",
+"service": "Laboratoire"
+},
+{
+"code": "48029",
+"designation": "Albuminomètre de Esbach",
+"service": "Laboratoire"
+},
+{
+"code": "48030",
+"designation": "Automate d’hématologie 18 paramètres",
+"service": "Laboratoire"
+},
+{
+"code": "48030",
+"designation": "Micropipettes multi doses automatiques",
+"service": "Laboratoire"
+},
+{
+"code": "48031",
+"designation": "Microscope binoculaire",
+"service": "Laboratoire"
+},
+{
+"code": "48032",
+"designation": "Plaque chauffante",
+"service": "Laboratoire"
+},
+{
+"code": "48035",
+"designation": "Réchaud à gaz",
+"service": "Laboratoire"
+},
+{
+"code": "48036",
+"designation": "Bouteille à gaz",
+"service": "Laboratoire"
+},
+{
+"code": "48037",
+"designation": "Ensemble de verrerie",
+"service": "Laboratoire"
+},
+{
+"code": "48038",
+"designation": "Séchoir mural pour verrerie",
+"service": "Laboratoire"
+},
+{
+"code": "48042",
+"designation": "Table de prélèvement",
+"service": "Laboratoire"
+},
+{
+"code": "48043",
+"designation": "Ballon de laboratoire 250 ml",
+"service": "Laboratoire"
+},
+{
+"code": "48044",
+"designation": "Ballon de laboratoire 500 ml",
+"service": "Laboratoire"
+},
+{
+"code": "48045",
+"designation": "Béchers forme basse (le jeu de 5)",
+"service": "Laboratoire"
+},
+{
+"code": "48046",
+"designation": "Béchers 500 ml",
+"service": "Laboratoire"
+},
+{
+"code": "48047",
+"designation": "Boite de pétri en verre (diam. 90mm), le lot de 10",
+"service": "Laboratoire"
+},
+{
+"code": "48048",
+"designation": "Cellule de Malassez",
+"service": "Laboratoire"
+},
+{
+"code": "48051",
+"designation": "Crayon de cire bleu (boite de 12)",
+"service": "Laboratoire"
+},
+{
+"code": "48052",
+"designation": "Crayon de cire rouge (boite de 12)",
+"service": "Laboratoire"
+},
+{
+"code": "48053",
+"designation": "Densimètre pour urine",
+"service": "Laboratoire"
+},
+{
+"code": "48054",
+"designation": "Distillateur d’eau 2 à 4 litres/heure",
+"service": "Laboratoire"
+},
+{
+"code": "48055",
+"designation": "Entonnoir plastique cannelé 100 ml",
+"service": "Laboratoire"
+},
+{
+"code": "48056",
+"designation": "Eprouvette graduée 100 ml",
+"service": "Laboratoire"
+},
+{
+"code": "48057",
+"designation": "Eprouvette graduée 500 ml",
+"service": "Laboratoire"
+},
+{
+"code": "48058",
+"designation": "Erlenmeyer 250 ml",
+"service": "Laboratoire"
+},
+{
+"code": "48059",
+"designation": "Laveur à pipettes, manuel",
+"service": "Laboratoire"
+},
+{
+"code": "48060",
+"designation": "Flacon pour réactif 1000 ml et 500 ml (2 de chaque)",
+"service": "Laboratoire"
+},
+{
+"code": "48061",
+"designation": "Flacon pour réactif 250 ml",
+"service": "Laboratoire"
+},
+{
+"code": "48062",
+"designation": "Lamelles verre, pour hémocytomètre (boite de 100)",
+"service": "Laboratoire"
+},
+{
+"code": "48063",
+"designation": "Hémocytomètre",
+"service": "Laboratoire"
+},
+{
+"code": "48064",
+"designation": "Hémoglobinomètre de Sahli",
+"service": "Laboratoire"
+},
+{
+"code": "48065",
+"designation": "Lamelles pour microscope (boite de 100)",
+"service": "Laboratoire"
+},
+{
+"code": "48066",
+"designation": "Lames pour microscope (boite de 100)",
+"service": "Laboratoire"
+},
+{
+"code": "48068",
+"designation": "Manuel OMS des techniques de laboratoire",
+"service": "Laboratoire"
+},
+{
+"code": "48069",
+"designation": "Panier pour tubes à éssai",
+"service": "Laboratoire"
+},
+{
+"code": "48070",
+"designation": "Pince Stoddart pour tube à essai",
+"service": "Laboratoire"
+},
+{
+"code": "48071",
+"designation": "Pipette à dilution de Thoma GB",
+"service": "Laboratoire"
+},
+{
+"code": "48072",
+"designation": "Pipette à dilution de Thoma GR",
+"service": "Laboratoire"
+},
+{
+"code": "48073",
+"designation": "Pipette de 1 ml graduée",
+"service": "Laboratoire"
+},
+{
+"code": "48074",
+"designation": "Pipette de 10 ml graduée",
+"service": "Laboratoire"
+},
+{
+"code": "48075",
+"designation": "Pipette de 2 ml graduée",
+"service": "Laboratoire"
+},
+{
+"code": "48076",
+"designation": "Pipette de 5 ml graduée",
+"service": "Laboratoire"
+},
+{
+"code": "48077",
+"designation": "Pipette de Sahli",
+"service": "Laboratoire"
+},
+{
+"code": "48078",
+"designation": "Pipettes de Westergreen (par 6)",
+"service": "Laboratoire"
+},
+{
+"code": "48079",
+"designation": "Pipettes jauges 10 ml (le jeu)",
+"service": "Laboratoire"
+},
+{
+"code": "48080",
+"designation": "Pipette pasteur (B/250)",
+"service": "Laboratoire"
+},
+{
+"code": "48081",
+"designation": "Thermomètre de laboratoire +, P.0,1°C",
+"service": "Laboratoire"
+},
+{
+"code": "48082",
+"designation": "Poire en caoutchouc pour pipette 2 ml",
+"service": "Laboratoire"
+},
+{
+"code": "48083",
+"designation": "Rhésuscope",
+"service": "Laboratoire"
+},
+{
+"code": "48084",
+"designation": "Support pour 6 pipettes de Westergreen",
+"service": "Laboratoire"
+},
+{
+"code": "48085",
+"designation": "Tube à essai (boite de 100)",
+"service": "Laboratoire"
+},
+{
+"code": "48086",
+"designation": "Tube gradué pour centrifugeuse manuelle",
+"service": "Laboratoire"
+},
+{
+"code": "48087",
+"designation": "Tube pour hémoglobimètre de Sahli",
+"service": "Laboratoire"
+},
+{
+"code": "48088",
+"designation": "Tubes à échantillons 20 ml (boite de 100)",
+"service": "Laboratoire"
+},
+{
+"code": "48089",
+"designation": "Tubes hémolyse avec bouchon (B/50)",
+"service": "Laboratoire"
+},
+{
+"code": "48090",
+"designation": "Tubes capillaires héparinisés (B/50)",
+"service": "Laboratoire"
+},
+{
+"code": "48091",
+"designation": "Tube gradué pour centrifugeuse électrique",
+"service": "Laboratoire"
+},
+{
+"code": "48093",
+"designation": "Bec Bunsen",
+"service": "Laboratoire"
+},
+{
+"code": "48094",
+"designation": "Verrerie courante, le lot",
+"service": "Laboratoire"
+},
+{
+"code": "48095",
+"designation": "Verrerie spécialisée, le lot",
+"service": "Laboratoire"
+},
+{
+"code": "49001",
+"designation": "Armoire de rangement 2 battants",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "49007",
+"designation": "Lit d’hospitalisation avec relève buste",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "49008",
+"designation": "Lampe torche",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "49010",
+"designation": "Lit d’hospitalisation simple",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "49019",
+"designation": "Ophtalmoscope",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "49024",
+"designation": "Marteau reflexe",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "49026",
+"designation": "Jeu de diapason",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "49028",
+"designation": "Réchaud",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "49032",
+"designation": "Boîte infirmière",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "49033",
+"designation": "Table de chevet",
+"service": "Hospitalisations Adultes"
+},
+{
+"code": "410008",
+"designation": "Berceau",
+"service": "HOSPITALISATION Pédiatrie"
+},
+{
+"code": "410017",
+"designation": "Stéthoscope nouveau-né et nourrisson",
+"service": "HOSPITALISATION Pédiatrie"
+},
+{
+"code": "411002",
+"designation": "Burette de lubrification",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411003",
+"designation": "Burin plat",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411004",
+"designation": "Burin pointu",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411005",
+"designation": "Caisse à outils",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411006",
+"designation": "Chargeur de batteries",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411007",
+"designation": "Jeu de chasse pointe",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411008",
+"designation": "Ciseaux de menuisier",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411012",
+"designation": "Micro-ordinateur",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411013",
+"designation": "Siège d’atelier",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411015",
+"designation": "Ciseaux normaux",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411016",
+"designation": "Clé à fourche",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411017",
+"designation": "Clé à molette",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411018",
+"designation": "Compresseur d’air",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411019",
+"designation": "Coupe tube cuivre",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411020",
+"designation": "Couteau d’électricien",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411021",
+"designation": "Dudgeonnière",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411022",
+"designation": "Equerre de menuisier",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411023",
+"designation": "Etabli de travail",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411024",
+"designation": "Etau à base tournante",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411025",
+"designation": "Fer à souder",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411026",
+"designation": "Jeu de 7 clés mâles",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411027",
+"designation": "Jeu de 8 clés à fourche",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "4811028",
+"designation": "Jeu de clés à douille",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411029",
+"designation": "Jeu de tournevis horloger",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411030",
+"designation": "Lampe d’établi",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411030",
+"designation": "Lime demi-douce demi-ronde",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411031",
+"designation": "Lime demi-douce ronde",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411032",
+"designation": "Manifold",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411033",
+"designation": "Marteau de maçon",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411034",
+"designation": "Marteau de serrurier",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411035",
+"designation": "Marteau pour carreleur 75 gr",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411036",
+"designation": "Massette",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411037",
+"designation": "Mèche à bois",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411039",
+"designation": "Mètre pliant",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411041",
+"designation": "Meuleuse d’établi",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411042",
+"designation": "Monture de scie à métaux",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411043",
+"designation": "Multimètre numérique",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411044",
+"designation": "Niveau à bulle",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411045",
+"designation": "Peigne pour condenseur",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411046",
+"designation": "Perceuse d’établi",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411047",
+"designation": "Perceuse portative",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411048",
+"designation": "Pied à coulisse",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411049",
+"designation": "Pince à becs pointus",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411050",
+"designation": "Pince ampèremétrique",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411051",
+"designation": "Pince coupante diagonale",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411052",
+"designation": "Pince multiprise",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411053",
+"designation": "Pince universelle isolée",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411054",
+"designation": "Pinceau plat",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411055",
+"designation": "Pinceau rond",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411056",
+"designation": "Pointe à tracer",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411057",
+"designation": "Pompe à vide",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411058",
+"designation": "Poste de soudure à l’arc",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411059",
+"designation": "Poste de soudure autogène",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411060",
+"designation": "Rabot à contre fer",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411061",
+"designation": "Rabot de finition",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411062",
+"designation": "Râpe bois demi-ronde demi-douce",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411063",
+"designation": "Râpe bois demi-ronde bâtarde",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411064",
+"designation": "Râpe bois ronde demi-douce",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411065",
+"designation": "Scie fraiseuse",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411066",
+"designation": "Scie poignée en bois",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411067",
+"designation": "Serre joint",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411068",
+"designation": "Spatule simple",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411069",
+"designation": "Spatule crénelée",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411070",
+"designation": "Tenaille",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411071",
+"designation": "Thermomètre électronique",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411072",
+"designation": "Jeu de tournevis cruciforme",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411073",
+"designation": "Jeu de tournevis de menuisier",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411074",
+"designation": "Jeu de tournevis manche plastique",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411075",
+"designation": "Tournevis testeur de tension",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411076",
+"designation": "Jeu de truelle",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411077",
+"designation": "Vilebrequin",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "411078",
+"designation": "Vrille",
+"service": "Maintenance Hospitaliere"
+},
+{
+"code": "412001",
+"designation": "Abaisse langue",
+"service": "Orl"
+},
+{
+"code": "412004",
+"designation": "Boîte à paracentèse",
+"service": "Orl"
+},
+{
+"code": "412005",
+"designation": "Boîte amygdalectomie",
+"service": "Orl"
+},
+{
+"code": "412006",
+"designation": "Boîte de chirurgie ORL",
+"service": "Orl"
+},
+{
+"code": "412009",
+"designation": "Potence",
+"service": "Orl"
+},
+{
+"code": "412010",
+"designation": "Boîte pour chirurgie et soins de sinus",
+"service": "Orl"
+},
+{
+"code": "412011",
+"designation": "Boîte tympanoplastie",
+"service": "Orl"
+},
+{
+"code": "412012",
+"designation": "Boîte végétations",
+"service": "Orl"
+},
+{
+"code": "412013",
+"designation": "Fauteuil ORL",
+"service": "Orl"
+},
+{
+"code": "412015",
+"designation": "Jeu de spéculum nasal et auriculaire",
+"service": "Orl"
+},
+{
+"code": "412016",
+"designation": "Miroir frontal",
+"service": "Orl"
+},
+{
+"code": "412017",
+"designation": "Trousse pour gestes diagnostics et soins",
+"service": "Orl"
+},
+{
+"code": "412019",
+"designation": "Manuel OMS pour soins en ORL",
+"service": "Orl"
+},
+{
+"code": "412020",
+"designation": "Bronchoscope",
+"service": "Orl"
+},
+{
+"code": "412021",
+"designation": "Oesophagoscope",
+"service": "Orl"
+},
+{
+"code": "412024",
+"designation": "Unité de soins otologie",
+"service": "Orl"
+},
+{
+"code": "413001",
+"designation": "Album test Ishiara",
+"service": "Ophtalmologie"
+},
+{
+"code": "413003",
+"designation": "Biomicroscope avec tonomètre à applanation",
+"service": "Ophtalmologie"
+},
+{
+"code": "413004",
+"designation": "Exophtalmomètre",
+"service": "Ophtalmologie"
+},
+{
+"code": "413005",
+"designation": "Fronto-focomètre",
+"service": "Ophtalmologie"
+},
+{
+"code": "413006",
+"designation": "Jeu de verres d’essai",
+"service": "Ophtalmologie"
+},
+{
+"code": "413007",
+"designation": "Loupe binoculaire",
+"service": "Ophtalmologie"
+},
+{
+"code": "413008",
+"designation": "Microscope opératoire",
+"service": "Ophtalmologie"
+},
+{
+"code": "413009",
+"designation": "Monture de verres d’essai universel",
+"service": "Ophtalmologie"
+},
+{
+"code": "413011",
+"designation": "Projecteur de tests automatique",
+"service": "Ophtalmologie"
+},
+{
+"code": "413014",
+"designation": "Skiascope électrique",
+"service": "Ophtalmologie"
+},
+{
+"code": "413016",
+"designation": "Test de Périmétrie",
+"service": "Ophtalmologie"
+},
+{
+"code": "413018",
+"designation": "Echographe A scan biométrie",
+"service": "Ophtalmologie"
+},
+{
+"code": "413019",
+"designation": "Tonomètre à Schotz",
+"service": "Ophtalmologie"
+},
+{
+"code": "413020",
+"designation": "Trousse à cathétérisme des voies lacrymales",
+"service": "Ophtalmologie"
+},
+{
+"code": "413021",
+"designation": "Trousse à Chalazion",
+"service": "Ophtalmologie"
+},
+{
+"code": "413022",
+"designation": "Trousse à extraction des corps étrangers cornéens",
+"service": "Ophtalmologie"
+},
+{
+"code": "413023",
+"designation": "Trousse à extraction des corps étrangers magnétiques",
+"service": "Ophtalmologie"
+},
+{
+"code": "413024",
+"designation": "Trousse à paupière, trichiasis, ptotsis",
+"service": "Ophtalmologie"
+},
+{
+"code": "413025",
+"designation": "Trousse à ptérygion",
+"service": "Ophtalmologie"
+},
+{
+"code": "413026",
+"designation": "Trousse à strabisme",
+"service": "Ophtalmologie"
+},
+{
+"code": "413027",
+"designation": "Trousse à énucléation",
+"service": "Ophtalmologie"
+},
+{
+"code": "413028",
+"designation": "Loupe de 90 dioptries",
+"service": "Ophtalmologie"
+},
+{
+"code": "413029",
+"designation": "Manuels OMS",
+"service": "Ophtalmologie"
+},
+{
+"code": "413030",
+"designation": "Trousse microchirugicale à glaucome et trabecuceltomie",
+"service": "Ophtalmologie"
+},
+{
+"code": "413030",
+"designation": "Trousse microchirurgicale à cataracte adulte",
+"service": "Ophtalmologie"
+},
+{
+"code": "413031",
+"designation": "Trousse microchirurgicale à cataracte congénitale",
+"service": "Ophtalmologie"
+},
+{
+"code": "414001",
+"designation": "Amalgamateur",
+"service": "Stomatologie"
+},
+{
+"code": "414004",
+"designation": "Détartreur à ultasons",
+"service": "Stomatologie"
+},
+{
+"code": "414005",
+"designation": "Développeuse automatique de films dentaires",
+"service": "Stomatologie"
+},
+{
+"code": "414006",
+"designation": "Lampe à photopolymériser",
+"service": "Stomatologie"
+},
+{
+"code": "414008",
+"designation": "Siège de Praticien",
+"service": "Stomatologie"
+},
+{
+"code": "414009",
+"designation": "Appareil de radio dentaire",
+"service": "Stomatologie"
+},
+{
+"code": "414013",
+"designation": "Unité de soins dentaires",
+"service": "Stomatologie"
+},
+{
+"code": "414014",
+"designation": "Godet",
+"service": "Stomatologie"
+},
+{
+"code": "414015",
+"designation": "Instruments dentaires",
+"service": "Stomatologie"
+},
+{
+"code": "414017",
+"designation": "Elévateur de Barry",
+"service": "Stomatologie"
+},
+{
+"code": "414018",
+"designation": "Kit de détartrage manuel",
+"service": "Stomatologie"
+},
+{
+"code": "414019",
+"designation": "Plateaux rectangulaires 20x10",
+"service": "Stomatologie"
+},
+{
+"code": "414020",
+"designation": "Pot à coton",
+"service": "Stomatologie"
+},
+{
+"code": "414021",
+"designation": "Sondes parodontales",
+"service": "Stomatologie"
+},
+{
+"code": "414022",
+"designation": "Spatule à bouche de Heidemann",
+"service": "Stomatologie"
+},
+{
+"code": "414023",
+"designation": "Spatule à eugénate Modèle droit",
+"service": "Stomatologie"
+},
+{
+"code": "415002",
+"designation": "Bistouri électrique",
+"service": "Chirurgie"
+},
+{
+"code": "415003",
+"designation": "Boîte à broches",
+"service": "Chirurgie"
+},
+{
+"code": "415004",
+"designation": "Boîte à clous",
+"service": "Chirurgie"
+},
+{
+"code": "415005",
+"designation": "Boîte à plaques",
+"service": "Chirurgie"
+},
+{
+"code": "415006",
+"designation": "Boîte à trachéotomie",
+"service": "Chirurgie"
+},
+{
+"code": "415007",
+"designation": "Boîte à vis",
+"service": "Chirurgie"
+},
+{
+"code": "415008",
+"designation": "Boîte de chirurgie osseuse",
+"service": "Chirurgie"
+},
+{
+"code": "415009",
+"designation": "Boîte de chirurgie urologique",
+"service": "Chirurgie"
+},
+{
+"code": "416001",
+"designation": "Colposcope",
+"service": "Gynecologie Obstetrique"
+},
+{
+"code": "416002",
+"designation": "Compas pelvimetre",
+"service": "Gynecologie Obstetrique"
+},
+{
+"code": "416003",
+"designation": "Cardiotocographe",
+"service": "Gynecologie Obstetrique"
+},
+{
+"code": "416004",
+"designation": "Forceps",
+"service": "Gynecologie Obstetrique"
+},
+{
+"code": "416005",
+"designation": "Insufflateur",
+"service": "Gynecologie Obstetrique"
+},
+{
+"code": "416006",
+"designation": "Foetoscope doppler",
+"service": "Gynecologie Obstetrique"
+},
+{
+"code": "416007",
+"designation": "Echographe",
+"service": "Gynecologie Obstetrique"
+},
+{
+"code": "416008",
+"designation": "Ventouse obstétricale",
+"service": "Gynecologie Obstetrique"
+},
+{
+"code": "417001",
+"designation": "Incubateur avec photothérapie",
+"service": "Pediatrie"
+},
+{
+"code": "417002",
+"designation": "Boîte pour intubation pédiatrique",
+"service": "Pediatrie"
+},
+{
+"code": "417004",
+"designation": "Sphygmomanomètre pédiatrique",
+"service": "Pediatrie"
+},
+{
+"code": "418001",
+"designation": "Agitateur de laboratoire Kline",
+"service": "Laboratoire"
+},
+{
+"code": "418002",
+"designation": "Balance de précision",
+"service": "Laboratoire"
+},
+{
+"code": "418004",
+"designation": "Etuve à incubation",
+"service": "Laboratoire"
+},
+{
+"code": "418005",
+"designation": "Laveur de pipettes",
+"service": "Laboratoire"
+},
+{
+"code": "418006",
+"designation": "Pipettes automatiques calibrées (un ensemble) (réglable)",
+"service": "Laboratoire"
+},
+{
+"code": "418008",
+"designation": "Stérilisateur manuel à pression (20l)",
+"service": "Laboratoire"
+},
+{
+"code": "419002",
+"designation": "Fauteuil de prise de sang",
+"service": "Banque de Sang"
+},
+{
+"code": "419003",
+"designation": "Banque de sang",
+"service": "Banque de Sang"
+},
+{
+"code": "419004",
+"designation": "Lit avec relève buste",
+"service": "Banque de Sang"
+},
+{
+"code": "419007",
+"designation": "Agitateur magnétique",
+"service": "Banque de Sang"
+},
+{
+"code": "Zone de sale",
+"designation": "Zone de sale",
+"service": "Buanderie"
+},
+{
+"code": "420001",
+"designation": "Grand bac en acier pour linge",
+"service": "Buanderie"
+},
+{
+"code": "420002",
+"designation": "Pèse linge",
+"service": "Buanderie"
+},
+{
+"code": "420003",
+"designation": "Machine à laver",
+"service": "Buanderie"
+},
+{
+"code": "420005",
+"designation": "pressoir",
+"service": "Buanderie"
+},
+{
+"code": "420006",
+"designation": "seaux",
+"service": "Buanderie"
+},
+{
+"code": "420007",
+"designation": "Fer à repasser à vapeur",
+"service": "Buanderie"
+},
+{
+"code": "420008",
+"designation": "Table de repassage en bois",
+"service": "Buanderie"
+},
+{
+"code": "420010",
+"designation": "Grand chariot à linge avec fermeture",
+"service": "Buanderie"
+},
+{
+"code": "420011",
+"designation": "Grande table de pliage de linge",
+"service": "Buanderie"
+},
+{
+"code": "420012",
+"designation": "Séchoir rotatif",
+"service": "Buanderie"
+},
+{
+"code": "420013",
+"designation": "Calandreuse",
+"service": "Buanderie"
+},
+{
+"code": "420014",
+"designation": "Armoire de rangement métallique",
+"service": "Buanderie"
+},
+{
+"code": "420015",
+"designation": "Ciseaux de couture",
+"service": "Buanderie"
+},
+{
+"code": "420016",
+"designation": "Machine à coudre",
+"service": "Buanderie"
+},
+{
+"code": "420018",
+"designation": "Cintre en bois",
+"service": "Buanderie"
+},
+{
+"code": "420019",
+"designation": "Cintre métallique",
+"service": "Buanderie"
+},
+{
+"code": "420020",
+"designation": "Porte-cintre",
+"service": "Buanderie"
+}
+]
+},
+"CMA": {
+"label": "Centre Médical d'Arrondissement",
+"equipements": [
+{
+"code": "51001",
+"designation": "Tensiomètre",
+"service": "Divers"
+},
+{
+"code": "51002",
+"designation": "Boîte à instruments",
+"service": "Divers"
+},
+{
+"code": "51003",
+"designation": "Ophtalmoscope",
+"service": "Divers"
+},
+{
+"code": "51004",
+"designation": "Table d’examen",
+"service": "Divers"
+},
+{
+"code": "51005",
+"designation": "Marteau reflexe",
+"service": "Divers"
+},
+{
+"code": "51006",
+"designation": "Stérilisateur à air chaud",
+"service": "Divers"
+},
+{
+"code": "51007",
+"designation": "Plaque chauffante",
+"service": "Divers"
+},
+{
+"code": "51008",
+"designation": "Bouilloire d’instruments",
+"service": "Divers"
+},
+{
+"code": "51009",
+"designation": "Chariot porte instruments",
+"service": "Divers"
+},
+{
+"code": "51010",
+"designation": "Escabeau",
+"service": "Divers"
+},
+{
+"code": "51011",
+"designation": "Mètre ruban",
+"service": "Divers"
+},
+{
+"code": "51012",
+"designation": "Otoscope",
+"service": "Divers"
+},
+{
+"code": "51013",
+"designation": "Pèse bébé + toise",
+"service": "Divers"
+},
+{
+"code": "51014",
+"designation": "Pèse personne avec toise",
+"service": "Divers"
+},
+{
+"code": "51015",
+"designation": "Aspirateur électrique double bocal",
+"service": "Divers"
+},
+{
+"code": "51016",
+"designation": "Plateau rectangulaire",
+"service": "Divers"
+},
+{
+"code": "51017",
+"designation": "Plateau réniforme",
+"service": "Divers"
+},
+{
+"code": "51018",
+"designation": "Potence porte sérum",
+"service": "Divers"
+},
+{
+"code": "51019",
+"designation": "Stéthoscope obstétrical",
+"service": "Divers"
+},
+{
+"code": "51020",
+"designation": "Stéthoscope double face",
+"service": "Divers"
+},
+{
+"code": "51021",
+"designation": "Table de soins",
+"service": "Divers"
+},
+{
+"code": "51022",
+"designation": "Table de petite chirurgie",
+"service": "Divers"
+},
+{
+"code": "51023",
+"designation": "Négatoscope",
+"service": "Divers"
+},
+{
+"code": "51024",
+"designation": "Trousse à pansements",
+"service": "Divers"
+},
+{
+"code": "51025",
+"designation": "Trousse de petite chirurgie d’intervention",
+"service": "Divers"
+},
+{
+"code": "51026",
+"designation": "Trousse de diagnostic infirmière",
+"service": "Divers"
+},
+{
+"code": "52001",
+"designation": "Accumulateurs de froid",
+"service": "Divers"
+},
+{
+"code": "52002",
+"designation": "Bassin de lit",
+"service": "Divers"
+},
+{
+"code": "52003",
+"designation": "Ciseaux à plâtre",
+"service": "Divers"
+},
+{
+"code": "52004",
+"designation": "Diagramme poids taille",
+"service": "Divers"
+},
+{
+"code": "52005",
+"designation": "Eclairage opératoire",
+"service": "Divers"
+},
+{
+"code": "52006",
+"designation": "Boc de lavement + canules",
+"service": "Divers"
+},
+{
+"code": "52013",
+"designation": "Boîte à pansement",
+"service": "Divers"
+},
+{
+"code": "52014",
+"designation": "Boîte à petite chirurgie",
+"service": "Divers"
+},
+{
+"code": "52015",
+"designation": "Boîte d’accouchement",
+"service": "Divers"
+},
+{
+"code": "52016",
+"designation": "Boîte gynécologique",
+"service": "Divers"
+},
+{
+"code": "52017",
+"designation": "Boîte laparotomie",
+"service": "Divers"
+},
+{
+"code": "52018",
+"designation": "Boîte césarienne",
+"service": "Divers"
+},
+{
+"code": "52019",
+"designation": "Boîte hernie appendicite",
+"service": "Divers"
+},
+{
+"code": "52020",
+"designation": "Brancard",
+"service": "Divers"
+},
+{
+"code": "52021",
+"designation": "Brosse à ongles",
+"service": "Divers"
+},
+{
+"code": "52023",
+"designation": "Diagramme poids-taille",
+"service": "Divers"
+},
+{
+"code": "52025",
+"designation": "Glacière",
+"service": "Divers"
+},
+{
+"code": "52026",
+"designation": "Lampe de poche coudée",
+"service": "Divers"
+},
+{
+"code": "52028",
+"designation": "Poire d'aspiration bucco pharyngée nouveau né",
+"service": "Divers"
+},
+{
+"code": "52032",
+"designation": "Aspirateur à pédale",
+"service": "Divers"
+},
+{
+"code": "52033",
+"designation": "Plaque à gaz à 2 brûleurs",
+"service": "Divers"
+},
+{
+"code": "52036",
+"designation": "Porte vaccin PEV",
+"service": "Divers"
+},
+{
+"code": "52038",
+"designation": "Réfrigérateur",
+"service": "Divers"
+},
+{
+"code": "52039",
+"designation": "Respirateur manuel nouveau-né",
+"service": "Divers"
+},
+{
+"code": "52040",
+"designation": "Respirateur manuel adulte, enfant",
+"service": "Divers"
+},
+{
+"code": "52041",
+"designation": "Spéculum vaginal",
+"service": "Divers"
+},
+{
+"code": "52042",
+"designation": "Sphygmomanomètre adulte",
+"service": "Divers"
+},
+{
+"code": "52043",
+"designation": "Stérilisateur à vapeur",
+"service": "Divers"
+},
+{
+"code": "52046",
+"designation": "Tabouret à hauteur réglable",
+"service": "Divers"
+},
+{
+"code": "52047",
+"designation": "Table d'opération",
+"service": "Divers"
+},
+{
+"code": "52048",
+"designation": "Tambour à compresses (moyen)",
+"service": "Divers"
+},
+{
+"code": "52049",
+"designation": "Thermomètre de réfrigérateur",
+"service": "Divers"
+},
+{
+"code": "52052",
+"designation": "Négatoscope 1 plage",
+"service": "Divers"
+},
+{
+"code": "52054",
+"designation": "Trousse de petite chirurgie d’interventions",
+"service": "Divers"
+},
+{
+"code": "52055",
+"designation": "Trousse d’infirmière",
+"service": "Divers"
+},
+{
+"code": "52056",
+"designation": "Thermomètre médical",
+"service": "Divers"
+},
+{
+"code": "52057",
+"designation": "Urinal masculin",
+"service": "Divers"
+},
+{
+"code": "52058",
+"designation": "Test de Snellen",
+"service": "Divers"
+},
+{
+"code": "52059",
+"designation": "Chaise dentaire complète avec compresseur",
+"service": "Divers"
+},
+{
+"code": "52060",
+"designation": "Coagulaseur + électrode",
+"service": "Divers"
+},
+{
+"code": "52061",
+"designation": "Fœtoscope aluminium",
+"service": "Divers"
+},
+{
+"code": "52062",
+"designation": "Fauteuil roulant",
+"service": "Divers"
+},
+{
+"code": "52063",
+"designation": "Forceps (kit de 3)",
+"service": "Divers"
+},
+{
+"code": "52064",
+"designation": "Haricot inox",
+"service": "Divers"
+},
+{
+"code": "52065",
+"designation": "Laryngoscope",
+"service": "Divers"
+},
+{
+"code": "52067",
+"designation": "Paires de ciseaux",
+"service": "Divers"
+},
+{
+"code": "52068",
+"designation": "Pinces portes aiguilles 18cm inox",
+"service": "Divers"
+},
+{
+"code": "52069",
+"designation": "Pissette",
+"service": "Divers"
+},
+{
+"code": "52070",
+"designation": "Poubelle à pédale inox 12 litres",
+"service": "Divers"
+},
+{
+"code": "52071",
+"designation": "Poupinel de stérilisation 60 litres",
+"service": "Divers"
+},
+{
+"code": "52072",
+"designation": "Spéculums en inox adulte",
+"service": "Divers"
+},
+{
+"code": "52073",
+"designation": "Sphygmomanomètre anéroïde adulte",
+"service": "Divers"
+},
+{
+"code": "52074",
+"designation": "Table à manger au lit",
+"service": "Divers"
+},
+{
+"code": "52075",
+"designation": "Table d’accouchement avec étrier",
+"service": "Divers"
+},
+{
+"code": "52076",
+"designation": "Tambours 125x105mm",
+"service": "Divers"
+},
+{
+"code": "52077",
+"designation": "Tambour de stérilisation 24x16 cm",
+"service": "Divers"
+},
+{
+"code": "52078",
+"designation": "Tensiomètre adulte",
+"service": "Divers"
+},
+{
+"code": "52079",
+"designation": "Tensiomètre à mercure de table",
+"service": "Divers"
+},
+{
+"code": "52080",
+"designation": "Tensiomètre Velcro pédiatrique",
+"service": "Divers"
+},
+{
+"code": "52081",
+"designation": "Trousse ORL",
+"service": "Divers"
+},
+{
+"code": "52082",
+"designation": "Toise pédiatrique",
+"service": "Divers"
+},
+{
+"code": "52083",
+"designation": "Urinoir en plastique",
+"service": "Divers"
+},
+{
+"code": "52084",
+"designation": "Ventouse manuelle",
+"service": "Divers"
+},
+{
+"code": "52085",
+"designation": "Ballon autogonflant adulte et enfant",
+"service": "Divers"
+},
+{
+"code": "53001",
+"designation": "Berceau",
+"service": "Divers"
+},
+{
+"code": "53002",
+"designation": "Lit d'hospitalisation adulte standard avec relève buste",
+"service": "Divers"
+},
+{
+"code": "53003",
+"designation": "Table de chevet",
+"service": "Divers"
+},
+{
+"code": "53004",
+"designation": "Armoire de chevet laquée",
+"service": "Divers"
+},
+{
+"code": "53005",
+"designation": "Table d’accouchement",
+"service": "Divers"
+},
+{
+"code": "53006",
+"designation": "Table d'examen",
+"service": "Divers"
+},
+{
+"code": "53007",
+"designation": "Paravent pour examen",
+"service": "Divers"
+},
+{
+"code": "53008",
+"designation": "Baignoire en plastique (bébés)",
+"service": "Divers"
+},
+{
+"code": "53009",
+"designation": "Matelas recouverts de skaï",
+"service": "Divers"
+},
+{
+"code": "54001",
+"designation": "Autoclave vertical. Capacité 30 litres.",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54002",
+"designation": "Bac de coloration + portoir",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54003",
+"designation": "Cellule de numération (Malassez )",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54004",
+"designation": "Crayon de cire bleu (boite de 12)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54005",
+"designation": "Crayon de cire rouge (boite de 12)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54006",
+"designation": "Densimètre pour urine",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54007",
+"designation": "Distillateur d’eau 2 à 4 litres/heure",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54008",
+"designation": "Entonnoir plastique cannelé 100 ml",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54009",
+"designation": "Eprouvette graduée 100 ml",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54010",
+"designation": "Eprouvette graduée 500 ml",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54011",
+"designation": "Erlenmeyer 250 ml",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54012",
+"designation": "Laveur à pipettes, manuel",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54013",
+"designation": "Flacon pour réactif 1000 ml et 500 ml (2 de chaque)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54014",
+"designation": "Flacon pour réactif 250 ml",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54015",
+"designation": "Lamelles verre, pour hémocytomètre (boite de 100)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54016",
+"designation": "Hémocytomètre",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54017",
+"designation": "Boite de pétri en verre",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54018",
+"designation": "Balance électronique de précision",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54019",
+"designation": "Etuve bactériologique de labo 35 litres",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54020",
+"designation": "Centrifugeuse de table",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54021",
+"designation": "Centrifugeuse manuelle 4 tubes",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54022",
+"designation": "Coffret de rangement pour lames",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54023",
+"designation": "Compteur manuel de cellules",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54024",
+"designation": "Compteur totaliseur 6 unités",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54025",
+"designation": "Filtre à eau",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54026",
+"designation": "Hémoglobinomètre",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54027",
+"designation": "Lampe à alcool en verre",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54028",
+"designation": "Minuterie",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54029",
+"designation": "Agitateur Vibrant",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54030",
+"designation": "Anse de platine + manche",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54032",
+"designation": "Spectrophotomètre 390 à 650nm",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54033",
+"designation": "Panier pour tubes à essai",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54034",
+"designation": "Pince Stoddart pour tube à essai",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54035",
+"designation": "Pipette à dilution de Thoma GB",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54036",
+"designation": "Pipette à dilution de Thoma GR",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54037",
+"designation": "Pipette de 1 ml graduée",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54038",
+"designation": "Pipette de 10 ml graduée",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54039",
+"designation": "Pipette de 2 ml graduée",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54040",
+"designation": "Pipette de 5 ml graduée",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54041",
+"designation": "Pipette de Sahli",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54042",
+"designation": "Pipettes de Westergreen (par 6)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54043",
+"designation": "Pipettes jauges 10 ml (le jeu)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54044",
+"designation": "Pipette pasteur (B/250)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54045",
+"designation": "Thermomètre de laboratoire -10°C +110°C, P.0,1°C",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54046",
+"designation": "Poire en caoutchouc pour pipette 2 ml",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54047",
+"designation": "Rhésuscope",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54048",
+"designation": "Support pour 6 pipettes de Westergreen",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54049",
+"designation": "Tube à essai (boite de 100)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54050",
+"designation": "Tube gradué pour centrifugeuse manuelle",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54051",
+"designation": "Tube pour hémoglobimètre de Sahli",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54052",
+"designation": "Tubes à échantillons 20 ml (boite de 100)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54053",
+"designation": "Tubes hémolyse avec bouchon (B/50)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54054",
+"designation": "Tubes capillaires héparinisés (B/50)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54055",
+"designation": "Tube gradué pour centrifugeuse électrique",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54056",
+"designation": "Verre à urine",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54057",
+"designation": "Manuel OMS de laboratoire",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54058",
+"designation": "Microscope binoculaire",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54059",
+"designation": "Bain-marie 12 litres",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54060",
+"designation": "Appareil de Westengreen",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54062",
+"designation": "Pissette en plastique",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54063",
+"designation": "Bécher gradué",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54064",
+"designation": "Balance / Trébuchet de Laboratoire",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54065",
+"designation": "Glucomètre avec bandelettes",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54067",
+"designation": "Lamelles pour microscope (boite de 100)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54068",
+"designation": "Lames pour microscope (boite de 100)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54069",
+"designation": "Loupe ordinaire",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54070",
+"designation": "Micropipettes réglables",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54071",
+"designation": "Poire à pipeter lot de 10",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54072",
+"designation": "Portoir à tube à hémolyse",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54073",
+"designation": "Portoir de tube PVC 50 trous",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54075",
+"designation": "Réfrigérateur Electricité/Pétrole environ 170 litres",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54076",
+"designation": "Egouttoir à Verrerie",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "54077",
+"designation": "Filtre à Eau, Type Bougie",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "55001",
+"designation": "Table d'anesthésie",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "55002",
+"designation": "Extracteur d'oxygène",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "55003",
+"designation": "Jeu de masques",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "55004",
+"designation": "Jeu de canules guédel",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "55005",
+"designation": "Boîte d'intubation complète",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "55006",
+"designation": "oximetre de pouls",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "56001",
+"designation": "Armoire de classement deux battants",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56002",
+"designation": "Etagère de stockage",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56003",
+"designation": "Coffre fort",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56004",
+"designation": "Machine à écrire grand chariot manuel",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56005",
+"designation": "Banc à dossier",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56007",
+"designation": "Caisse monnaie",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56008",
+"designation": "Calculatrice de Poche",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56009",
+"designation": "Chaise de bureau",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56011",
+"designation": "Fauteuil de bureau",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56012",
+"designation": "Table bureau deux tiroirs",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56013",
+"designation": "Tableau planning",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56014",
+"designation": "Siège secrétaire",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56015",
+"designation": "Siège visiteur",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56016",
+"designation": "Table secrétaire",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56017",
+"designation": "Table d'examen gynécologique",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56018",
+"designation": "Tabouret métallique",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56019",
+"designation": "Papier à machine(ramette de 500 feuilles)",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56020",
+"designation": "dossier suspendu étroit lot de 50",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56021",
+"designation": "Chemise cartonnée (lot de 50)",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56022",
+"designation": "Dossier à sangles (lot de 20)",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56023",
+"designation": "Cahier 21 x 29,7 cm (par 10)",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56024",
+"designation": "Dotation petit matériel de bureau",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56025",
+"designation": "Boîtes d'archives (par 50)",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56026",
+"designation": "Classeurs à anneaux (par 10)",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56027",
+"designation": "Registres couverture cartonnée (par 5)",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56028",
+"designation": "Ecritoire à pinces",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56029",
+"designation": "Corbeille à courrier",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56030",
+"designation": "Corbeille à papier",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56031",
+"designation": "Cachet de la formation sanitaire",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56032",
+"designation": "Dateur avec support",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56033",
+"designation": "Planches murales planning familial",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56034",
+"designation": "Diagramme mural (poids/taille)",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56035",
+"designation": "Essuie-main coton (la paire)",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56036",
+"designation": "photocopieur de bureau a4",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56037",
+"designation": "Informatique",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56038",
+"designation": "lampe de bureau dactylo",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56039",
+"designation": "Machine à écrire, grand chariot",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56041",
+"designation": "calculatrice de bureau piles-secteur",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56042",
+"designation": "Agrafeuse de bureau avec 5000 agrafes",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "56043",
+"designation": "perforatrice de bureau",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "57001",
+"designation": "Balai, raclette, etc; (5 jeux)",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57002",
+"designation": "Bidon à eau",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57003",
+"designation": "Cuvette plastique (lave mains)",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57004",
+"designation": "Reserve d’eau",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57005",
+"designation": "Lampe tempête",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57006",
+"designation": "Pendule murale",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57007",
+"designation": "Groupe électrogène de secours / Panneaux solaires",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57008",
+"designation": "Incinérateur",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57009",
+"designation": "Moto tout terrain 125 CC",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57010",
+"designation": "Ambulance",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "LINGES ET EFFETS",
+"designation": "LINGES ET EFFETS",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57012",
+"designation": "Oreiller (paire)",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57013",
+"designation": "Paire de draps",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57014",
+"designation": "Taie d'oreiller (la paire)",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57015",
+"designation": "Couverture coton",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57016",
+"designation": "Blouse de coton couleur blanche, bleue, grise",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57017",
+"designation": "Salopette",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "Cuisine et restauration",
+"designation": "Cuisine et restauration",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57018",
+"designation": "Réchaud à pétrole 2 brûleurs à pression",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57019",
+"designation": "Plaque chauffante 2 feux",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57020",
+"designation": "Réchaud à gaz 2 feux",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57021",
+"designation": "Bouteille à gaz butane et détendeur",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "Nettoyage et entretien",
+"designation": "Nettoyage et entretien",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57022",
+"designation": "Poubelle inox 15 litres",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57023",
+"designation": "Chariot de ménage équipé",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57024",
+"designation": "Seau à anse 15 litres galvanisé",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57025",
+"designation": "Gants de ménages (assortis par 10 paires)",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57026",
+"designation": "Balais, pelles et serpillières (5 jeux)",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57027",
+"designation": "Seau à anse 12 litres plastique avec couvercle",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57028",
+"designation": "Chariot linge propre",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57029",
+"designation": "Chariot linge sale",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "Maintenance",
+"designation": "Maintenance",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57030",
+"designation": "Caisse à outils mécanique-plomberie de base",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57031",
+"designation": "Caisse à outils d'électricien de base",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57032",
+"designation": "Outillage menuisier de base (le lot)",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57033",
+"designation": "Outillage maçonnerie-peinture de base (le lot)",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57034",
+"designation": "Caisse à outils d'électronicien",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57035",
+"designation": "Outillage frigoriste",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "Outillage polyvalent",
+"designation": "Outillage polyvalent",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57036",
+"designation": "Extincteur",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57037",
+"designation": "Compresseur d'air, qualité médicale",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57038",
+"designation": "Chargeur de batterie",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57039",
+"designation": "Etau à base tournante",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57040",
+"designation": "Perceuse d'établi",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57041",
+"designation": "Lampe d'établi",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57042",
+"designation": "Fer à souder 200W",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57043",
+"designation": "Meule à affûter manuelle",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57044",
+"designation": "Audiovisuel et communication",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57045",
+"designation": "Dotation en matériel pédagogique comprenant : -1 vidéo-projecteur -1 téléviseur 25’’ -1 lecteur DVD -Des boîtes à images IEC",
+"service": "Equipements de Logistique et Equipements Generaux"
+},
+{
+"code": "57046",
+"designation": "Dotation en livres éducatifs",
+"service": "Equipements de Logistique et Equipements Generaux"
+}
+]
+},
+"CSI": {
+"label": "Centre de Santé Intégré",
+"equipements": [
+{
+"code": "61001",
+"designation": "Tensiomètre",
+"service": "Consultations/soins"
+},
+{
+"code": "61002",
+"designation": "Boîte à instruments vide",
+"service": "Consultations/soins"
+},
+{
+"code": "61003",
+"designation": "Ophtalmoscope",
+"service": "Consultations/soins"
+},
+{
+"code": "61004",
+"designation": "Table d’examen",
+"service": "Consultations/soins"
+},
+{
+"code": "61005",
+"designation": "Marteau reflexe",
+"service": "Consultations/soins"
+},
+{
+"code": "61006",
+"designation": "Stérilisateur à air chaud",
+"service": "Consultations/soins"
+},
+{
+"code": "61007",
+"designation": "Plaque chauffante",
+"service": "Consultations/soins"
+},
+{
+"code": "61008",
+"designation": "Bouilloire d’instruments",
+"service": "Consultations/soins"
+},
+{
+"code": "61009",
+"designation": "Chariot porte instruments",
+"service": "Consultations/soins"
+},
+{
+"code": "61010",
+"designation": "Escabeau",
+"service": "Consultations/soins"
+},
+{
+"code": "61011",
+"designation": "Mètre ruban",
+"service": "Consultations/soins"
+},
+{
+"code": "61012",
+"designation": "Otoscope",
+"service": "Consultations/soins"
+},
+{
+"code": "61013",
+"designation": "Pèse bébé + toise",
+"service": "Consultations/soins"
+},
+{
+"code": "61014",
+"designation": "Pèse personne avec toise",
+"service": "Consultations/soins"
+},
+{
+"code": "61015",
+"designation": "Aspirateur électrique double bocal",
+"service": "Consultations/soins"
+},
+{
+"code": "61016",
+"designation": "Plateau rectangulaire",
+"service": "Consultations/soins"
+},
+{
+"code": "61017",
+"designation": "Plateau réniforme",
+"service": "Consultations/soins"
+},
+{
+"code": "61018",
+"designation": "Potence porte sérum",
+"service": "Consultations/soins"
+},
+{
+"code": "61019",
+"designation": "Stéthoscope obstétrical",
+"service": "Consultations/soins"
+},
+{
+"code": "61020",
+"designation": "Stéthoscope double face",
+"service": "Consultations/soins"
+},
+{
+"code": "61021",
+"designation": "Table de soins",
+"service": "Consultations/soins"
+},
+{
+"code": "61022",
+"designation": "Table de petite chirurgie",
+"service": "Consultations/soins"
+},
+{
+"code": "61023",
+"designation": "Négatoscope",
+"service": "Consultations/soins"
+},
+{
+"code": "61024",
+"designation": "Trousse à pansements",
+"service": "Consultations/soins"
+},
+{
+"code": "61025",
+"designation": "Trousse chirurgicale ou boîte de petite chirurgie",
+"service": "Consultations/soins"
+},
+{
+"code": "61026",
+"designation": "Trousse de diagnostic infirmière ou boîte infirmière",
+"service": "Consultations/soins"
+},
+{
+"code": "61027",
+"designation": "Chariot à instruments",
+"service": "Consultations/soins"
+},
+{
+"code": "62001",
+"designation": "Accumulateurs de froid",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62002",
+"designation": "Bassin de lit",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62003",
+"designation": "Boc de lavement + canules",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62005",
+"designation": "Boîte à instruments",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62010",
+"designation": "Boîte à pansement",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62011",
+"designation": "Boîte à petite chirurgie",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62012",
+"designation": "Boîte d’accouchement",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62013",
+"designation": "Boîte gynécologique",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62014",
+"designation": "Brancard",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62015",
+"designation": "Brosse à ongles",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62017",
+"designation": "Diagramme poids-taille",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62019",
+"designation": "Glacière",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62020",
+"designation": "Lampe torche",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62021",
+"designation": "Lampe d'examen",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62026",
+"designation": "aspirateur a pédale",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62027",
+"designation": "Plaque à gaz à 2 foyers",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62030",
+"designation": "Porte vaccin PEV",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62032",
+"designation": "Réfrigérateur",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62033",
+"designation": "Respirateur manuel nouveau-né",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62034",
+"designation": "Spéculum vaginal",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62035",
+"designation": "Sphygmomanomètre adulte",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62036",
+"designation": "Stérilisateur à vapeur",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62039",
+"designation": "Tabouret à hauteur réglable",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62040",
+"designation": "Tambour à compresses",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62045",
+"designation": "Trousse de chirurgie d’intervention primaire",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62046",
+"designation": "Trousse de diagnostic infirmière",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62047",
+"designation": "Thermomètre de réfrigérateur",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62048",
+"designation": "Thermomètre médical",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62049",
+"designation": "Urinal masculin",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62050",
+"designation": "Test de Snellen",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62051",
+"designation": "Chaise dentaire complète avec compresseur",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62052",
+"designation": "Coagulassem",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62053",
+"designation": "Fœtoscope aluminium",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62054",
+"designation": "Fauteuil roulant",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62055",
+"designation": "Forceps (kit de 3)",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62056",
+"designation": "Haricot",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62057",
+"designation": "Laryngoscope à piles",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62058",
+"designation": "Otoscope à piles",
+"service": "Equipements Medicaux"
+},
+{
+"code": "66059",
+"designation": "Paires de ciseaux de mayo 18cm inox",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62060",
+"designation": "Pinces portes aiguilles 18cm inox",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62061",
+"designation": "Pisettes 500ml en plastique",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62062",
+"designation": "Porte pinces à inox",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62063",
+"designation": "Poubelle à pédale inox 16litres",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62064",
+"designation": "Poupinel de stérilisation 30 litres",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62065",
+"designation": "Spéculums en inox adulte",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62066",
+"designation": "Table à manger au lit",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62067",
+"designation": "Table d’accouchement avec étrier",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62068",
+"designation": "Tambours 125x105mm",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62069",
+"designation": "Tambour 24x16 cm",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62070",
+"designation": "Tensiomètre adulte standard",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62071",
+"designation": "Tensiomètre à mercure de table",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62072",
+"designation": "Tensiomètre Velcro pédiatrique",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62073",
+"designation": "Trousse ORL",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62074",
+"designation": "Toise pédiatrique",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62075",
+"designation": "Urinoir en plastique",
+"service": "Equipements Medicaux"
+},
+{
+"code": "62076",
+"designation": "Ventouse manuelle",
+"service": "Equipements Medicaux"
+},
+{
+"code": "63001",
+"designation": "Berceau",
+"service": "Mobilier Medical"
+},
+{
+"code": "63002",
+"designation": "Lit d'hospitalisation adulte standard avec relève buste",
+"service": "Mobilier Medical"
+},
+{
+"code": "63003",
+"designation": "Matelas recouverts de skaï",
+"service": "Mobilier Medical"
+},
+{
+"code": "63004",
+"designation": "Table de chevet",
+"service": "Mobilier Medical"
+},
+{
+"code": "63005",
+"designation": "Armoire de chevet laquée",
+"service": "Mobilier Medical"
+},
+{
+"code": "63006",
+"designation": "Table d’accouchement",
+"service": "Mobilier Medical"
+},
+{
+"code": "63007",
+"designation": "Table d'examen",
+"service": "Mobilier Medical"
+},
+{
+"code": "63008",
+"designation": "Paravent pour examen",
+"service": "Mobilier Medical"
+},
+{
+"code": "63009",
+"designation": "Baignoire en plastique (bébés)",
+"service": "Mobilier Medical"
+},
+{
+"code": "64001",
+"designation": "Autoclave vertical. Capacité 30 litres.",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64002",
+"designation": "Bac de coloration + portoir",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64003",
+"designation": "Cellule de numération (Malassez )",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64004",
+"designation": "Crayon de cire bleu (boite de 12)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64005",
+"designation": "Crayon de cire rouge (boite de 12)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64006",
+"designation": "Densimètre pour urine",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64007",
+"designation": "Distillateur d’eau 2 à 4 litres/heure",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64008",
+"designation": "Entonnoir plastique cannelé 100 ml",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64009",
+"designation": "Eprouvette graduée 100 ml",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64010",
+"designation": "Eprouvette graduée 500 ml",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64011",
+"designation": "Erlenmeyer 250 ml",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64012",
+"designation": "Laveur à pipettes, manuel",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64013",
+"designation": "Flacon pour réactif 1000 ml et 500 ml (2 de chaque)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64014",
+"designation": "Flacon pour réactif 250 ml",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64015",
+"designation": "Lamelles verre, pour hémocytomètre (boite de 100)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64016",
+"designation": "Hémocytomètre",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64017",
+"designation": "Boite de pétri en verre",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64018",
+"designation": "Balance électronique de précision",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64019",
+"designation": "Etuve bactériologique de labo 35 litres",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64020",
+"designation": "Centrifugeuse de table",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64021",
+"designation": "Centrifugeuse manuelle 4 tubes",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64022",
+"designation": "Coffret de rangement pour lames",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64023",
+"designation": "Compteur manuel de cellules",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64024",
+"designation": "Compteur totaliseur 6 unités",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64025",
+"designation": "Filtre à eau",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64026",
+"designation": "Hémoglobinomètre",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64027",
+"designation": "Lampe à alcool en verre",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64028",
+"designation": "Minuterie",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64029",
+"designation": "Agitateur Vibrant",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64030",
+"designation": "Anse de platine + manche",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64032",
+"designation": "Spectrophotomètre 300 à 900nm",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64033",
+"designation": "Panier pour tubes à essai",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64034",
+"designation": "Pince Stoddart pour tube à essai",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64035",
+"designation": "Pipette à dilution de Thoma GB",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64036",
+"designation": "Pipette à dilution de Thoma GR",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64037",
+"designation": "Pipette de 1 ml graduée",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64038",
+"designation": "Pipette de 10 ml graduée",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64039",
+"designation": "Pipette de 2 ml graduée",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64040",
+"designation": "Pipette de 5 ml graduée",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64041",
+"designation": "Pipette de Sahli",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64042",
+"designation": "Pipettes de Westergreen (par 6)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64043",
+"designation": "Pipettes jauges 10 ml (le jeu)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64044",
+"designation": "Pipette pasteur (B/250)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64045",
+"designation": "Thermomètre de laboratoire -10°C +110°C, P.0,1°C",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64046",
+"designation": "Poire en caoutchouc pour pipette 2 ml",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64047",
+"designation": "Rhésuscope",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64048",
+"designation": "Support pour 6 pipettes de Westergreen",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64049",
+"designation": "Tube à essai (boite de 100)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64050",
+"designation": "Tube gradué pour centrifugeuse manuelle",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64051",
+"designation": "Tube pour hémoglobimètre de Sahli",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64052",
+"designation": "Tubes à échantillons 20 ml (boite de 100)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64053",
+"designation": "Tubes hémolyse avec bouchon (B/50)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64054",
+"designation": "Tubes capillaires héparinisés (B/50)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64055",
+"designation": "Tube gradué pour centrifugeuse électrique",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64056",
+"designation": "Manuel OMS de laboratoire",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64057",
+"designation": "Microscope binoculaire",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64058",
+"designation": "Bain-marie 12 litres",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64059",
+"designation": "Appareil de Westengreen",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64061",
+"designation": "Pissette en plastique",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64061",
+"designation": "Bécher gradué",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64062",
+"designation": "Balance / Trébuchet de Laboratoire",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64063",
+"designation": "Glucomètre avec bandelettes",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64065",
+"designation": "Lamelles pour microscope (boite de 100)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64066",
+"designation": "Lames pour microscope (boite de 100)",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64067",
+"designation": "Loupe manuelle",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64068",
+"designation": "Micropipettes réglables",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64069",
+"designation": "Poire à pipeter lot de 10",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64070",
+"designation": "Portoir à tube à hémolyse",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64071",
+"designation": "Portoir de tube PVC 50 trous",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64072",
+"designation": "Egouttoir à Verrerie",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "64074",
+"designation": "Réfrigérateur Electricité/Pétrole environ 170 litres",
+"service": "Equipements de Laboratoire"
+},
+{
+"code": "65001",
+"designation": "Armoire de classement deux battants",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65002",
+"designation": "Banc à dossier",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65003",
+"designation": "Caisse monnaie",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65004",
+"designation": "Calculatrice de Poche",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65005",
+"designation": "Chaise de bureau",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65006",
+"designation": "Etagère de stockage",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65007",
+"designation": "Table bureau deux tiroirs",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65008",
+"designation": "Tableau planning",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65009",
+"designation": "Tabouret métallique",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65010",
+"designation": "Papier à machine",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65011",
+"designation": "dossier suspendu étroit lot de 50",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65012",
+"designation": "Chemise cartonnée (lot de 50)",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65013",
+"designation": "Dossier à sangles (lot de 20)",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65014",
+"designation": "Cahier 21 x 29,7 cm (par 10)",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65015",
+"designation": "Cinq stylo-billes noirs B/50",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65016",
+"designation": "Cinq stylo-billes rouge B/50",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65017",
+"designation": "Cinq stylo-billes bleu B/50",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65018",
+"designation": "Cinq stylo-billes vert B/50",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65019",
+"designation": "crayons à papier B/12",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65020",
+"designation": "Taille crayons",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65021",
+"designation": "Encre pour encrier",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65022",
+"designation": "Un cendrier verre",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65023",
+"designation": "Une règle",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65024",
+"designation": "Un support pour tampons",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65025",
+"designation": "encreurs",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65026",
+"designation": "Gomme",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65027",
+"designation": "Sous chemise",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65028",
+"designation": "Kutch",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65029",
+"designation": "Cutter",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65030",
+"designation": "Punaises boîte de 50",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65031",
+"designation": "Trombones 33 mm/1000 pièces",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65032",
+"designation": "ciseaux",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65033",
+"designation": "Scotch (2 rouleaux M/GM",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65034",
+"designation": "Boîtes d'archives (par 50)",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65035",
+"designation": "Classeurs à anneaux (par 10)",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65036",
+"designation": "Registres couverture cartonnée (par 5)",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65037",
+"designation": "Ecritoire à pinces",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65038",
+"designation": "Corbeille à courrier",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65039",
+"designation": "Imprimante laser 8 ppm",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65040",
+"designation": "Onduleur 1000VA)",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65041",
+"designation": "Corbeille à papier",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65042",
+"designation": "Cachet de la formation sanitaire",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65043",
+"designation": "Dateur avec support",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65044",
+"designation": "Planches murales planning familial",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65045",
+"designation": "Diagramme mural (poids/taille)",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65046",
+"designation": "Sous mains",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65047",
+"designation": "Essuie-main coton (la paire)",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65048",
+"designation": "photocopieur de bureau A4/A3",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65049",
+"designation": "Informatique",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65050",
+"designation": "lampe de bureau dactylo",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65051",
+"designation": "Machine à écrire, grand chariot",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65052",
+"designation": "calculatrice de bureau piles-secteur",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65053",
+"designation": "Agrafeuse de bureau avec 5000 agrafes",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "65054",
+"designation": "perforatrice de bureau",
+"service": "Materiels et Equipements de Bureau"
+},
+{
+"code": "66001",
+"designation": "Reserve d’eau",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66002",
+"designation": "Balai, raclette, pelles et serpillières. (5 jeux)",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66003",
+"designation": "Bidon à eau",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66004",
+"designation": "Cuvette plastique (lave mains)",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66005",
+"designation": "Lampe tempête",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66006",
+"designation": "Pendule murale",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66007",
+"designation": "Traitement des déchets hospitaliers",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66009",
+"designation": "Groupe électrogène de secours / Panneaux solaires",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66010",
+"designation": "Moto tout terrain 125 CC",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "",
+"designation": "LINGE ET EFFETS",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66011",
+"designation": "Oreiller (paire)",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66012",
+"designation": "draps",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66013",
+"designation": "Taie d'oreiller (la paire)",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66014",
+"designation": "Couverture coton",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66015",
+"designation": "Blouse de coton couleur blanche, bleue, grise",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66016",
+"designation": "Salopette",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "",
+"designation": "Cuisine et restauration",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66017",
+"designation": "Réchaud à pétrole 2 brûleurs à pression",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66018",
+"designation": "Plaque chauffante 2 feux",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66019",
+"designation": "Réchaud à gaz 2 feux",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66020",
+"designation": "Bouteille à gaz butane et détendeur",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "",
+"designation": "Nettoyage et entretien",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66021",
+"designation": "Poubelle inox 15 litres",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66022",
+"designation": "Chariot de ménage équipé",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66023",
+"designation": "Seau à anse 12 litres galvanisé",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66024",
+"designation": "Gants de ménages (assortis par 10 paires)",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66025",
+"designation": "Balais, pelles et serpillières (5 jeux)",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66026",
+"designation": "Seau à anse 12 litres plastique avec couvercle",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66027",
+"designation": "Chariot linge propre",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66028",
+"designation": "Chariot linge sale",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "",
+"designation": "Maintenance",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66029",
+"designation": "Caisse à outils mécanique-plomberie de base composée :",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66030",
+"designation": "Caisse à outils d'électricien de base",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66031",
+"designation": "Outillage menuisier de base (le lot)",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66032",
+"designation": "Outillage maçonnerie-peinture de base (le lot)",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66033",
+"designation": "Caisse à outils d'électronicien",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66034",
+"designation": "Outillage frigoriste",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "",
+"designation": "Outillage polyvalent",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66035",
+"designation": "Extincteur",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66036",
+"designation": "Compresseur d'air, qualité médicale",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66037",
+"designation": "Chargeur de batterie",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66038",
+"designation": "Etau à base tournante",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66039",
+"designation": "Perceuse d'établi",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66040",
+"designation": "Lampe d'établi",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66041",
+"designation": "Fer à souder 200W",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66042",
+"designation": "Meule à affûter manuelle",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "",
+"designation": "Audiovisuel et communication",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66043",
+"designation": "Dotation en matériel pédagogique comprenant : -1 vidéo-projecteur -1 téléviseur 25’’ -1 lecteur DVD -Des boîtes à images IEC",
+"service": "Equipements de Logistique et Equipements"
+},
+{
+"code": "66044",
+"designation": "Dotation en livres éducatifs",
+"service": "Equipements de Logistique et Equipements"
+}
+]
+}
+}

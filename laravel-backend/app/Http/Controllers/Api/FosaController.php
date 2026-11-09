@@ -280,7 +280,7 @@ class FosaController extends Controller
             foreach ($camelToSnake as $camel => $snake) {
                 if (array_key_exists($camel, $input)) { $input[$snake] = $input[$camel]; unset($input[$camel]); }
             }
-            $boolFields = ['est_ferme', 'a_cloture', 'a_titre_foncier', 'connectee_electricite', 'fonction'];
+            $boolFields = ['est_ferme', 'a_cloture', 'a_titre_foncier', 'connectee_electricite', 'fonction', 'site'];
             foreach ($boolFields as $field) {
                 if (isset($input[$field])) {
                     $input[$field] = filter_var($input[$field], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ? 1 : 0;
@@ -309,6 +309,7 @@ class FosaController extends Controller
                 'a_cloture' => 'nullable|boolean',
                 'a_titre_foncier' => 'nullable|boolean',
                 'connectee_electricite' => 'nullable|boolean',
+                'site' => 'nullable|boolean',
                 'type_courant' => 'nullable|string|max:20',
             ]);
 
@@ -434,7 +435,7 @@ class FosaController extends Controller
             }
 
             // Convertir les strings "true"/"false" en vrais booléens (FormData envoie des strings)
-            $boolFields = ['est_ferme', 'a_cloture', 'a_titre_foncier', 'connectee_electricite', 'fonction'];
+            $boolFields = ['est_ferme', 'a_cloture', 'a_titre_foncier', 'connectee_electricite', 'fonction', 'site'];
             foreach ($boolFields as $field) {
                 if (isset($input[$field])) {
                     $input[$field] = filter_var($input[$field], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ? 1 : 0;
@@ -464,6 +465,7 @@ class FosaController extends Controller
                 'a_cloture' => 'nullable|boolean',
                 'a_titre_foncier' => 'nullable|boolean',
                 'connectee_electricite' => 'nullable|boolean',
+                'site' => 'nullable|boolean',
                 'type_courant' => 'nullable|string|max:20',
                 'maintenance_priority' => 'nullable|string|max:20',
                 'maintenance_issues' => 'nullable|string',

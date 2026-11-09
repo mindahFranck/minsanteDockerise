@@ -25,6 +25,19 @@ class EquipebioController extends CrudController
         'date_acquisition' => 'nullable|date',
         'service_id' => 'nullable|exists:services,id',
         'description' => 'nullable|string',
+        // Champs recommandation ImmoSanté
+        'marque' => 'nullable|string|max:100',
+        'modele' => 'nullable|string|max:100',
+        'numero_serie' => 'nullable|string|max:100',
+        'annee_fabrication' => 'nullable|integer|min:1900|max:2100',
+        'source_acquisition' => 'nullable|string|in:BIP,PTF,DON,ACHAT',
+        'contrat_maintenance' => 'nullable|boolean',
+        'type_maintenance' => 'nullable|string|max:50',
+        'date_derniere_maintenance' => 'nullable|date',
+        'date_prochaine_maintenance' => 'nullable|date',
+        'duree_garantie' => 'nullable|string|max:50',
+        'date_fin_garantie' => 'nullable|date',
+        'categorie_fosa' => 'nullable|string|in:HR,HD,CMA,CSI',
     ];
 
     /**

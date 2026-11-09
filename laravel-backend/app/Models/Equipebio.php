@@ -7,12 +7,27 @@ use Illuminate\Database\Eloquent\Model;
 class Equipebio extends Model
 {
 
-    // `fonction` porte l'état de fonctionnement (la table n'a pas de colonne `etat`, voir EquipebioController).
-    protected $fillable = ['nom', 'type', 'quantite', 'fonction', 'date_acquisition', 'service_id', 'description'];
+    // `fonction` porte l'état de fonctionnement historique ; une colonne `etat`
+    // dédiée a été ajoutée (recommandation ImmoSanté), voir EquipebioController.
+    protected $fillable = [
+        'nom', 'type', 'quantite', 'fonction', 'date_acquisition', 'service_id', 'description',
+        // Champs recommandation ImmoSanté
+        'marque', 'modele', 'numero_serie', 'annee_fabrication', 'source_acquisition',
+        'etat', 'contrat_maintenance', 'type_maintenance', 'date_derniere_maintenance',
+        'date_prochaine_maintenance', 'duree_garantie', 'date_fin_garantie', 'categorie_fosa',
+    ];
 
     protected function casts(): array
     {
-        return ['quantite' => 'integer', 'date_acquisition' => 'date'];
+        return [
+            'quantite' => 'integer',
+            'date_acquisition' => 'date',
+            'annee_fabrication' => 'integer',
+            'contrat_maintenance' => 'boolean',
+            'date_derniere_maintenance' => 'date',
+            'date_prochaine_maintenance' => 'date',
+            'date_fin_garantie' => 'date',
+        ];
     }
 
     public function service() { return $this->belongsTo(Service::class); }

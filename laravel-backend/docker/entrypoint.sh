@@ -12,4 +12,9 @@ chown -R www-data:www-data storage bootstrap/cache
 
 su -s /bin/sh www-data -c "php artisan optimize:clear" || true
 
+# Synchronisation idempotente et NON destructive du schéma (recommandation ImmoSanté) :
+# ajoute uniquement les colonnes manquantes via Schema::hasColumn. Ne bloque pas le
+# démarrage si la base n'est pas joignable (|| true) — réessayée au prochain boot.
+su -s /bin/sh www-data -c "php artisan immosante:sync-schema" || true
+
 exec "$@"

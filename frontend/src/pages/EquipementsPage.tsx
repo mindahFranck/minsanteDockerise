@@ -14,7 +14,29 @@ import { usePermissions } from "../hooks/usePermissions"
 import { useFosaServices, useServicesForFosa } from "../hooks/useFosaServices"
 import SearchableSelect from "../components/SearchableSelect"
 import { exportEquipementsToPDF, exportEquipementsToExcel } from "../utils/pageExports"
-import { PageHeader, FilterBar, SearchInput, toast } from "../components/ui"
+import { PageHeader, FilterBar, SearchInput, Badge, toast } from "../components/ui"
+
+/** Valeurs par défaut du formulaire équipement (avec champs recommandation). */
+const EMPTY_FORM = {
+  nom: "",
+  type: "",
+  dateAcquisition: "",
+  fosaId: 0,
+  serviceId: 0,
+  marque: "",
+  modele: "",
+  numeroSerie: "",
+  anneeFabrication: "" as number | "",
+  sourceAcquisition: "",
+  etat: "",
+  contratMaintenance: false,
+  typeMaintenance: "",
+  dateDerniereMaintenance: "",
+  dateProchaineMaintenance: "",
+  dureeGarantie: "",
+  dateFinGarantie: "",
+}
+type FormState = typeof EMPTY_FORM
 
 /** Squelette du tableau pendant le chargement. */
 function TableSkeleton() {
@@ -53,13 +75,7 @@ export default function EquipementsPage() {
     equipement: Equipement | null
   }>({ isOpen: false, equipement: null })
 
-  const [formData, setFormData] = useState({
-    nom: "",
-    type: "",
-    dateAcquisition: "",
-    fosaId: 0,
-    serviceId: 0,
-  })
+  const [formData, setFormData] = useState<FormState>({ ...EMPTY_FORM })
 
   useEffect(() => {
     loadData()
@@ -103,14 +119,22 @@ export default function EquipementsPage() {
     }
     setSubmitting(true)
     try {
+      const payload: any = { ...formData }
+      payload.anneeFabrication = formData.anneeFabrication === "" ? null : Number(formData.anneeFabrication)
+      for (const k of [
+        "type", "dateAcquisition", "marque", "modele", "numeroSerie", "sourceAcquisition", "etat",
+        "typeMaintenance", "dateDerniereMaintenance", "dateProchaineMaintenance", "dureeGarantie", "dateFinGarantie",
+      ]) {
+        if (payload[k] === "") payload[k] = null
+      }
       if (editingItem) {
-        await equipementService.update(editingItem.id, formData)
+        await equipementService.update(editingItem.id, payload)
       } else {
-        await equipementService.create(formData)
+        await equipementService.create(payload)
       }
       setIsModalOpen(false)
       setEditingItem(null)
-      setFormData({ nom: "", type: "", dateAcquisition: "", fosaId: 0, serviceId: 0 })
+      setFormData({ ...EMPTY_FORM })
       loadData()
     } catch (error: any) {
       console.error("Error saving:", error)
@@ -125,10 +149,22 @@ export default function EquipementsPage() {
     const svc = (item as any).service
     setFormData({
       nom: item.nom || "",
-      type: item.type,
-      dateAcquisition: item.dateAcquisition.split("T")[0],
+      type: item.type || "",
+      dateAcquisition: item.dateAcquisition?.split("T")[0] || "",
       fosaId: svc?.fosaId ?? svc?.fosa_id ?? 0,
       serviceId: item.serviceId,
+      marque: item.marque || "",
+      modele: item.modele || "",
+      numeroSerie: item.numeroSerie || "",
+      anneeFabrication: item.anneeFabrication ?? "",
+      sourceAcquisition: item.sourceAcquisition || "",
+      etat: item.etat || "",
+      contratMaintenance: !!item.contratMaintenance,
+      typeMaintenance: item.typeMaintenance || "",
+      dateDerniereMaintenance: item.dateDerniereMaintenance?.split("T")[0] || "",
+      dateProchaineMaintenance: item.dateProchaineMaintenance?.split("T")[0] || "",
+      dureeGarantie: item.dureeGarantie || "",
+      dateFinGarantie: item.dateFinGarantie?.split("T")[0] || "",
     })
     setIsModalOpen(true)
   }
@@ -156,10 +192,17 @@ export default function EquipementsPage() {
     { key: "id", label: "ID" },
     { key: "nom", label: "Nom" },
     { key: "type", label: "Type" },
+    { key: "marque", label: "Marque", render: (e: Equipement) => e.marque || "—" },
+    {
+      key: "etat",
+      label: "État",
+      render: (e: Equipement) => (e.etat ? <Badge variant={e.etat === "Bon" ? "success" : e.etat === "Mauvais" ? "danger" : "warning"} withDot>{e.etat}</Badge> : "—"),
+    },
+    { key: "sourceAcquisition", label: "Source", render: (e: Equipement) => e.sourceAcquisition || "—" },
     {
       key: "dateAcquisition",
-      label: "Date d'acquisition",
-      render: (e: Equipement) => new Date(e.dateAcquisition).toLocaleDateString("fr-FR"),
+      label: "Acquisition",
+      render: (e: Equipement) => (e.dateAcquisition ? new Date(e.dateAcquisition).toLocaleDateString("fr-FR") : "—"),
     },
     { key: "service", label: "Service", render: (e: Equipement) => e.service?.nom || "-" },
   ]
@@ -184,7 +227,7 @@ export default function EquipementsPage() {
             <button
               onClick={() => {
                 setEditingItem(null)
-                setFormData({ nom: "", type: "", dateAcquisition: "", fosaId: 0, serviceId: 0 })
+                setFormData({ ...EMPTY_FORM })
                 setIsModalOpen(true)
               }}
               className="btn btn-primary"
@@ -301,6 +344,88 @@ export default function EquipementsPage() {
               required
             />
           </div>
+          {/* Identification et acquisition */}
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <label className="label">Marque</label>
+              <input type="text" value={formData.marque} onChange={(e) => setFormData({ ...formData, marque: e.target.value })} className="input" />
+            </div>
+            <div>
+              <label className="label">Modèle</label>
+              <input type="text" value={formData.modele} onChange={(e) => setFormData({ ...formData, modele: e.target.value })} className="input" />
+            </div>
+            <div>
+              <label className="label">N° de série</label>
+              <input type="text" value={formData.numeroSerie} onChange={(e) => setFormData({ ...formData, numeroSerie: e.target.value })} className="input" />
+            </div>
+            <div>
+              <label className="label">Année de fabrication</label>
+              <input
+                type="number" min="1900" max="2100"
+                value={formData.anneeFabrication}
+                onChange={(e) => setFormData({ ...formData, anneeFabrication: e.target.value === "" ? "" : Number(e.target.value) })}
+                className="input"
+              />
+            </div>
+            <div>
+              <label className="label">Source d'acquisition</label>
+              <select value={formData.sourceAcquisition} onChange={(e) => setFormData({ ...formData, sourceAcquisition: e.target.value })} className="input">
+                <option value="">—</option>
+                <option value="BIP">BIP</option>
+                <option value="PTF">PTF</option>
+                <option value="DON">DON</option>
+                <option value="ACHAT">ACHAT</option>
+              </select>
+            </div>
+            <div>
+              <label className="label">État</label>
+              <select value={formData.etat} onChange={(e) => setFormData({ ...formData, etat: e.target.value })} className="input">
+                <option value="">—</option>
+                <option value="Bon">Bon</option>
+                <option value="Moyen">Moyen</option>
+                <option value="Mauvais">Mauvais</option>
+                <option value="Hors service">Hors service</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Maintenance et garantie */}
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="flex items-center gap-2 pt-6">
+              <input
+                id="eqContratMaintenance" type="checkbox"
+                checked={formData.contratMaintenance}
+                onChange={(e) => setFormData({ ...formData, contratMaintenance: e.target.checked })}
+                className="size-4 rounded border-gray-300"
+              />
+              <label htmlFor="eqContratMaintenance" className="text-sm text-gray-700">Sous contrat de maintenance</label>
+            </div>
+            <div>
+              <label className="label">Type de maintenance</label>
+              <select value={formData.typeMaintenance} onChange={(e) => setFormData({ ...formData, typeMaintenance: e.target.value })} className="input">
+                <option value="">—</option>
+                <option value="Préventive">Préventive</option>
+                <option value="Curative">Curative</option>
+              </select>
+            </div>
+            <div>
+              <label className="label">Durée de garantie</label>
+              <input type="text" value={formData.dureeGarantie} onChange={(e) => setFormData({ ...formData, dureeGarantie: e.target.value })} className="input" placeholder="Ex: 24 mois" />
+            </div>
+            <div>
+              <label className="label">Dernière maintenance</label>
+              <input type="date" value={formData.dateDerniereMaintenance} onChange={(e) => setFormData({ ...formData, dateDerniereMaintenance: e.target.value })} className="input" />
+            </div>
+            <div>
+              <label className="label">Prochaine maintenance</label>
+              <input type="date" value={formData.dateProchaineMaintenance} onChange={(e) => setFormData({ ...formData, dateProchaineMaintenance: e.target.value })} className="input" />
+            </div>
+            <div>
+              <label className="label">Fin de garantie</label>
+              <input type="date" value={formData.dateFinGarantie} onChange={(e) => setFormData({ ...formData, dateFinGarantie: e.target.value })} className="input" />
+            </div>
+          </div>
+
           <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
             <button
               type="button"

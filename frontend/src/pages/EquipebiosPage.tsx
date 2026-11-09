@@ -15,6 +15,31 @@ import SearchableSelect from "../components/SearchableSelect"
 import { exportGenericToPDF, exportGenericToExcel } from "../utils/exportUtils"
 import { PageHeader, StatCard, FilterBar, SearchInput, Badge, formatNumber, toast } from "../components/ui"
 import type { BadgeVariant } from "../components/ui"
+import { CATEGORIES_FOSA, devinerCategorie, loadCatalogue, type CatalogueItem } from "../data/catalogue"
+
+/** Valeurs par défaut des nouveaux champs d'un équipement biomédical. */
+const EMPTY_FORM = {
+  nom: "",
+  fosaId: 0,
+  serviceId: 0,
+  type: "",
+  quantite: 1,
+  etat: "Bon",
+  dateAcquisition: new Date().toISOString().split("T")[0],
+  categorieFosa: "",
+  marque: "",
+  modele: "",
+  numeroSerie: "",
+  anneeFabrication: "" as number | "",
+  sourceAcquisition: "",
+  contratMaintenance: false,
+  typeMaintenance: "",
+  dateDerniereMaintenance: "",
+  dateProchaineMaintenance: "",
+  dureeGarantie: "",
+  dateFinGarantie: "",
+}
+type FormState = typeof EMPTY_FORM
 
 /** Couleur du badge selon l'état de l'équipement. */
 function etatVariant(etat?: string): BadgeVariant {
@@ -76,15 +101,10 @@ export default function EquipebiosPage() {
   // Cascade FOSA -> Services pour le formulaire
   const { fosas, services: formServices, loadServicesForFosa } = useFosaServices()
 
-  const [formData, setFormData] = useState({
-    nom: "",
-    fosaId: 0,
-    serviceId: 0,
-    type: "",
-    quantite: 1,
-    etat: "Bon",
-    dateAcquisition: new Date().toISOString().split("T")[0],
-  })
+  const [formData, setFormData] = useState<FormState>({ ...EMPTY_FORM })
+
+  // Liste standard d'équipements de la catégorie FOSA choisie (chargée à la demande)
+  const [catalogueItems, setCatalogueItems] = useState<CatalogueItem[]>([])
 
   useEffect(() => {
     loadEquipebios()
@@ -99,6 +119,34 @@ export default function EquipebiosPage() {
   useEffect(() => {
     loadFilterServices(filterFosaId)
   }, [filterFosaId, loadFilterServices])
+
+  // Déduit la catégorie du catalogue depuis la FOSA choisie (si non définie)
+  useEffect(() => {
+    if (!formData.fosaId) return
+    const f = fosas.find((x) => x.id === formData.fosaId)
+    const cat = devinerCategorie((f as any)?.catRec ?? (f as any)?.type)
+    if (cat && !formData.categorieFosa) {
+      setFormData((prev) => ({ ...prev, categorieFosa: cat }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.fosaId, fosas])
+
+  // Charge la liste standard de la catégorie choisie
+  useEffect(() => {
+    let annule = false
+    if (!formData.categorieFosa) {
+      setCatalogueItems([])
+      return
+    }
+    loadCatalogue()
+      .then((cat) => {
+        if (!annule) setCatalogueItems(cat[formData.categorieFosa]?.equipements ?? [])
+      })
+      .catch(() => setCatalogueItems([]))
+    return () => {
+      annule = true
+    }
+  }, [formData.categorieFosa])
 
   const loadEquipebios = async () => {
     try {
@@ -130,10 +178,20 @@ export default function EquipebiosPage() {
     }
     setSubmitting(true)
     try {
+      // Nettoyage : les chaînes vides deviennent null, l'année un entier ou null.
+      const payload: any = { ...formData }
+      payload.anneeFabrication = formData.anneeFabrication === "" ? null : Number(formData.anneeFabrication)
+      for (const k of [
+        "type", "categorieFosa", "marque", "modele", "numeroSerie", "sourceAcquisition",
+        "typeMaintenance", "dateDerniereMaintenance", "dateProchaineMaintenance",
+        "dureeGarantie", "dateFinGarantie",
+      ]) {
+        if (payload[k] === "") payload[k] = null
+      }
       if (editingEquipebio) {
-        await equipebioService.update(editingEquipebio.id, formData)
+        await equipebioService.update(editingEquipebio.id, payload)
       } else {
-        await equipebioService.create(formData)
+        await equipebioService.create(payload)
       }
       setIsModalOpen(false)
       setEditingEquipebio(null)
@@ -148,15 +206,7 @@ export default function EquipebiosPage() {
   }
 
   const resetForm = () => {
-    setFormData({
-      nom: "",
-      fosaId: 0,
-      serviceId: 0,
-      type: "",
-      quantite: 1,
-      etat: "Bon",
-      dateAcquisition: new Date().toISOString().split("T")[0],
-    })
+    setFormData({ ...EMPTY_FORM, dateAcquisition: new Date().toISOString().split("T")[0] })
   }
 
   const handleEdit = (equipebio: Equipebio) => {
@@ -171,6 +221,18 @@ export default function EquipebiosPage() {
       quantite: equipebio.quantite || 1,
       etat: equipebio.etat || "Bon",
       dateAcquisition: equipebio.dateAcquisition?.split("T")[0] || new Date().toISOString().split("T")[0],
+      categorieFosa: equipebio.categorieFosa || "",
+      marque: equipebio.marque || "",
+      modele: equipebio.modele || "",
+      numeroSerie: equipebio.numeroSerie || "",
+      anneeFabrication: equipebio.anneeFabrication ?? "",
+      sourceAcquisition: equipebio.sourceAcquisition || "",
+      contratMaintenance: !!equipebio.contratMaintenance,
+      typeMaintenance: equipebio.typeMaintenance || "",
+      dateDerniereMaintenance: equipebio.dateDerniereMaintenance?.split("T")[0] || "",
+      dateProchaineMaintenance: equipebio.dateProchaineMaintenance?.split("T")[0] || "",
+      dureeGarantie: equipebio.dureeGarantie || "",
+      dateFinGarantie: equipebio.dateFinGarantie?.split("T")[0] || "",
     })
     setIsModalOpen(true)
   }
@@ -365,6 +427,50 @@ export default function EquipebiosPage() {
             </div>
           </div>
 
+          {/* Choix dans la liste standard d'équipements par catégorie de FOSA */}
+          <div className="rounded-xl border border-brand-100 bg-brand-50/40 p-3">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="label">Catégorie de FOSA</label>
+                <select
+                  value={formData.categorieFosa}
+                  onChange={(e) => setFormData({ ...formData, categorieFosa: e.target.value })}
+                  className="input"
+                >
+                  <option value="">— Choisir une catégorie —</option>
+                  {CATEGORIES_FOSA.map((c) => (
+                    <option key={c.code} value={c.code}>{c.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="label">Équipement standard</label>
+                <SearchableSelect
+                  options={catalogueItems.map((it, i) => ({
+                    id: i,
+                    label: it.code ? `${it.designation} (${it.service})` : `${it.designation} (${it.service})`,
+                  }))}
+                  value={null}
+                  onChange={(v) => {
+                    const it = v != null ? catalogueItems[Number(v)] : undefined
+                    if (it) setFormData((prev) => ({ ...prev, nom: it.designation, type: prev.type || it.service }))
+                  }}
+                  placeholder={
+                    formData.categorieFosa
+                      ? catalogueItems.length
+                        ? "Rechercher dans la liste standard…"
+                        : "Chargement…"
+                      : "Choisir une catégorie d'abord"
+                  }
+                  disabled={!formData.categorieFosa || !catalogueItems.length}
+                />
+              </div>
+            </div>
+            <p className="mt-2 text-xs text-gray-500">
+              Choisir un équipement pré-remplit le nom (liste standard MINSANTÉ). Il reste modifiable.
+            </p>
+          </div>
+
           <div>
             <label className="label">FOSA *</label>
             <SearchableSelect
@@ -430,6 +536,78 @@ export default function EquipebiosPage() {
                 onChange={(e) => setFormData({ ...formData, dateAcquisition: e.target.value })}
                 className="input"
               />
+            </div>
+          </div>
+
+          {/* Identification et acquisition */}
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <label className="label">Marque</label>
+              <input type="text" value={formData.marque} onChange={(e) => setFormData({ ...formData, marque: e.target.value })} className="input" />
+            </div>
+            <div>
+              <label className="label">Modèle</label>
+              <input type="text" value={formData.modele} onChange={(e) => setFormData({ ...formData, modele: e.target.value })} className="input" />
+            </div>
+            <div>
+              <label className="label">N° de série</label>
+              <input type="text" value={formData.numeroSerie} onChange={(e) => setFormData({ ...formData, numeroSerie: e.target.value })} className="input" />
+            </div>
+            <div>
+              <label className="label">Année de fabrication</label>
+              <input
+                type="number" min="1900" max="2100"
+                value={formData.anneeFabrication}
+                onChange={(e) => setFormData({ ...formData, anneeFabrication: e.target.value === "" ? "" : Number(e.target.value) })}
+                className="input"
+              />
+            </div>
+            <div>
+              <label className="label">Source d'acquisition</label>
+              <select value={formData.sourceAcquisition} onChange={(e) => setFormData({ ...formData, sourceAcquisition: e.target.value })} className="input">
+                <option value="">—</option>
+                <option value="BIP">BIP</option>
+                <option value="PTF">PTF</option>
+                <option value="DON">DON</option>
+                <option value="ACHAT">ACHAT</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Maintenance et garantie */}
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="flex items-center gap-2 pt-6">
+              <input
+                id="contratMaintenance" type="checkbox"
+                checked={formData.contratMaintenance}
+                onChange={(e) => setFormData({ ...formData, contratMaintenance: e.target.checked })}
+                className="size-4 rounded border-gray-300"
+              />
+              <label htmlFor="contratMaintenance" className="text-sm text-gray-700">Sous contrat de maintenance</label>
+            </div>
+            <div>
+              <label className="label">Type de maintenance</label>
+              <select value={formData.typeMaintenance} onChange={(e) => setFormData({ ...formData, typeMaintenance: e.target.value })} className="input">
+                <option value="">—</option>
+                <option value="Préventive">Préventive</option>
+                <option value="Curative">Curative</option>
+              </select>
+            </div>
+            <div>
+              <label className="label">Durée de garantie</label>
+              <input type="text" value={formData.dureeGarantie} onChange={(e) => setFormData({ ...formData, dureeGarantie: e.target.value })} className="input" placeholder="Ex: 24 mois" />
+            </div>
+            <div>
+              <label className="label">Dernière maintenance</label>
+              <input type="date" value={formData.dateDerniereMaintenance} onChange={(e) => setFormData({ ...formData, dateDerniereMaintenance: e.target.value })} className="input" />
+            </div>
+            <div>
+              <label className="label">Prochaine maintenance</label>
+              <input type="date" value={formData.dateProchaineMaintenance} onChange={(e) => setFormData({ ...formData, dateProchaineMaintenance: e.target.value })} className="input" />
+            </div>
+            <div>
+              <label className="label">Fin de garantie</label>
+              <input type="date" value={formData.dateFinGarantie} onChange={(e) => setFormData({ ...formData, dateFinGarantie: e.target.value })} className="input" />
             </div>
           </div>
 

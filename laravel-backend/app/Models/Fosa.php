@@ -15,7 +15,7 @@ class Fosa extends Model
         'nom', 'type', 'capacite_lits', 'est_ferme', 'situation', 'image',
         'org_unit', 'fonction', 'statut_rec', 'cat_rec', 'nom_directeur',
         'arrondissement_id', 'airesante_id', 'longitude', 'latitude', 'geom',
-        'a_cloture', 'a_titre_foncier', 'connectee_electricite', 'type_courant',
+        'a_cloture', 'a_titre_foncier', 'connectee_electricite', 'type_courant', 'site',
         'last_inspection', 'next_inspection', 'maintenance_priority', 'maintenance_issues',
         'telephone', 'email', 'responsable_nom', 'responsable_telephone',
     ];
@@ -29,6 +29,7 @@ class Fosa extends Model
             'a_cloture' => 'boolean',
             'a_titre_foncier' => 'boolean',
             'connectee_electricite' => 'boolean',
+            'site' => 'boolean',
             'latitude' => 'float',
             'longitude' => 'float',
             'last_inspection' => 'date',

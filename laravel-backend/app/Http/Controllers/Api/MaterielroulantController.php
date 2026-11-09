@@ -36,6 +36,11 @@ class MaterielroulantController extends CrudController
         'fonction_utilisateur' => 'nullable|string|max:200',
         'energie' => 'nullable|string|max:50',
         'financement' => 'nullable|string|max:200',
+        // Champs recommandation ImmoSanté
+        'image' => 'nullable|string|max:500',
+        'nombre_places' => 'nullable|integer|min:0',
+        'source_acquisition' => 'nullable|string|in:BIP,PTF,ACHAT,DON',
+        'puissance_fiscale' => 'nullable|integer|min:0',
     ];
 
     protected function camelizeKeys(array $item): array
@@ -124,6 +129,7 @@ class MaterielroulantController extends CrudController
      */
     public function store(\Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
     {
+        $this->stashImage($request, null);
         return parent::store($request);
     }
 
@@ -152,7 +158,28 @@ class MaterielroulantController extends CrudController
      */
     public function update(\Illuminate\Http\Request $request, int $id): \Illuminate\Http\JsonResponse
     {
+        $existing = Materielroulant::find($id);
+        $this->stashImage($request, $existing?->image);
         return parent::update($request, $id);
+    }
+
+    /**
+     * Stocke l'image du véhicule si un fichier est envoyé (multipart) et
+     * remplace la valeur de `image` par le chemin enregistré, pour que la
+     * validation (string) et le mass-assignment du parent fonctionnent.
+     */
+    private function stashImage(\Illuminate\Http\Request $request, ?string $oldImage): void
+    {
+        if (!$request->hasFile('image')) {
+            return;
+        }
+        $path = $request->file('image')->store('materielroulants', 'public');
+        if ($path) {
+            if ($oldImage) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($oldImage);
+            }
+            $request->merge(['image' => $path]);
+        }
     }
 
     /**

@@ -331,6 +331,8 @@ export interface Fosa {
   aTitreFoncier?: boolean;
   connecteeElectricite?: boolean;
   typeCourant?: string;
+  /** La FOSA fonctionne-t-elle sur son site de création ? (recommandation ImmoSanté) */
+  site?: boolean;
 
   // Champs de maintenance
   lastInspection?: string;
@@ -409,26 +411,50 @@ export interface Personnel {
   updatedAt?: string;
 }
 
-export interface Equipement {
+/** Source d'acquisition d'un bien (recommandation ImmoSanté). */
+export type SourceAcquisition = "BIP" | "PTF" | "DON" | "ACHAT";
+
+/** Champs communs d'acquisition / maintenance / garantie des équipements. */
+export interface EquipementCommonFields {
+  marque?: string;
+  modele?: string;
+  numeroSerie?: string;
+  anneeFabrication?: number;
+  sourceAcquisition?: SourceAcquisition | string;
+  etat?: string;
+  contratMaintenance?: boolean;
+  typeMaintenance?: string;
+  dateDerniereMaintenance?: string;
+  dateProchaineMaintenance?: string;
+  dureeGarantie?: string;
+  dateFinGarantie?: string;
+}
+
+export interface Equipement extends EquipementCommonFields {
   id: number;
   nom?: string;
   type?: string;
   dateAcquisition?: string;
   serviceId: number;
   service?: Service;
+  /** FOSA propriétaire (via le service), renvoyée par l'API. */
+  fosaId?: number | null;
+  fosaNom?: string | null;
+  fosa?: { id: number; nom: string | null } | null;
   createdAt?: string;
   updatedAt?: string;
 }
 
-export interface Equipebio {
+export interface Equipebio extends EquipementCommonFields {
   id: number;
   nom?: string;
   type?: string;
   quantite?: number;
-  etat?: string;
   dateAcquisition?: string;
   serviceId: number;
   service?: Service;
+  /** Catégorie de FOSA pour le choix dans la liste standard (HR|HD|CMA|CSI). */
+  categorieFosa?: string;
   /** FOSA propriétaire (via le service), renvoyée par l'API. */
   fosaId?: number | null;
   fosaNom?: string | null;
@@ -448,6 +474,16 @@ export interface Materielroulant {
   etat?: string;
   quantite?: number;
   fosaId: number;
+  // Champs recommandation ImmoSanté
+  image?: string;
+  nombrePlaces?: number;
+  sourceAcquisition?: string;
+  puissanceFiscale?: number;
+  usage?: string;
+  code?: string;
+  typeVehicule?: string;
+  energie?: string;
+  immatriculation?: string;
   /** Nom de la FOSA propriétaire, renvoyé par l'API. */
   fosaNom?: string | null;
   fosa?: Fosa;

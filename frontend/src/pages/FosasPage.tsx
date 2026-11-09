@@ -72,6 +72,8 @@ const normalizeFosaData = (fosaData: any): Fosa => {
     aTitreFoncier: Boolean(fosaData.aTitreFoncier),
     connecteeElectricite: Boolean(fosaData.connecteeElectricite),
     typeCourant: fosaData.typeCourant || '',
+    // La FOSA fonctionne-t-elle sur son site de création ? (défaut : oui)
+    site: Boolean(fosaData.site !== undefined ? fosaData.site : true),
 
     // Relations
     arrondissement: fosaData.arrondissement || null,
@@ -188,6 +190,7 @@ export default function FosasPage() {
     aTitreFoncier: false,
     connecteeElectricite: false,
     typeCourant: "",
+    site: true,
     // Nouveaux champs (Page 4 du document)
     orgUnit: "",
     fonction: true,
@@ -378,6 +381,7 @@ export default function FosasPage() {
       aTitreFoncier: false,
       connecteeElectricite: false,
       typeCourant: "",
+      site: true,
       orgUnit: "",
       fonction: true,
       statutRec: "",
@@ -439,6 +443,7 @@ export default function FosasPage() {
       aTitreFoncier: item.aTitreFoncier || false,
       connecteeElectricite: item.connecteeElectricite || false,
       typeCourant: item.typeCourant || "",
+      site: item.site !== undefined ? Boolean(item.site) : true,
       orgUnit: item.orgUnit || "",
       fonction: item.fonction !== undefined ? item.fonction : true,
       statutRec: item.statutRec || "",
@@ -602,6 +607,9 @@ export default function FosasPage() {
   const kpiOuvertes = allFilteredFosas.filter((f) => !f.estFerme).length
   const kpiFermees = totalFiltered - kpiOuvertes
   const kpiElectrifiees = allFilteredFosas.filter((f) => f.connecteeElectricite).length
+  // Recommandation ImmoSanté : FOSA sécurisées (clôture + titre foncier) et sans site
+  const kpiSecurisees = allFilteredFosas.filter((f) => f.aTitreFoncier && f.aCloture).length
+  const kpiSansSite = allFilteredFosas.filter((f) => (f as any).site === false || (f as any).site === 0).length
 
   return (
     <div className="space-y-6">
@@ -656,6 +664,18 @@ export default function FosasPage() {
             value={formatNumber(kpiElectrifiees)}
             tone="brand"
             hint={`${formatPercent(percent(kpiElectrifiees, totalFiltered))} raccordées au réseau`}
+          />
+          <StatCard
+            label="Sécurisées"
+            value={formatNumber(kpiSecurisees)}
+            tone="success"
+            hint={`clôture + titre foncier · ${formatPercent(percent(kpiSecurisees, totalFiltered))}`}
+          />
+          <StatCard
+            label="Sans site"
+            value={formatNumber(kpiSansSite)}
+            tone={kpiSansSite > 0 ? "danger" : "default"}
+            hint="fonctionnent hors de leur site de création"
           />
         </div>
       )}
@@ -1112,6 +1132,12 @@ export default function FosasPage() {
                 checked={formData.aTitreFoncier}
                 onChange={(checked) => setFormData({ ...formData, aTitreFoncier: checked })}
                 label="La FOSA a-t-elle un titre foncier ?"
+              />
+              <CheckField
+                id="site"
+                checked={formData.site}
+                onChange={(checked) => setFormData({ ...formData, site: checked })}
+                label="La FOSA fonctionne-t-elle sur son site de création ?"
               />
               <div className="sm:col-span-2">
                 <CheckField

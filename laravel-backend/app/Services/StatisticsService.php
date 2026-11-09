@@ -10,12 +10,24 @@ class StatisticsService
 {
     public function getOverview(): array
     {
+        // Sécurisées (clôture + titre foncier) et FOSA sans site, en une requête.
+        // La colonne `site` peut ne pas encore exister (SQL non appliqué) : on garde.
+        $sansSiteExpr = \Illuminate\Support\Facades\Schema::hasColumn('tmpfosa', 'site')
+            ? 'SUM(CASE WHEN site = 0 THEN 1 ELSE 0 END)'
+            : 'NULL';
+        $secu = DB::selectOne("SELECT
+            SUM(CASE WHEN a_titre_foncier = 1 AND a_cloture = 1 THEN 1 ELSE 0 END) AS securisees,
+            {$sansSiteExpr} AS sans_site
+            FROM tmpfosa");
+
         return [
             'regions' => Region::count(),
             'departements' => Departement::count(),
             'fosas' => Fosa::count(),
             'fosas_ouvertes' => Fosa::functional()->count(),
             'fosas_fermees' => Fosa::closed()->count(),
+            'fosas_securisees' => (int) ($secu->securisees ?? 0),
+            'fosas_sans_site' => (int) ($secu->sans_site ?? 0),
             'personnel' => Personnel::count(),
             'equipements' => Equipement::count(),
             'equipements_biomedicaux' => Equipebio::count(),
@@ -67,21 +79,77 @@ class StatisticsService
     public function getEquipmentStatistics(): array
     {
         return [
-            'equipements' => [
-                'total' => Equipement::count(),
+            'equipements' => array_merge([
                 'par_type' => Equipement::select('type', DB::raw('COUNT(*) as total'))
                     ->groupBy('type')->orderByDesc('total')->get(),
-            ],
-            'equipements_biomedicaux' => [
-                'total' => Equipebio::count(),
+            ], $this->equipAggregates('equipements')),
+
+            'equipements_biomedicaux' => array_merge([
                 'par_type' => Equipebio::select('type', DB::raw('COUNT(*) as total'))
                     ->groupBy('type')->orderByDesc('total')->get(),
-            ],
-            'materiel_roulant' => [
-                'total' => Materielroulant::count(),
+            ], $this->equipAggregates('equipebios')),
+
+            'materiel_roulant' => array_merge([
                 'par_type' => Materielroulant::select('type', DB::raw('COUNT(*) as total'))
                     ->groupBy('type')->orderByDesc('total')->get(),
-            ],
+            ], $this->equipAggregates('materielroulants')),
+        ];
+    }
+
+    /**
+     * Statistiques demandées par la recommandation ImmoSanté pour un parc
+     * d'équipements : total, répartition par source d'acquisition, nombre sous
+     * garantie (date_fin_garantie >= aujourd'hui) et nombre en bon état.
+     * Chaque colonne optionnelle est protégée : si elle n'existe pas encore
+     * (SQL non appliqué), l'agrégat correspondant vaut 0.
+     */
+    private function equipAggregates(string $table): array
+    {
+        $cols = \Illuminate\Support\Facades\Schema::getColumnListing($table);
+        $has = fn (string $c) => in_array($c, $cols, true);
+        $qte = $has('quantite') ? 'COALESCE(quantite, 1)' : '1';
+
+        // État : nouvelle colonne `etat`, sinon ancienne colonne `fonction` (equipebios).
+        if ($has('etat') && $has('fonction')) {
+            $etatExpr = "COALESCE(NULLIF(etat, ''), fonction)";
+        } elseif ($has('etat')) {
+            $etatExpr = 'etat';
+        } elseif ($has('fonction')) {
+            $etatExpr = 'fonction';
+        } else {
+            $etatExpr = null;
+        }
+
+        $sousGarantie = $has('date_fin_garantie')
+            ? "SUM(CASE WHEN date_fin_garantie IS NOT NULL AND date_fin_garantie >= CURDATE() THEN {$qte} ELSE 0 END)"
+            : '0';
+        $bonEtat = $etatExpr
+            ? "SUM(CASE WHEN {$etatExpr} = 'Bon' THEN {$qte} ELSE 0 END)"
+            : '0';
+
+        $agg = DB::selectOne("SELECT
+            COUNT(*) AS lignes,
+            SUM({$qte}) AS total,
+            {$sousGarantie} AS sous_garantie,
+            {$bonEtat} AS bon_etat
+            FROM `{$table}`");
+
+        $parSource = $has('source_acquisition')
+            ? DB::select("SELECT COALESCE(NULLIF(source_acquisition, ''), 'Non spécifiée') AS label,
+                COUNT(*) AS lignes, SUM({$qte}) AS total
+                FROM `{$table}` GROUP BY label ORDER BY total DESC")
+            : [];
+
+        return [
+            'total' => (int) ($agg->total ?? 0),
+            'lignes' => (int) ($agg->lignes ?? 0),
+            'sous_garantie' => (int) ($agg->sous_garantie ?? 0),
+            'bon_etat' => (int) ($agg->bon_etat ?? 0),
+            'par_source' => array_map(fn ($r) => [
+                'label' => $r->label,
+                'total' => (int) $r->total,
+                'lignes' => (int) $r->lignes,
+            ], $parSource),
         ];
     }
 
@@ -172,7 +240,12 @@ class StatisticsService
      */
     public function getDashboard(): array
     {
-        return Cache::remember('statistics.dashboard.v2', 1800, function () {
+        return Cache::remember('statistics.dashboard.v3', 1800, function () {
+            // La colonne `site` peut ne pas encore exister (SQL non appliqué) : on garde.
+            $hasSite = \Illuminate\Support\Facades\Schema::hasColumn('tmpfosa', 'site');
+            $sansSite = $hasSite ? 'SUM(CASE WHEN site = 0 THEN 1 ELSE 0 END)' : 'NULL';
+            $surSite = $hasSite ? 'SUM(CASE WHEN site = 1 THEN 1 ELSE 0 END)' : 'NULL';
+
             $f = DB::selectOne("SELECT
                 COUNT(*) AS total,
                 SUM(CASE WHEN est_ferme = 0 THEN 1 ELSE 0 END) AS ouvertes,
@@ -182,6 +255,8 @@ class StatisticsService
                 SUM(CASE WHEN a_titre_foncier = 1 THEN 1 ELSE 0 END) AS titre_foncier,
                 SUM(CASE WHEN a_cloture = 1 THEN 1 ELSE 0 END) AS cloturees,
                 SUM(CASE WHEN a_titre_foncier = 1 AND a_cloture = 1 THEN 1 ELSE 0 END) AS securisees,
+                {$surSite} AS sur_site,
+                {$sansSite} AS sans_site,
                 SUM(CASE WHEN latitude <> 0 AND longitude <> 0 THEN 1 ELSE 0 END) AS geolocalisees,
                 COALESCE(SUM(capacite_lits), 0) AS lits,
                 SUM(CASE WHEN maintenance_priority = 'urgent' THEN 1 ELSE 0 END) AS maintenance_urgente,
@@ -268,6 +343,9 @@ class StatisticsService
                 'equipements' => [
                     'biomedicaux' => (int) $equipebios->total,
                     'autres' => (int) $equipements->total,
+                    // Détail recommandation ImmoSanté (total, par source, sous garantie, bon état)
+                    'bio' => $this->equipAggregates('equipebios'),
+                    'nonBio' => $this->equipAggregates('equipements'),
                 ],
                 'vehicules' => [
                     'total' => (int) $vehicules->total,
