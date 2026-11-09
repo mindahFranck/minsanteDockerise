@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\CamerounController;
 use App\Http\Controllers\Api\ImportFosaController;
 use App\Http\Controllers\Api\MapInsightsController;
+use App\Http\Controllers\Api\EquipementStandardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -98,6 +99,10 @@ Route::prefix('v1')->group(function () {
     // Cameroun - tout public en GET
     Route::get('/cameroun', [CamerounController::class, 'index']);
     Route::get('/cameroun/{id}', [CamerounController::class, 'show']);
+
+    // Catalogue d'équipements standard par catégorie de FOSA (référence, lecture seule publique)
+    Route::get('/equipements-standard', [EquipementStandardController::class, 'index']);
+    Route::get('/equipements-standard/categories', [EquipementStandardController::class, 'categories']);
 
     // FOSA - toutes les GET sont publiques
     Route::prefix('fosas')->group(function () {

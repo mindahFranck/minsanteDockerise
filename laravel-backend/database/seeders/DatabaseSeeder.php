@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             DegradationSeeder::class,
             CategorieSeeder::class,
+            EquipementStandardSeeder::class,
         ]);
     }
 }

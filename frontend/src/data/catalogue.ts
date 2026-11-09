@@ -3,6 +3,8 @@
  * Issu des documents « LISTE STANDARD DES EQUIPEMENTS » (MINSANTÉ), chargé à la
  * demande (import dynamique) pour ne pas alourdir le bundle principal.
  */
+import api from "../services/api"
+
 export type CatalogueItem = { code: string; designation: string; service: string }
 export type CatalogueCategorie = { label: string; equipements: CatalogueItem[] }
 export type Catalogue = Record<string, CatalogueCategorie>
@@ -28,10 +30,39 @@ export function devinerCategorie(valeur?: string | null): string | null {
 
 let cache: Catalogue | null = null
 
-/** Charge (une seule fois) le catalogue compact. */
+/** Catalogue depuis le JSON statique embarqué (secours hors-ligne). */
+async function fromStaticJson(): Promise<Catalogue> {
+  const mod = await import("./catalogue-equipements.json")
+  return ((mod as any).default ?? mod) as Catalogue
+}
+
+/** Catalogue depuis l'API serveur (table equipements_standard). */
+async function fromApi(): Promise<Catalogue | null> {
+  try {
+    const res = await api.get("/equipements-standard")
+    const rows: any[] = res.data?.data ?? []
+    if (!rows.length) return null
+    const out: Catalogue = {}
+    for (const { code, label } of CATEGORIES_FOSA) out[code] = { label, equipements: [] }
+    const seen: Record<string, Set<string>> = {}
+    for (const r of rows) {
+      const cat = r.categorieFosa
+      if (!out[cat]) out[cat] = { label: cat, equipements: [] }
+      seen[cat] ??= new Set<string>()
+      const key = String(r.designation).toLowerCase()
+      if (seen[cat].has(key)) continue
+      seen[cat].add(key)
+      out[cat].equipements.push({ code: r.code ?? "", designation: r.designation, service: r.service ?? "" })
+    }
+    return out
+  } catch {
+    return null
+  }
+}
+
+/** Charge (une seule fois) le catalogue : API serveur, sinon JSON statique. */
 export async function loadCatalogue(): Promise<Catalogue> {
   if (cache) return cache
-  const mod = await import("./catalogue-equipements.json")
-  cache = ((mod as any).default ?? mod) as Catalogue
+  cache = (await fromApi()) ?? (await fromStaticJson())
   return cache
 }

@@ -43,6 +43,9 @@ class SyncImmosanteSchema extends Command
                 ->comment('Chevaux fiscaux'),
         ]);
 
+        // Catalogue d'équipements standard par catégorie de FOSA (table + peuplement).
+        $this->ensureCatalogueStandard();
+
         // Reprise : source_acquisition reprend financement si vide (matériel roulant).
         try {
             if (Schema::hasColumn('materielroulants', 'source_acquisition') && Schema::hasColumn('materielroulants', 'financement')) {
@@ -58,6 +61,34 @@ class SyncImmosanteSchema extends Command
 
         $this->info('Schéma ImmoSanté synchronisé.');
         return self::SUCCESS;
+    }
+
+    /**
+     * Crée la table `equipements_standard` si absente puis la peuple (si vide)
+     * depuis le catalogue JSON. Idempotent.
+     */
+    private function ensureCatalogueStandard(): void
+    {
+        try {
+            if (!Schema::hasTable('equipements_standard')) {
+                Schema::create('equipements_standard', function (Blueprint $t) {
+                    $t->id();
+                    $t->string('categorie_fosa', 10)->index()->comment('HR|HD|CMA|CSI');
+                    $t->string('service', 150)->nullable();
+                    $t->string('code', 50)->nullable();
+                    $t->string('designation', 500);
+                    $t->text('specifications')->nullable();
+                    $t->string('quantite_standard', 50)->nullable();
+                    $t->string('prix_unitaire', 50)->nullable();
+                    $t->timestamps();
+                    $t->index(['categorie_fosa', 'designation']);
+                });
+                $this->line('  equipements_standard : table créée');
+            }
+            (new \Database\Seeders\EquipementStandardSeeder())->run();
+        } catch (\Throwable $e) {
+            $this->warn('Catalogue standard ignoré : ' . $e->getMessage());
+        }
     }
 
     /** Colonnes communes aux équipements et équipements biomédicaux. */
