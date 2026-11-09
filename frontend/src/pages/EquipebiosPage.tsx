@@ -15,7 +15,7 @@ import SearchableSelect from "../components/SearchableSelect"
 import { exportGenericToPDF, exportGenericToExcel } from "../utils/exportUtils"
 import { PageHeader, StatCard, FilterBar, SearchInput, Badge, formatNumber, toast } from "../components/ui"
 import type { BadgeVariant } from "../components/ui"
-import { CATEGORIES_FOSA, devinerCategorie, loadCatalogue, type CatalogueItem } from "../data/catalogue"
+import { CATEGORIES_FOSA, devinerCategorie, loadCategorieItems, type CatalogueItem } from "../data/catalogue"
 
 /** Valeurs par défaut des nouveaux champs d'un équipement biomédical. */
 const EMPTY_FORM = {
@@ -115,6 +115,10 @@ export default function EquipebiosPage() {
 
   // Liste standard d'équipements de la catégorie FOSA choisie (chargée à la demande)
   const [catalogueItems, setCatalogueItems] = useState<CatalogueItem[]>([])
+  // Équipement choisi dans la liste standard : index, spécifications, et verrou nom/type
+  const [selectedCatIdx, setSelectedCatIdx] = useState<number | null>(null)
+  const [selectedSpecs, setSelectedSpecs] = useState<string>("")
+  const [fromCatalogue, setFromCatalogue] = useState<boolean>(false)
 
   useEffect(() => {
     loadEquipebios()
@@ -141,16 +145,16 @@ export default function EquipebiosPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.fosaId, fosas])
 
-  // Charge la liste standard de la catégorie choisie
+  // Charge la liste standard de la catégorie choisie (avec spécifications)
   useEffect(() => {
     let annule = false
     if (!formData.categorieFosa) {
       setCatalogueItems([])
       return
     }
-    loadCatalogue()
-      .then((cat) => {
-        if (!annule) setCatalogueItems(cat[formData.categorieFosa]?.equipements ?? [])
+    loadCategorieItems(formData.categorieFosa)
+      .then((items) => {
+        if (!annule) setCatalogueItems(items)
       })
       .catch(() => setCatalogueItems([]))
     return () => {
@@ -217,10 +221,17 @@ export default function EquipebiosPage() {
 
   const resetForm = () => {
     setFormData({ ...EMPTY_FORM, dateAcquisition: new Date().toISOString().split("T")[0] })
+    setSelectedCatIdx(null)
+    setSelectedSpecs("")
+    setFromCatalogue(false)
   }
 
   const handleEdit = (equipebio: Equipebio) => {
     setEditingEquipebio(equipebio)
+    // En édition : saisie libre (nom/type modifiables), pas de verrou catalogue.
+    setSelectedCatIdx(null)
+    setSelectedSpecs("")
+    setFromCatalogue(false)
     const svc = (equipebio as any).service
     const fosaId = svc?.fosaId ?? svc?.fosa_id ?? 0
     setFormData({
@@ -413,38 +424,21 @@ export default function EquipebiosPage() {
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} size="large" title={editingEquipebio ? "Modifier l'équipement biomédical" : "Ajouter un équipement biomédical"}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="label">Nom *</label>
-              <input
-                type="text"
-                required
-                value={formData.nom}
-                onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-                className="input"
-              />
-            </div>
-
-            <div>
-              <label className="label">Type</label>
-              <input
-                type="text"
-                value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                className="input"
-                placeholder="Ex: Scanner, IRM, Échographe..."
-              />
-            </div>
-          </div>
-
-          {/* Choix dans la liste standard d'équipements par catégorie de FOSA */}
+          {/* 1. Sélection dans la liste standard (catégorie + équipement), en premier */}
           <div className="rounded-xl border border-brand-100 bg-brand-50/40 p-3">
+            <p className="kicker mb-2">Sélection dans la liste standard</p>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="label">Catégorie de FOSA</label>
                 <select
                   value={formData.categorieFosa}
-                  onChange={(e) => setFormData({ ...formData, categorieFosa: e.target.value })}
+                  onChange={(e) => {
+                    // Changer de catégorie réinitialise la sélection
+                    setSelectedCatIdx(null)
+                    setSelectedSpecs("")
+                    setFromCatalogue(false)
+                    setFormData({ ...formData, categorieFosa: e.target.value })
+                  }}
                   className="input"
                 >
                   <option value="">— Choisir une catégorie —</option>
@@ -458,12 +452,23 @@ export default function EquipebiosPage() {
                 <SearchableSelect
                   options={catalogueItems.map((it, i) => ({
                     id: i,
-                    label: it.code ? `${it.designation} (${it.service})` : `${it.designation} (${it.service})`,
+                    label: `${it.designation} (${it.service})`,
                   }))}
-                  value={null}
+                  value={selectedCatIdx}
                   onChange={(v) => {
-                    const it = v != null ? catalogueItems[Number(v)] : undefined
-                    if (it) setFormData((prev) => ({ ...prev, nom: it.designation, type: prev.type || it.service }))
+                    if (v == null) {
+                      setSelectedCatIdx(null)
+                      setSelectedSpecs("")
+                      setFromCatalogue(false)
+                      return
+                    }
+                    const it = catalogueItems[Number(v)]
+                    if (it) {
+                      setSelectedCatIdx(Number(v))
+                      setSelectedSpecs(it.specifications || "")
+                      setFromCatalogue(true)
+                      setFormData((prev) => ({ ...prev, nom: it.designation, type: it.service || "" }))
+                    }
                   }}
                   placeholder={
                     formData.categorieFosa
@@ -476,9 +481,55 @@ export default function EquipebiosPage() {
                 />
               </div>
             </div>
-            <p className="mt-2 text-xs text-gray-500">
-              Choisir un équipement pré-remplit le nom (liste standard MINSANTÉ). Il reste modifiable.
-            </p>
+            {selectedSpecs ? (
+              <div className="mt-3 rounded-lg border border-brand-100 bg-white/70 p-2.5">
+                <p className="kicker">Spécifications techniques</p>
+                <p className="mt-1 whitespace-pre-line text-xs leading-relaxed text-gray-600">{selectedSpecs}</p>
+              </div>
+            ) : (
+              <p className="mt-2 text-xs text-gray-500">
+                Choisir un équipement remplit le nom et le type (verrouillés). Sinon, saisissez manuellement ci-dessous.
+              </p>
+            )}
+          </div>
+
+          {/* 2. Identification (verrouillée si issue de la liste standard) */}
+          <FormSection title="Identification" />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <div className="flex items-center justify-between">
+                <label className="label">Nom *</label>
+                {fromCatalogue && (
+                  <button
+                    type="button"
+                    onClick={() => { setFromCatalogue(false); setSelectedCatIdx(null); setSelectedSpecs("") }}
+                    className="text-xs font-medium text-brand-600 hover:underline"
+                  >
+                    Saisir manuellement
+                  </button>
+                )}
+              </div>
+              <input
+                type="text"
+                required
+                value={formData.nom}
+                onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                className="input disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                disabled={fromCatalogue}
+              />
+            </div>
+
+            <div>
+              <label className="label">Type</label>
+              <input
+                type="text"
+                value={formData.type}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                className="input disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500"
+                placeholder="Ex: Scanner, IRM, Échographe..."
+                disabled={fromCatalogue}
+              />
+            </div>
           </div>
 
           <FormSection title="Rattachement" hint="FOSA propriétaire et service d'affectation." />

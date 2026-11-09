@@ -20,7 +20,7 @@ class EquipementStandardController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = EquipementStandard::query()
-            ->select('id', 'categorie_fosa', 'service', 'code', 'designation', 'quantite_standard', 'prix_unitaire');
+            ->select('id', 'categorie_fosa', 'service', 'code', 'designation', 'specifications', 'quantite_standard', 'prix_unitaire');
 
         if ($request->filled('categorie')) {
             $query->where('categorie_fosa', strtoupper($request->input('categorie')));
@@ -38,6 +38,7 @@ class EquipementStandardController extends Controller
             'service' => $r->service,
             'code' => $r->code,
             'designation' => $r->designation,
+            'specifications' => $r->specifications,
             'quantiteStandard' => $r->quantite_standard,
             'prixUnitaire' => $r->prix_unitaire,
         ]);

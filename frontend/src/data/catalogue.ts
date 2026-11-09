@@ -5,7 +5,7 @@
  */
 import api from "../services/api"
 
-export type CatalogueItem = { code: string; designation: string; service: string }
+export type CatalogueItem = { code: string; designation: string; service: string; specifications?: string }
 export type CatalogueCategorie = { label: string; equipements: CatalogueItem[] }
 export type Catalogue = Record<string, CatalogueCategorie>
 
@@ -65,4 +65,43 @@ export async function loadCatalogue(): Promise<Catalogue> {
   if (cache) return cache
   cache = (await fromApi()) ?? (await fromStaticJson())
   return cache
+}
+
+const catItemsCache: Record<string, CatalogueItem[]> = {}
+
+/**
+ * Équipements d'une catégorie (avec spécifications), pour le choix dans le
+ * formulaire. API serveur d'abord (inclut les specs), repli sur le JSON statique.
+ */
+export async function loadCategorieItems(code: string): Promise<CatalogueItem[]> {
+  if (!code) return []
+  if (catItemsCache[code]) return catItemsCache[code]
+  // 1) API serveur (avec specifications)
+  try {
+    const res = await api.get("/equipements-standard", { params: { categorie: code } })
+    const rows: any[] = res.data?.data ?? []
+    if (rows.length) {
+      const seen = new Set<string>()
+      const items: CatalogueItem[] = []
+      for (const r of rows) {
+        const key = String(r.designation).toLowerCase()
+        if (seen.has(key)) continue
+        seen.add(key)
+        items.push({
+          code: r.code ?? "",
+          designation: r.designation,
+          service: r.service ?? "",
+          specifications: r.specifications ?? "",
+        })
+      }
+      catItemsCache[code] = items
+      return items
+    }
+  } catch {
+    /* repli ci-dessous */
+  }
+  // 2) Repli : JSON statique (sans specifications)
+  const cat = await loadCatalogue()
+  catItemsCache[code] = cat[code]?.equipements ?? []
+  return catItemsCache[code]
 }
