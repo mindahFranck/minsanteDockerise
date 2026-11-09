@@ -38,6 +38,16 @@ const EMPTY_FORM = {
 }
 type FormState = typeof EMPTY_FORM
 
+/** Intertitre de section dans le formulaire. */
+function FormSection({ title, hint }: { title: string; hint?: string }) {
+  return (
+    <div className="border-t border-gray-100 pt-4">
+      <p className="kicker">{title}</p>
+      {hint && <p className="mt-0.5 text-xs text-gray-400">{hint}</p>}
+    </div>
+  )
+}
+
 /** Squelette du tableau pendant le chargement. */
 function TableSkeleton() {
   return (
@@ -284,7 +294,7 @@ export default function EquipementsPage() {
         />
       )}
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingItem ? "Modifier" : "Ajouter"}>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} size="large" title={editingItem ? "Modifier l'équipement" : "Ajouter un équipement"}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="label">Nom</label>
@@ -317,6 +327,8 @@ export default function EquipementsPage() {
               />
             </div>
           </div>
+          <FormSection title="Rattachement" hint="FOSA propriétaire et service d'affectation." />
+          <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="label">FOSA *</label>
             <SearchableSelect
@@ -344,7 +356,9 @@ export default function EquipementsPage() {
               required
             />
           </div>
-          {/* Identification et acquisition */}
+          </div>
+
+          <FormSection title="Caractéristiques & acquisition" />
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <label className="label">Marque</label>
@@ -389,7 +403,7 @@ export default function EquipementsPage() {
             </div>
           </div>
 
-          {/* Maintenance et garantie */}
+          <FormSection title="Maintenance & garantie" />
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="flex items-center gap-2 pt-6">
               <input

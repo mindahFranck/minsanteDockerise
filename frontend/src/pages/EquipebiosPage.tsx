@@ -56,6 +56,16 @@ function etatVariant(etat?: string): BadgeVariant {
   }
 }
 
+/** Intertitre de section dans le formulaire. */
+function FormSection({ title, hint }: { title: string; hint?: string }) {
+  return (
+    <div className="border-t border-gray-100 pt-4">
+      <p className="kicker">{title}</p>
+      {hint && <p className="mt-0.5 text-xs text-gray-400">{hint}</p>}
+    </div>
+  )
+}
+
 /** Squelette du tableau pendant le chargement. */
 function TableSkeleton() {
   return (
@@ -401,7 +411,7 @@ export default function EquipebiosPage() {
         />
       )}
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingEquipebio ? "Modifier l'équipement biomédical" : "Ajouter un équipement biomédical"}>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} size="large" title={editingEquipebio ? "Modifier l'équipement biomédical" : "Ajouter un équipement biomédical"}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -471,6 +481,8 @@ export default function EquipebiosPage() {
             </p>
           </div>
 
+          <FormSection title="Rattachement" hint="FOSA propriétaire et service d'affectation." />
+          <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="label">FOSA *</label>
             <SearchableSelect
@@ -501,7 +513,9 @@ export default function EquipebiosPage() {
               required
             />
           </div>
+          </div>
 
+          <FormSection title="État & acquisition" />
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <label className="label">Quantité</label>
@@ -539,7 +553,7 @@ export default function EquipebiosPage() {
             </div>
           </div>
 
-          {/* Identification et acquisition */}
+          <FormSection title="Caractéristiques" />
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <label className="label">Marque</label>
@@ -574,7 +588,7 @@ export default function EquipebiosPage() {
             </div>
           </div>
 
-          {/* Maintenance et garantie */}
+          <FormSection title="Maintenance & garantie" />
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="flex items-center gap-2 pt-6">
               <input

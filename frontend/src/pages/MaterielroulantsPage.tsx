@@ -153,6 +153,8 @@ export default function MaterielroulantsPage() {
     try {
       // Nettoyage : chaînes vides -> null ; entiers convertis.
       const payload: any = { ...formData }
+      // Un véhicule = une unité (n° de châssis unique) : quantité toujours 1.
+      payload.quantite = 1
       payload.annee = formData.annee === "" ? null : Number(formData.annee)
       payload.nombrePlaces = formData.nombrePlaces === "" ? null : Number(formData.nombrePlaces)
       payload.puissanceFiscale = formData.puissanceFiscale === "" ? null : Number(formData.puissanceFiscale)
@@ -242,7 +244,7 @@ export default function MaterielroulantsPage() {
     { key: "modele", label: "Modèle" },
     { key: "type", label: "Type" },
     { key: "annee", label: "Année", render: (m: Materielroulant) => <span className="tabular-nums">{m.annee || "-"}</span> },
-    { key: "quantite", label: "Quantité", render: (m: Materielroulant) => <span className="tabular-nums">{m.quantite || "-"}</span> },
+    { key: "immatriculation", label: "Immat.", render: (m: Materielroulant) => (m as any).immatriculation || "—" },
     {
       key: "etat",
       label: "État",
@@ -371,7 +373,7 @@ export default function MaterielroulantsPage() {
               />
             </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="label">Type</label>
               <select
@@ -389,20 +391,10 @@ export default function MaterielroulantsPage() {
               <input
                 type="number"
                 value={formData.annee}
-                onChange={(e) => setFormData({ ...formData, annee: Number.parseInt(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, annee: e.target.value === "" ? "" : Number.parseInt(e.target.value) })}
                 required
                 min="1900"
                 max={new Date().getFullYear() + 1}
-                className="input"
-              />
-            </div>
-            <div>
-              <label className="label">Quantité</label>
-              <input
-                type="number"
-                value={formData.quantite}
-                onChange={(e) => setFormData({ ...formData, quantite: Number.parseInt(e.target.value) || 1 })}
-                min="1"
                 className="input"
               />
             </div>
