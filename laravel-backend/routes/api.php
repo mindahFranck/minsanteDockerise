@@ -1,5 +1,12 @@
 <?php
 
+/*
+ * ============================================================
+ *  Conçu et développé par IT-GRAFIK
+ *  Contact : +237 655 378 864 / +237 675 104 130
+ * ============================================================
+ */
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
