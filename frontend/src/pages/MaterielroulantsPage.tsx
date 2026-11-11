@@ -473,13 +473,14 @@ export default function MaterielroulantsPage() {
             </div>
             <div>
               <label className="label">Type Véhicule</label>
-              <input
-                type="text"
+              <select
                 value={formData.typeVehicule}
                 onChange={(e) => setFormData({ ...formData, typeVehicule: e.target.value })}
                 className="input"
-                placeholder="Ex: PICK UP, SUV, Ambulance"
-              />
+              >
+                <option value="">Sélectionner...</option>
+                {TYPES_VEHICULE.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
             </div>
             <div>
               <label className="label">Immatriculation</label>

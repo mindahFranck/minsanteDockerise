@@ -90,29 +90,50 @@ class ImportController extends Controller
 
         // Colonnes FK : exclues du modèle (renseignées via les listes déroulantes)
         $fkColumns = array_keys((array) $structure['foreignKeys']);
-        $columns = array_filter(
+        $columns = array_values(array_filter(
             $structure['columns'],
             fn ($col) => !in_array($col['name'], $fkColumns, true)
-        );
+        ));
 
-        $headers = array_map(fn ($col) => "{$col['name']} [{$col['type']}]", $columns);
-        $typeRow = array_map(fn ($col) => match(true) {
+        // En-têtes = noms de colonnes simples (snake_case) : lisibles, et stables
+        // quel que soit le formateur d'en-têtes (évite tout décalage à l'import).
+        $headers = array_map(fn ($col) => $col['name'], $columns);
+        // Ligne d'exemple (à remplacer), typée selon la colonne.
+        $example = array_map(fn ($col) => match (true) {
             str_contains($col['type'], 'int') => 123,
             str_contains($col['type'], 'decimal') || str_contains($col['type'], 'double') => 12.34,
             str_contains($col['type'], 'date') => '2025-01-01',
             default => 'Texte exemple',
         }, $columns);
 
-        $callback = function () use ($headers, $typeRow) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, $headers);
-            fputcsv($file, $typeRow);
-            fclose($file);
-        };
+        // Génère un vrai fichier .xlsx (OOXML) — ouvrable sous Windows ET Linux.
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Modele');
 
-        return response()->stream($callback, 200, [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename={$table}_template.csv",
-        ]);
+        foreach ($headers as $i => $header) {
+            $letter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->setCellValue("{$letter}1", $header);
+            $sheet->setCellValueExplicit(
+                "{$letter}2",
+                (string) $example[$i],
+                \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING
+            );
+            $sheet->getColumnDimension($letter)->setAutoSize(true);
+        }
+
+        // En-têtes en gras + ligne figée
+        if (!empty($headers)) {
+            $lastLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($headers));
+            $sheet->getStyle("A1:{$lastLetter}1")->getFont()->setBold(true);
+            $sheet->freezePane('A2');
+        }
+
+        $tmp = tempnam(sys_get_temp_dir(), 'tpl_') . '.xlsx';
+        (new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet))->save($tmp);
+
+        return response()->download($tmp, "{$table}_template.xlsx", [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
 }
