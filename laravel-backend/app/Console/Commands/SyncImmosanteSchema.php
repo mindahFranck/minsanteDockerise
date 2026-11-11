@@ -74,6 +74,7 @@ class SyncImmosanteSchema extends Command
                 Schema::create('equipements_standard', function (Blueprint $t) {
                     $t->id();
                     $t->string('categorie_fosa', 10)->index()->comment('HR|HD|CMA|CSI');
+                    $t->string('famille', 10)->default('bio')->index()->comment('bio|autre');
                     $t->string('service', 150)->nullable();
                     $t->string('code', 50)->nullable();
                     $t->string('designation', 500);
@@ -84,8 +85,29 @@ class SyncImmosanteSchema extends Command
                     $t->index(['categorie_fosa', 'designation']);
                 });
                 $this->line('  equipements_standard : table créée');
+            } elseif (!Schema::hasColumn('equipements_standard', 'famille')) {
+                // Table déjà présente (prod) sans la colonne : on l'ajoute.
+                Schema::table('equipements_standard', function (Blueprint $t) {
+                    $t->string('famille', 10)->default('bio')->index()->comment('bio|autre');
+                });
+                $this->line('  equipements_standard : +famille');
             }
+
             (new \Database\Seeders\EquipementStandardSeeder())->run();
+
+            // Backfill famille (bio|autre) pour les lignes existantes non classées.
+            if (Schema::hasColumn('equipements_standard', 'famille')) {
+                $services = \Illuminate\Support\Facades\DB::table('equipements_standard')
+                    ->whereNull('famille')->orWhere('famille', '')->orWhere('famille', 'bio')
+                    ->distinct()->pluck('service');
+                foreach ($services as $svc) {
+                    $famille = \App\Models\EquipementStandard::familleFromService($svc);
+                    if ($famille === 'autre') {
+                        \Illuminate\Support\Facades\DB::table('equipements_standard')
+                            ->where('service', $svc)->update(['famille' => 'autre']);
+                    }
+                }
+            }
         } catch (\Throwable $e) {
             $this->warn('Catalogue standard ignoré : ' . $e->getMessage());
         }

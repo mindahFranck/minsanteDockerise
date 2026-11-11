@@ -152,7 +152,7 @@ export default function EquipebiosPage() {
       setCatalogueItems([])
       return
     }
-    loadCategorieItems(formData.categorieFosa)
+    loadCategorieItems(formData.categorieFosa, "bio")
       .then((items) => {
         if (!annule) setCatalogueItems(items)
       })

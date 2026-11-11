@@ -20,10 +20,14 @@ class EquipementStandardController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = EquipementStandard::query()
-            ->select('id', 'categorie_fosa', 'service', 'code', 'designation', 'specifications', 'quantite_standard', 'prix_unitaire');
+            ->select('id', 'categorie_fosa', 'famille', 'service', 'code', 'designation', 'specifications', 'quantite_standard', 'prix_unitaire');
 
         if ($request->filled('categorie')) {
             $query->where('categorie_fosa', strtoupper($request->input('categorie')));
+        }
+        // Famille : bio (biomédical) ou autre (non biomédical)
+        if ($request->filled('famille') && \Illuminate\Support\Facades\Schema::hasColumn('equipements_standard', 'famille')) {
+            $query->where('famille', strtolower($request->input('famille')));
         }
         if ($request->filled('search')) {
             $s = $request->input('search');
@@ -35,6 +39,7 @@ class EquipementStandardController extends Controller
         $rows = $query->get()->map(fn ($r) => [
             'id' => $r->id,
             'categorieFosa' => $r->categorie_fosa,
+            'famille' => $r->famille ?? 'bio',
             'service' => $r->service,
             'code' => $r->code,
             'designation' => $r->designation,

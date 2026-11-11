@@ -5,7 +5,7 @@
  */
 import api from "../services/api"
 
-export type CatalogueItem = { code: string; designation: string; service: string; specifications?: string }
+export type CatalogueItem = { code: string; designation: string; service: string; specifications?: string; famille?: string }
 export type CatalogueCategorie = { label: string; equipements: CatalogueItem[] }
 export type Catalogue = Record<string, CatalogueCategorie>
 
@@ -70,38 +70,45 @@ export async function loadCatalogue(): Promise<Catalogue> {
 const catItemsCache: Record<string, CatalogueItem[]> = {}
 
 /**
- * Équipements d'une catégorie (avec spécifications), pour le choix dans le
- * formulaire. API serveur d'abord (inclut les specs), repli sur le JSON statique.
+ * Équipements d'une catégorie, filtrables par famille ('bio' biomédical ou
+ * 'autre' non biomédical). API serveur d'abord (specs + famille), repli sur le
+ * JSON statique (filtré par famille côté client).
  */
-export async function loadCategorieItems(code: string): Promise<CatalogueItem[]> {
+export async function loadCategorieItems(code: string, famille?: string): Promise<CatalogueItem[]> {
   if (!code) return []
-  if (catItemsCache[code]) return catItemsCache[code]
-  // 1) API serveur (avec specifications)
+  const key = `${code}|${famille ?? "all"}`
+  if (catItemsCache[key]) return catItemsCache[key]
+  // 1) API serveur (avec specifications + famille)
   try {
-    const res = await api.get("/equipements-standard", { params: { categorie: code } })
+    const params: Record<string, string> = { categorie: code }
+    if (famille) params.famille = famille
+    const res = await api.get("/equipements-standard", { params })
     const rows: any[] = res.data?.data ?? []
     if (rows.length) {
       const seen = new Set<string>()
       const items: CatalogueItem[] = []
       for (const r of rows) {
-        const key = String(r.designation).toLowerCase()
-        if (seen.has(key)) continue
-        seen.add(key)
+        const k = String(r.designation).toLowerCase()
+        if (seen.has(k)) continue
+        seen.add(k)
         items.push({
           code: r.code ?? "",
           designation: r.designation,
           service: r.service ?? "",
           specifications: r.specifications ?? "",
+          famille: r.famille ?? "bio",
         })
       }
-      catItemsCache[code] = items
+      catItemsCache[key] = items
       return items
     }
   } catch {
     /* repli ci-dessous */
   }
-  // 2) Repli : JSON statique (sans specifications)
+  // 2) Repli : JSON statique, filtré par famille si disponible
   const cat = await loadCatalogue()
-  catItemsCache[code] = cat[code]?.equipements ?? []
-  return catItemsCache[code]
+  let items = cat[code]?.equipements ?? []
+  if (famille) items = items.filter((it) => (it.famille ?? "bio") === famille)
+  catItemsCache[key] = items
+  return items
 }

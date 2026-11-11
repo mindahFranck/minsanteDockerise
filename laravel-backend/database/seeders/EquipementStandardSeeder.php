@@ -52,6 +52,7 @@ class EquipementStandardSeeder extends Seeder
                     $rows[] = [
                         'categorie_fosa' => $code,
                         'service' => $nomService ? mb_substr($nomService, 0, 150) : null,
+                        'famille' => \App\Models\EquipementStandard::familleFromService($nomService),
                         'code' => isset($eq['code']) && $eq['code'] !== '' ? mb_substr((string) $eq['code'], 0, 50) : null,
                         'designation' => mb_substr($designation, 0, 500),
                         'specifications' => $eq['specifications'] ?? null,

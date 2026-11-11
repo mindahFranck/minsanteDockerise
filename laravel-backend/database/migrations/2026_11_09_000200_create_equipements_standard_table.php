@@ -20,6 +20,7 @@ return new class extends Migration
         Schema::create('equipements_standard', function (Blueprint $table) {
             $table->id();
             $table->string('categorie_fosa', 10)->index()->comment('HR|HD|CMA|CSI');
+            $table->string('famille', 10)->default('bio')->index()->comment('bio|autre (biomédical ou non)');
             $table->string('service', 150)->nullable();
             $table->string('code', 50)->nullable();
             $table->string('designation', 500);

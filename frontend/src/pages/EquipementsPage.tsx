@@ -114,7 +114,7 @@ export default function EquipementsPage() {
       setCatalogueItems([])
       return
     }
-    loadCategorieItems(formData.categorieFosa)
+    loadCategorieItems(formData.categorieFosa, "autre")
       .then((items) => { if (!annule) setCatalogueItems(items) })
       .catch(() => setCatalogueItems([]))
     return () => { annule = true }
