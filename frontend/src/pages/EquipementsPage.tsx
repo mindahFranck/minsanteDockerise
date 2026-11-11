@@ -13,6 +13,7 @@ import type { Equipement } from "../types"
 import { usePermissions } from "../hooks/usePermissions"
 import { useFosaServices, useServicesForFosa } from "../hooks/useFosaServices"
 import SearchableSelect from "../components/SearchableSelect"
+import Select from "../components/Select"
 import { exportEquipementsToPDF, exportEquipementsToExcel } from "../utils/pageExports"
 import { PageHeader, FilterBar, SearchInput, Badge, toast } from "../components/ui"
 import { CATEGORIES_FOSA, devinerCategorie, loadCategorieItems, type CatalogueItem } from "../data/catalogue"
@@ -336,19 +337,15 @@ export default function EquipementsPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="label">Catégorie de FOSA</label>
-                <select
+                <Select
                   value={formData.categorieFosa}
-                  onChange={(e) => {
+                  onChange={(v) => {
                     setSelectedCatIdx(null); setSelectedSpecs(""); setFromCatalogue(false)
-                    setFormData({ ...formData, categorieFosa: e.target.value })
+                    setFormData({ ...formData, categorieFosa: v })
                   }}
-                  className="input"
-                >
-                  <option value="">— Choisir une catégorie —</option>
-                  {CATEGORIES_FOSA.map((c) => (
-                    <option key={c.code} value={c.code}>{c.label}</option>
-                  ))}
-                </select>
+                  placeholder="— Choisir une catégorie —"
+                  options={CATEGORIES_FOSA.map((c) => ({ value: c.code, label: c.label }))}
+                />
               </div>
               <div>
                 <label className="label">Équipement standard</label>
@@ -488,23 +485,31 @@ export default function EquipementsPage() {
             </div>
             <div>
               <label className="label">Source d'acquisition</label>
-              <select value={formData.sourceAcquisition} onChange={(e) => setFormData({ ...formData, sourceAcquisition: e.target.value })} className="input">
-                <option value="">—</option>
-                <option value="BIP">BIP</option>
-                <option value="PTF">PTF</option>
-                <option value="DON">DON</option>
-                <option value="ACHAT">ACHAT</option>
-              </select>
+              <Select
+                value={formData.sourceAcquisition}
+                onChange={(v) => setFormData({ ...formData, sourceAcquisition: v })}
+                placeholder="—"
+                options={[
+                  { value: "BIP", label: "BIP" },
+                  { value: "PTF", label: "PTF" },
+                  { value: "DON", label: "DON" },
+                  { value: "ACHAT", label: "ACHAT" },
+                ]}
+              />
             </div>
             <div>
               <label className="label">État</label>
-              <select value={formData.etat} onChange={(e) => setFormData({ ...formData, etat: e.target.value })} className="input">
-                <option value="">—</option>
-                <option value="Bon">Bon</option>
-                <option value="Moyen">Moyen</option>
-                <option value="Mauvais">Mauvais</option>
-                <option value="Hors service">Hors service</option>
-              </select>
+              <Select
+                value={formData.etat}
+                onChange={(v) => setFormData({ ...formData, etat: v })}
+                placeholder="—"
+                options={[
+                  { value: "Bon", label: "Bon" },
+                  { value: "Moyen", label: "Moyen" },
+                  { value: "Mauvais", label: "Mauvais" },
+                  { value: "Hors service", label: "Hors service" },
+                ]}
+              />
             </div>
           </div>
 
@@ -521,11 +526,15 @@ export default function EquipementsPage() {
             </div>
             <div>
               <label className="label">Type de maintenance</label>
-              <select value={formData.typeMaintenance} onChange={(e) => setFormData({ ...formData, typeMaintenance: e.target.value })} className="input">
-                <option value="">—</option>
-                <option value="Préventive">Préventive</option>
-                <option value="Curative">Curative</option>
-              </select>
+              <Select
+                value={formData.typeMaintenance}
+                onChange={(v) => setFormData({ ...formData, typeMaintenance: v })}
+                placeholder="—"
+                options={[
+                  { value: "Préventive", label: "Préventive" },
+                  { value: "Curative", label: "Curative" },
+                ]}
+              />
             </div>
             <div>
               <label className="label">Durée de garantie</label>

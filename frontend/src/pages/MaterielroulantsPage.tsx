@@ -13,6 +13,7 @@ import { fosaService } from "../services/fosaService"
 import type { Materielroulant, Fosa } from "../types"
 import { usePermissions } from "../hooks/usePermissions"
 import SearchableSelect from "../components/SearchableSelect"
+import Select from "../components/Select"
 import { useServicesForFosa } from "../hooks/useFosaServices"
 import { exportMaterielroulantsToPDF, exportMaterielroulantsToExcel } from "../utils/pageExports"
 import { PageHeader, StatCard, FilterBar, SearchInput, Badge, formatNumber } from "../components/ui"
@@ -376,15 +377,12 @@ export default function MaterielroulantsPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="label">Type</label>
-              <select
+              <Select
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                required
-                className="input"
-              >
-                <option value="">Sélectionner...</option>
-                {TYPES_VEHICULE.map((t) => <option key={t} value={t}>{t}</option>)}
-              </select>
+                onChange={(v) => setFormData({ ...formData, type: v })}
+                placeholder="Sélectionner..."
+                options={TYPES_VEHICULE.map((t) => ({ value: t, label: t }))}
+              />
             </div>
             <div>
               <label className="label">Année</label>
@@ -411,19 +409,19 @@ export default function MaterielroulantsPage() {
             </div>
             <div>
               <label className="label">État</label>
-              <select
+              <Select
                 value={formData.etat}
-                onChange={(e) => setFormData({ ...formData, etat: e.target.value })}
-                className="input"
-              >
-                <option value="">Sélectionner...</option>
-                <option value="Neuf">Neuf</option>
-                <option value="Bon">Bon</option>
-                <option value="Moyen">Moyen</option>
-                <option value="Mauvais">Mauvais</option>
-                <option value="Hors service">Hors service</option>
-                <option value="Amorti">Amorti</option>
-              </select>
+                onChange={(v) => setFormData({ ...formData, etat: v })}
+                placeholder="Sélectionner..."
+                options={[
+                  { value: "Neuf", label: "Neuf" },
+                  { value: "Bon", label: "Bon" },
+                  { value: "Moyen", label: "Moyen" },
+                  { value: "Mauvais", label: "Mauvais" },
+                  { value: "Hors service", label: "Hors service" },
+                  { value: "Amorti", label: "Amorti" },
+                ]}
+              />
             </div>
             <div>
               <label className="label">Nombre de places</label>
@@ -473,14 +471,12 @@ export default function MaterielroulantsPage() {
             </div>
             <div>
               <label className="label">Type Véhicule</label>
-              <select
+              <Select
                 value={formData.typeVehicule}
-                onChange={(e) => setFormData({ ...formData, typeVehicule: e.target.value })}
-                className="input"
-              >
-                <option value="">Sélectionner...</option>
-                {TYPES_VEHICULE.map((t) => <option key={t} value={t}>{t}</option>)}
-              </select>
+                onChange={(v) => setFormData({ ...formData, typeVehicule: v })}
+                placeholder="Sélectionner..."
+                options={TYPES_VEHICULE.map((t) => ({ value: t, label: t }))}
+              />
             </div>
             <div>
               <label className="label">Immatriculation</label>
@@ -494,25 +490,21 @@ export default function MaterielroulantsPage() {
             </div>
             <div>
               <label className="label">Usage</label>
-              <select
+              <Select
                 value={formData.usage}
-                onChange={(e) => setFormData({ ...formData, usage: e.target.value })}
-                className="input"
-              >
-                <option value="">Sélectionner...</option>
-                {USAGES.map((u) => <option key={u} value={u}>{u}</option>)}
-              </select>
+                onChange={(v) => setFormData({ ...formData, usage: v })}
+                placeholder="Sélectionner..."
+                options={USAGES.map((u) => ({ value: u, label: u }))}
+              />
             </div>
             <div>
               <label className="label">Code</label>
-              <select
+              <Select
                 value={formData.code}
-                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                className="input"
-              >
-                <option value="">Sélectionner...</option>
-                {CODES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
+                onChange={(v) => setFormData({ ...formData, code: v })}
+                placeholder="Sélectionner..."
+                options={CODES.map((c) => ({ value: c, label: c }))}
+              />
             </div>
             <div>
               <label className="label">Structure</label>
@@ -545,28 +537,26 @@ export default function MaterielroulantsPage() {
             </div>
             <div>
               <label className="label">Énergie</label>
-              <select
+              <Select
                 value={formData.energie}
-                onChange={(e) => setFormData({ ...formData, energie: e.target.value })}
-                className="input"
-              >
-                <option value="">Sélectionner...</option>
-                <option value="Gasoil">Gasoil</option>
-                <option value="Essence">Essence</option>
-                <option value="Électrique">Électrique</option>
-                <option value="Hybride">Hybride</option>
-              </select>
+                onChange={(v) => setFormData({ ...formData, energie: v })}
+                placeholder="Sélectionner..."
+                options={[
+                  { value: "Gasoil", label: "Gasoil" },
+                  { value: "Essence", label: "Essence" },
+                  { value: "Électrique", label: "Électrique" },
+                  { value: "Hybride", label: "Hybride" },
+                ]}
+              />
             </div>
             <div className="sm:col-span-2">
               <label className="label">Source d'acquisition</label>
-              <select
+              <Select
                 value={formData.sourceAcquisition}
-                onChange={(e) => setFormData({ ...formData, sourceAcquisition: e.target.value })}
-                className="input"
-              >
-                <option value="">Sélectionner...</option>
-                {SOURCES_ACQUISITION.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
+                onChange={(v) => setFormData({ ...formData, sourceAcquisition: v })}
+                placeholder="Sélectionner..."
+                options={SOURCES_ACQUISITION.map((s) => ({ value: s, label: s }))}
+              />
             </div>
             <div className="sm:col-span-3">
               <label className="label">Acte d'Affectation</label>
