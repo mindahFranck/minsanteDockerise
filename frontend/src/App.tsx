@@ -18,6 +18,7 @@ import BatimentsPage from "./pages/BatimentsPage"
 import ServicesPage from "./pages/ServicesPage"
 import EquipementsPage from "./pages/EquipementsPage"
 import EquipebiosPage from "./pages/EquipebiosPage"
+import EquipementsStandardPage from "./pages/EquipementsStandardPage"
 import MaterielroulantsPage from "./pages/MaterielroulantsPage"
 import DegradationsPage from "./pages/DegradationsPage"
 import ParametresPage from "./pages/ParametresPage"
@@ -75,6 +76,7 @@ function App() {
           {/* Gestion des équipements */}
           <Route path="equipements" element={<EquipementsPage />} />
           <Route path="equipebios" element={<EquipebiosPage />} />
+          <Route path="equipements-standard" element={<EquipementsStandardPage />} />
           <Route path="materielroulants" element={<MaterielroulantsPage />} />
 
           {/* Système et administration */}

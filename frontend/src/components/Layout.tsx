@@ -66,6 +66,7 @@ const NAVIGATION: NavSection[] = [
     items: [
       { name: "Équipements", href: "/dashboard/equipements", icon: Package, requiresPermission: "canView" },
       { name: "Équipements biomédicaux", href: "/dashboard/equipebios", icon: Stethoscope, requiresPermission: "canView" },
+      { name: "Catalogue standard", href: "/dashboard/equipements-standard", icon: Package, requiresPermission: "canView" },
       { name: "Matériel roulant", href: "/dashboard/materielroulants", icon: Truck, requiresPermission: "canView" },
     ],
   },

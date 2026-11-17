@@ -208,6 +208,12 @@ Route::prefix('v1')->group(function () {
         // Equipebios - tout protégé
         Route::apiResource('equipebios', EquipebioController::class);
 
+        // Catalogue d'équipements standard - CRUD protégé (lecture publique ci-dessus)
+        Route::get('/equipements-standard/{id}', [EquipementStandardController::class, 'show'])->whereNumber('id');
+        Route::post('/equipements-standard', [EquipementStandardController::class, 'store']);
+        Route::put('/equipements-standard/{id}', [EquipementStandardController::class, 'update'])->whereNumber('id');
+        Route::delete('/equipements-standard/{id}', [EquipementStandardController::class, 'destroy'])->whereNumber('id');
+
         // Materielroulants - tout protégé
         Route::apiResource('materielroulants', MaterielroulantController::class);
 
